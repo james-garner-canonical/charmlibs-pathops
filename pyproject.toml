@@ -19,8 +19,8 @@ dependencies = [
 ]
 
 [project.urls]
-#"Repository" = "https://github.com/#/#"
-#"Issues" = "https://github.com/#/#/issues"
+"Repository" = "https://github.com/canonical/charmlibs-pathops"
+"Issues" = "https://github.com/canonical/charmlibs-pathops/issues"
 
 [build-system]
 requires = [
