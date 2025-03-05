@@ -87,10 +87,6 @@ class ContainerPath:
             raise
         return info
 
-    ##################################################
-    # protocol Path methods with extended signatures #
-    ##################################################
-
     def read_bytes(self) -> bytes:
         try:
             binary_io = self.container.pull(self.path, encoding=None)
@@ -108,6 +104,10 @@ class ContainerPath:
         if errors is None:
             errors = 'strict'
         return data.decode(encoding=encoding, errors=errors)
+
+    ##################################################
+    # protocol Path methods with extended signatures #
+    ##################################################
 
     def write_bytes(
         self,
