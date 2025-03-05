@@ -23,7 +23,6 @@ import pytest
 
 from charmlibs.pathops import LocalPath
 
-
 USER_AND_GROUP_COMBINATIONS = [
     ('user', 'group'),
     ('user', 2),
