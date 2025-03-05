@@ -156,6 +156,7 @@ include = ["src", "tests"]
 pythonVersion = "3.8"  # check no python > 3.8 features are used
 pythonPlatform = "All"
 typeCheckingMode = "strict"
+reportPrivateUsage = false  # things that are effectively public still need to be private to users
 reportUnnecessaryIsInstance = false  # types aren't perfect
 reportUnnecessaryComparison = false  # types aren't perfect
 reportUnnecessaryTypeIgnoreComment = "error"  # unnecessary ignores should be removed
