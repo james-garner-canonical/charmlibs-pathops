@@ -41,6 +41,19 @@ class TestIterDir:
         assert len(container_list) == len(container_set)
         assert local_set == container_set
 
+    def test_given_not_exists_when_iterdir_then_raises(
+        self, container: ops.Container, interesting_dir: pathlib.Path
+    ):
+        path = interesting_dir / 'does-not-exist'
+        local_path = LocalPath(path)
+        with pytest.raises(FileNotFoundError) as ctx:
+            next(local_path.iterdir())
+        print(ctx.value)
+        container_path = ContainerPath(path, container=container)
+        with pytest.raises(FileNotFoundError) as ctx:
+            next(container_path.iterdir())
+        print(ctx.value)
+
     def test_given_not_a_directory_when_iterdir_then_raises(
         self, container: ops.Container, interesting_dir: pathlib.Path
     ):
