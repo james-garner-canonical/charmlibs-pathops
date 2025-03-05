@@ -41,7 +41,7 @@ class TestIterDir:
         assert len(container_list) == len(container_set)
         assert local_set == container_set
 
-    def test_given_not_exists_when_iterdir_then_raises(
+    def test_given_not_exists_when_iterdir_then_raises_file_not_found(
         self, container: ops.Container, interesting_dir: pathlib.Path
     ):
         path = interesting_dir / 'does-not-exist'
@@ -54,7 +54,7 @@ class TestIterDir:
             next(container_path.iterdir())
         print(ctx.value)
 
-    def test_given_not_a_directory_when_iterdir_then_raises(
+    def test_given_not_a_directory_when_iterdir_then_raises_not_a_directory(
         self, container: ops.Container, interesting_dir: pathlib.Path
     ):
         path = interesting_dir / 'empty_file.bin'
