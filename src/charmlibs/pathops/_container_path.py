@@ -22,31 +22,27 @@ import typing
 from ops import pebble
 
 from . import _errors
+from ._types import StrPathLike
 
 if typing.TYPE_CHECKING:
-    import os
-
     import ops
-    from typing_extensions import Self, TypeAlias
-
-
-_StrPathLike: TypeAlias = 'str | os.PathLike[str]'
+    from typing_extensions import Self
 
 
 class ContainerPath:
-    def __init__(self, *parts: _StrPathLike, container: ops.Container) -> None:
-        self._path = pathlib.PurePath(*parts)
-        self._container = container
+    def __init__(self, *parts: StrPathLike, container: ops.Container) -> None:
+        self.path = pathlib.PurePath(*parts)
+        self.container = container
 
-    def _str(self) -> str:
-        return f"'{self._path}' in ops.Container {self._container.name}"
+    def _description(self) -> str:
+        return f"'{self.path}' in ops.Container {self.container.name!r}"
 
     #############################
     # protocol PurePath methods #
     #############################
 
     def __str__(self) -> str:
-        return self._path.__str__()
+        return self.path.__str__()
 
     #########################
     # protocol Path methods #
@@ -55,8 +51,8 @@ class ContainerPath:
     def iterdir(self) -> typing.Generator[Self]:
         # python < 3.13 defers NotADirectoryError to iteration time, but python 3.13 raises on call
         if not self.is_dir():
-            raise _errors.NotADirectory.exception(self._str())
-        file_infos = self._container.list_files(self._path)
+            raise _errors.NotADirectory.exception(self._description())
+        file_infos = self.container.list_files(self.path)
         for f in file_infos:
             yield self.with_segments(f.path)
 
@@ -84,7 +80,7 @@ class ContainerPath:
 
     def _get_fileinfo(self) -> pebble.FileInfo | None:
         try:
-            [info] = self._container.list_files(self._path, itself=True)
+            [info] = self.container.list_files(self.path, itself=True)
         except pebble.APIError as e:
             if _errors.FileNotFound.matches(e):
                 return None
@@ -94,6 +90,24 @@ class ContainerPath:
     ##################################################
     # protocol Path methods with extended signatures #
     ##################################################
+
+    def read_bytes(self) -> bytes:
+        try:
+            binary_io = self.container.pull(self.path, encoding=None)
+        except pebble.PathError as e:
+            for error in (_errors.FileNotFound, _errors.Permission):
+                if error.matches(e):
+                    raise error.exception(self._description()) from e
+            raise
+        return binary_io.read()
+
+    def read_text(self, encoding: str | None = None, errors: str | None = None) -> str:
+        data = self.read_bytes()
+        if encoding is None:
+            encoding = 'utf-8'
+        if errors is None:
+            errors = 'strict'
+        return data.decode(encoding=encoding, errors=errors)
 
     def write_bytes(
         self,
@@ -132,5 +146,5 @@ class ContainerPath:
     # non-protocol Path methods #
     #############################
 
-    def with_segments(self, *pathsegments: _StrPathLike) -> Self:
-        return type(self)(*pathsegments, container=self._container)
+    def with_segments(self, *pathsegments: StrPathLike) -> Self:
+        return type(self)(*pathsegments, container=self.container)

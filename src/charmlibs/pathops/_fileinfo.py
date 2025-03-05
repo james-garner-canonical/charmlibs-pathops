@@ -1,0 +1,69 @@
+# Copyright 2024 Canonical Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Utilities for creating and working with pebble.FileInfo objects."""
+
+from __future__ import annotations
+
+import datetime
+import grp
+import pathlib
+import pwd
+import stat
+import typing
+
+from ops import pebble
+
+from ._container_path import ContainerPath
+
+if typing.TYPE_CHECKING:
+    from ._types import StrPathLike
+
+
+_FT_MAP: dict[int, pebble.FileType] = {
+    stat.S_IFREG: pebble.FileType.FILE,
+    stat.S_IFDIR: pebble.FileType.DIRECTORY,
+    stat.S_IFLNK: pebble.FileType.SYMLINK,
+    stat.S_IFSOCK: pebble.FileType.SOCKET,
+    stat.S_IFIFO: pebble.FileType.NAMED_PIPE,
+    stat.S_IFBLK: pebble.FileType.DEVICE,  # block device
+    stat.S_IFCHR: pebble.FileType.DEVICE,  # character device
+}
+
+
+def get_fileinfo(path: StrPathLike | ContainerPath) -> pebble.FileInfo:
+    if isinstance(path, ContainerPath):
+        [info] = path.container.list_files(path.path, itself=True)
+        return info
+    return _from_pathlib_path(pathlib.Path(path))
+
+
+def _from_pathlib_path(path: pathlib.Path) -> pebble.FileInfo:
+    stat_result = path.lstat()  # lstat because pebble doesn't follow symlinks
+    utcoffset = datetime.datetime.now().astimezone().utcoffset()
+    timezone = datetime.timezone(utcoffset) if utcoffset is not None else datetime.timezone.utc
+    filetype = _FT_MAP.get(stat.S_IFMT(stat_result.st_mode), pebble.FileType.UNKNOWN)
+    size = stat_result.st_size if filetype is pebble.FileType.FILE else None
+    return pebble.FileInfo(
+        path=str(path),
+        name=path.name,
+        type=filetype,
+        size=size,
+        permissions=stat.S_IMODE(stat_result.st_mode),
+        last_modified=datetime.datetime.fromtimestamp(int(stat_result.st_mtime), tz=timezone),
+        user_id=stat_result.st_uid,
+        user=pwd.getpwuid(stat_result.st_uid).pw_name,
+        group_id=stat_result.st_gid,
+        group=grp.getgrgid(stat_result.st_gid).gr_name,
+    )

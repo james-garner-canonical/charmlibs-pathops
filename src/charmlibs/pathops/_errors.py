@@ -38,3 +38,13 @@ class NotADirectory:
     @staticmethod
     def exception(msg: str) -> NotADirectoryError:
         return NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), msg)
+
+
+class Permission:
+    @classmethod
+    def matches(cls, error: pebble.Error) -> bool:
+        return isinstance(error, pebble.PathError) and error.kind == 'permission-denied'
+
+    @staticmethod
+    def exception(msg: str) -> PermissionError:
+        return PermissionError(errno.EPERM, os.strerror(errno.EPERM), msg)

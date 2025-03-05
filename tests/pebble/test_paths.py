@@ -41,9 +41,8 @@ class TestIterDir:
         assert len(container_list) == len(container_set)
         assert local_set == container_set
 
-    @staticmethod
     def test_given_not_a_directory_when_iterdir_then_raises(
-        container: ops.Container, interesting_dir: pathlib.Path
+        self, container: ops.Container, interesting_dir: pathlib.Path
     ):
         path = interesting_dir / 'empty_file.bin'
         local_path = LocalPath(path)
