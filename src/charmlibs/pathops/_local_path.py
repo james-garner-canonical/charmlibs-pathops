@@ -34,11 +34,11 @@ class LocalPath(pathlib.PosixPath):
         user: str | int | None = None,
         group: str | int | None = None,
     ) -> int:
-        size = super().write_bytes(data)
+        bytes_written = super().write_bytes(data)
         if mode is not None:
             self.chmod(mode)
         _chown(self, user=user, group=group)
-        return size
+        return bytes_written
 
     def write_text(
         self,
@@ -51,11 +51,11 @@ class LocalPath(pathlib.PosixPath):
         user: str | int | None = None,
         group: str | int | None = None,
     ) -> int:
-        size = super().write_text(data, encoding=encoding, errors=errors)
+        bytes_written = super().write_text(data, encoding=encoding, errors=errors)
         if mode is not None:
             self.chmod(mode)
         _chown(self, user=user, group=group)
-        return size
+        return bytes_written
 
     def mkdir(
         self,
@@ -72,6 +72,8 @@ class LocalPath(pathlib.PosixPath):
 
 
 def _chown(path: pathlib.Path, user: str | int | None, group: str | int | None) -> None:
+    # shutil.chown is happy as long as either user or group is not None
+    # but the type checker doesn't like that, so we have to be more explicit
     if user is not None and group is not None:
         shutil.chown(path, user=user, group=group)
     elif user is not None:
@@ -81,7 +83,10 @@ def _chown(path: pathlib.Path, user: str | int | None, group: str | int | None) 
 
 
 def _typecheck(path: LocalPath) -> None:  # pyright: ignore[reportUnusedFunction]
-    from ._types import PathProtocol
+    """Check that LocalPath adheres to our protocol."""
+
+    if typing.TYPE_CHECKING:
+        from ._types import PathProtocol
 
     def f(p: PathProtocol) -> None: ...
 
