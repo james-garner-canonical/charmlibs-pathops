@@ -352,13 +352,3 @@ class ContainerPath:
 
     def with_segments(self, *pathsegments: StrPathLike) -> Self:
         return type(self)(*pathsegments, container=self._container)
-
-
-def _typecheck(path: ContainerPath) -> None:  # pyright: ignore[reportUnusedFunction]
-    """Check that ContainerPath adheres to our protocol."""
-    if typing.TYPE_CHECKING:
-        from ._types import PathProtocol
-
-    def f(p: PathProtocol) -> None: ...
-
-    f(path)
