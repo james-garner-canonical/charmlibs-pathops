@@ -64,6 +64,7 @@ def interesting_dir(tmp_path: pathlib.Path, text_files: dict[str, str]) -> Itera
     (tmp_path / 'symlink.bin').symlink_to(empty_file)
     (tmp_path / 'symlink_dir').symlink_to(tmp_path / 'empty_dir')
     (tmp_path / 'symlink_rec').symlink_to(tmp_path)
+    (tmp_path / 'symlink_broken').symlink_to(tmp_path / 'does_not_exist')
     (tmp_path / 'binary_file.bin').write_bytes(bytearray(range(256)))
     for filename, contents in text_files.items():
         (tmp_path / filename).write_text(contents)

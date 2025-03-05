@@ -53,7 +53,7 @@ def from_container_path(path: ContainerPath) -> pebble.FileInfo:
 
 
 def from_pathlib_path(path: pathlib.Path) -> pebble.FileInfo:
-    stat_result = path.lstat()  # lstat because pebble doesn't follow symlinks
+    stat_result = path.stat()  # stat because pebble always follows symlinks
     utcoffset = datetime.datetime.now().astimezone().utcoffset()
     timezone = datetime.timezone(utcoffset) if utcoffset is not None else datetime.timezone.utc
     filetype = _FT_MAP.get(stat.S_IFMT(stat_result.st_mode), pebble.FileType.UNKNOWN)
