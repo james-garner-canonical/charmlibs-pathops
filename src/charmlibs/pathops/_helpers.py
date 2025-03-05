@@ -98,7 +98,7 @@ def ensure_contents(
         return True
     if parents:
         path.parent.mkdir(parents=True, exist_ok=True)
-    # note: source may already have been narrowed by bytes to check if writing is required
+    # note: source may already have been narrowed to bytes when checking if writing is required
     #       this is completely fine and doesn't affect the logic below
     if not isinstance(source, (bytes, str)):
         source = source.read()

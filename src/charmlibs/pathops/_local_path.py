@@ -84,7 +84,6 @@ def _chown(path: pathlib.Path, user: str | int | None, group: str | int | None) 
 
 def _typecheck(path: LocalPath) -> None:  # pyright: ignore[reportUnusedFunction]
     """Check that LocalPath adheres to our protocol."""
-
     if typing.TYPE_CHECKING:
         from ._types import PathProtocol
 

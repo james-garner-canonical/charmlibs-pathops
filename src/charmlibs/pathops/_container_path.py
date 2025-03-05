@@ -356,7 +356,6 @@ class ContainerPath:
 
 def _typecheck(path: ContainerPath) -> None:  # pyright: ignore[reportUnusedFunction]
     """Check that ContainerPath adheres to our protocol."""
-
     if typing.TYPE_CHECKING:
         from ._types import PathProtocol
 
