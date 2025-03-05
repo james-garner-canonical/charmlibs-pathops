@@ -16,17 +16,21 @@
 
 from __future__ import annotations
 
-from pathlib import Path as _Path
+from pathlib import Path as _Path  # for __version__
 
 from ops.pebble import ConnectionError as PebbleConnectionError
 
 from ._container_path import ContainerPath
+from ._helpers import ensure_contents
 from ._local_path import LocalPath
+from ._types import PathProtocol
 
 __all__ = (
     'ContainerPath',
     'LocalPath',
+    'PathProtocol',
     'PebbleConnectionError',
+    'ensure_contents',
 )
 
 __version__ = (_Path(__file__).parent / '_version.txt').read_text()

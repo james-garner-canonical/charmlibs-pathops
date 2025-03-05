@@ -78,3 +78,11 @@ def _chown(path: pathlib.Path, user: str | int | None, group: str | int | None) 
         shutil.chown(path, user=user)
     elif group is not None:
         shutil.chown(path, group=group)
+
+
+def _typecheck(path: LocalPath) -> None:  # pyright: ignore[reportUnusedFunction]
+    from ._types import PathProtocol
+
+    def f(p: PathProtocol) -> None: ...
+
+    f(path)

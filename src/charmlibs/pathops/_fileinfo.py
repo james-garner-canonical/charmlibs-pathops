@@ -25,10 +25,10 @@ import typing
 
 from ops import pebble
 
-from ._container_path import ContainerPath
+from . import _errors
 
 if typing.TYPE_CHECKING:
-    from ._types import StrPathLike
+    from ._container_path import ContainerPath
 
 
 _FT_MAP: dict[int, pebble.FileType] = {
@@ -42,14 +42,17 @@ _FT_MAP: dict[int, pebble.FileType] = {
 }
 
 
-def get_fileinfo(path: StrPathLike | ContainerPath) -> pebble.FileInfo:
-    if isinstance(path, ContainerPath):
-        [info] = path.container.list_files(path.path, itself=True)
-        return info
-    return _from_pathlib_path(pathlib.Path(path))
+def from_container_path(path: ContainerPath) -> pebble.FileInfo:
+    try:
+        [info] = path._container.list_files(path._path, itself=True)
+    except pebble.APIError as e:
+        if _errors.FileNotFound.matches(e):
+            raise _errors.FileNotFound.exception(path._description()) from e
+        raise
+    return info
 
 
-def _from_pathlib_path(path: pathlib.Path) -> pebble.FileInfo:
+def from_pathlib_path(path: pathlib.Path) -> pebble.FileInfo:
     stat_result = path.lstat()  # lstat because pebble doesn't follow symlinks
     utcoffset = datetime.datetime.now().astimezone().utcoffset()
     timezone = datetime.timezone(utcoffset) if utcoffset is not None else datetime.timezone.utc

@@ -22,6 +22,20 @@ import os
 from ops import pebble
 
 
+class FileExists:
+    @staticmethod
+    def matches(error: pebble.Error) -> bool:
+        return (
+            isinstance(error, pebble.PathError)
+            and error.kind == 'generic-file-error'
+            and 'file exists' in error.message
+        )
+
+    @staticmethod
+    def exception(msg: str) -> FileExistsError:
+        return FileExistsError((errno.EEXIST), os.strerror(errno.EEXIST), msg)
+
+
 class FileNotFound:
     @staticmethod
     def matches(error: pebble.Error) -> bool:

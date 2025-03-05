@@ -16,7 +16,10 @@
 
 from __future__ import annotations
 
+import pathlib
 import typing
+
+from ops import pebble
 
 from . import _fileinfo
 from ._container_path import ContainerPath
@@ -26,6 +29,12 @@ if typing.TYPE_CHECKING:
     from typing import BinaryIO, TextIO
 
     from ._types import StrPathLike
+
+
+def get_fileinfo(path: StrPathLike | ContainerPath) -> pebble.FileInfo:
+    if isinstance(path, ContainerPath):
+        return _fileinfo.from_container_path(path)
+    return _fileinfo.from_pathlib_path(pathlib.Path(path))
 
 
 def ensure_contents(
@@ -49,7 +58,7 @@ def ensure_contents(
         path = LocalPath(path)
     # check if file already exists and has the correct metadata
     try:
-        info = _fileinfo.get_fileinfo(path)
+        info = get_fileinfo(path)
     except FileNotFoundError:
         info = None
     write_required = (
@@ -75,8 +84,8 @@ def ensure_contents(
     if isinstance(path, ContainerPath):
         # for efficiency -- ContainerPath.write_{bytes,text} will call push anyway
         #                   this way we potentially avoid reading source twice
-        path.container.push(
-            path=path.path,
+        path._container.push(
+            path=path._path,
             source=source,
             encoding=encoding,
             make_dirs=parents,
