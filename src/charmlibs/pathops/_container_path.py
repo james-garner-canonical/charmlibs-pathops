@@ -169,12 +169,28 @@ class ContainerPath:
         return binary_io.read()
 
     def rmdir(self) -> None:
-        # TODO
-        ...
+        info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
+        if info.type != pebble.FileType.DIRECTORY:
+            raise _errors.NotADirectory.exception(self._description())
+        try:
+            self._container.remove_path(self._path, recursive=False)
+        except pebble.PathError as e:
+            for error in (_errors.Permission, _errors.DirectoryNotEmpty):
+                if error.matches(e):
+                    raise error.exception(self._description()) from e
+            raise
 
     def unlink(self, missing_ok: bool = False) -> None:
-        # TODO
-        ...
+        info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
+        if info.type == pebble.FileType.DIRECTORY:
+            raise _errors.IsADirectory.exception(self._description())
+        try:
+            self._container.remove_path(self._path, recursive=False)
+        except pebble.PathError as e:
+            for error in (_errors.Permission,):
+                if error.matches(e):
+                    raise error.exception(self._description()) from e
+            raise
 
     def iterdir(self) -> typing.Generator[Self]:
         # python < 3.13 defers NotADirectoryError to iteration time, but python 3.13 raises on call
@@ -188,24 +204,28 @@ class ContainerPath:
 
     def glob(
         self,
-        pattern: str,  # support for _StrPath added in 3.13
+        pattern: StrPathLike,  # support for _StrPath added in 3.13 (was str only before)
         # *,
         # case_sensitive: bool = False,  # added in 3.12
         # recurse_symlinks: bool = False,  # added in 3.13
     ) -> Generator[Self]:
-        # TODO
-        ...
+        if not isinstance(pattern, str):
+            pattern = str(pattern)
+        file_infos = self._container.list_files(self._path, pattern=pattern)
+        for f in file_infos:
+            yield self.with_segments(f.path)
 
     def rglob(
         self,
-        pattern: str,  # support for _StrPath added in 3.13
+        pattern: StrPathLike,  # support for _StrPath added in 3.13
         # *,
         # case_sensitive: bool = False,  # added in 3.12
         # recurse_symlinks: bool = False,  # added in 3.13
     ) -> Generator[Self]:
-        # TODO
         # NOTE: to ease implementation, this could be dropped from the v1 release
-        ...
+        if not isinstance(pattern, str):
+            pattern = str(pattern)
+        return self.rglob(f'**/{pattern}')
 
     def owner(self) -> str:
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
@@ -217,26 +237,26 @@ class ContainerPath:
 
     # protocol requires only 3.8 signature, but we provide the 3.12 follow_symlinks kwarg
     def exists(self, follow_symlinks: bool = True) -> bool:
-        return self._filetype_matches(filetype=None, follow_symlinks=follow_symlinks)
+        return self._exists_and_matches(filetype=None, follow_symlinks=follow_symlinks)
 
     # protocol requires only 3.8 signature, but we provide the 3.13 follow_symlinks kwarg
     def is_dir(self, follow_symlinks: bool = True) -> bool:
-        return self._filetype_matches(pebble.FileType.DIRECTORY, follow_symlinks=follow_symlinks)
+        return self._exists_and_matches(pebble.FileType.DIRECTORY, follow_symlinks=follow_symlinks)
 
     # protocol requires only 3.8 signature, but we provide the 3.13 follow_symlinks kwarg
     def is_file(self, follow_symlinks: bool = True) -> bool:
-        return self._filetype_matches(pebble.FileType.FILE, follow_symlinks=follow_symlinks)
+        return self._exists_and_matches(pebble.FileType.FILE, follow_symlinks=follow_symlinks)
 
     def is_symlink(self) -> bool:
-        return self._filetype_matches(pebble.FileType.SYMLINK, follow_symlinks=False)
+        return self._exists_and_matches(pebble.FileType.SYMLINK, follow_symlinks=False)
 
     def is_fifo(self) -> bool:
-        return self._filetype_matches(pebble.FileType.NAMED_PIPE, follow_symlinks=False)
+        return self._exists_and_matches(pebble.FileType.NAMED_PIPE, follow_symlinks=False)
 
     def is_socket(self) -> bool:
-        return self._filetype_matches(pebble.FileType.SOCKET, follow_symlinks=False)
+        return self._exists_and_matches(pebble.FileType.SOCKET, follow_symlinks=False)
 
-    def _filetype_matches(self, filetype: pebble.FileType | None, follow_symlinks: bool) -> bool:
+    def _exists_and_matches(self, filetype: pebble.FileType | None, follow_symlinks: bool) -> bool:
         try:
             info = _fileinfo.from_container_path(self)
         except FileNotFoundError:

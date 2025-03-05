@@ -22,6 +22,16 @@ import os
 from ops import pebble
 
 
+class DirectoryNotEmpty:
+    @staticmethod
+    def matches(error: pebble.Error) -> bool:
+        return False
+
+    @staticmethod
+    def exception(msg: str) -> OSError:
+        return OSError(errno.ENOTEMPTY, os.strerror(errno.ENOTEMPTY), msg)
+
+
 class FileExists:
     @staticmethod
     def matches(error: pebble.Error) -> bool:
@@ -46,6 +56,12 @@ class FileNotFound:
     @staticmethod
     def exception(msg: str) -> FileNotFoundError:
         return FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), msg)
+
+
+class IsADirectory:
+    @staticmethod
+    def exception(msg: str) -> IsADirectoryError:
+        return IsADirectoryError(errno.EISDIR, os.strerror(errno.EISDIR), msg)
 
 
 class NotADirectory:
