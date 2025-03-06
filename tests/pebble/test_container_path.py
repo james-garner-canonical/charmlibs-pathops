@@ -82,11 +82,18 @@ class TestStr:
 
 
 class TestComparison:
-    OPERATIONS = (operator.lt, operator.le, operator.gt, operator.ge, operator.eq)
-    PATH_PAIRS = (('/foo', '/bar'), ('/foo', '/foo/bar'), ('/foo/bar', '/foo/bar/bartholemew'))
-
-    @pytest.mark.parametrize('operation', OPERATIONS)
-    @pytest.mark.parametrize(('left', 'right'), PATH_PAIRS)
+    @pytest.mark.parametrize(
+        ('left', 'right'),
+        (
+            ('/foo', '/bar'),
+            ('/foo', '/foo/bar'),
+            ('/foo/bar', '/foo/bartholemew'),
+            ('/foo/bar', '/foob/ar'),
+        ),
+    )
+    @pytest.mark.parametrize(
+        'operation', (operator.lt, operator.le, operator.gt, operator.ge, operator.eq)
+    )
     def test_ok(
         self,
         operation: Callable[[object, object], bool],
@@ -98,6 +105,39 @@ class TestComparison:
         container_result = operation(container_path, container_path.with_segments(right))
         pathlib_result = operation(pathlib.PurePosixPath(left), pathlib.PurePosixPath(right))
         assert container_result == pathlib_result
+
+    def test_when_other_isnt_container_path_then_equality_returns_false(
+        self, container: ops.Container
+    ):
+        assert ContainerPath('/', container=container) != LocalPath('/')
+        assert ContainerPath('/', container=container) != '/'
+
+    def test_when_containers_are_different_then_equality_returns_false(
+        self, container: ops.Container, another_container: ops.Container
+    ):
+        assert ContainerPath('/', container=container) != ContainerPath('/', container=another_container)
+
+    @pytest.mark.parametrize('operation', (operator.lt, operator.le, operator.gt, operator.ge))
+    def test_when_containers_are_different_then_inequality_raises_type_error(
+        self,
+        operation: Callable[[object, object], bool],
+        container: ops.Container,
+        another_container: ops.Container,
+    ):
+        with pytest.raises(TypeError):
+            operation(
+                ContainerPath('/', container=container),
+                ContainerPath('/', container=another_container),
+            )
+
+    @pytest.mark.parametrize('operation', (operator.lt, operator.le, operator.gt, operator.ge))
+    def test_when_other_isnt_container_path_then_inequality_raises_type_error(
+        self, operation: Callable[[object, object], bool], container: ops.Container
+    ):
+        with pytest.raises(TypeError):
+            operation(ContainerPath('/', container=container), LocalPath('/'))
+        with pytest.raises(TypeError):
+            operation(ContainerPath('/', container=container), '/')
 
 
 #########################
