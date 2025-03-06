@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import os
-import pathlib
 import typing
 
 import pytest
@@ -26,17 +25,20 @@ from charmlibs.pathops import ContainerPath
 from charmlibs.pathops._helpers import get_fileinfo
 
 if typing.TYPE_CHECKING:
+    import pathlib
+
     import ops
     from ops import pebble
 
 
-@pytest.mark.skipif(
-    os.getenv('RUN_REAL_PEBBLE_TESTS') != '1',
-    reason='RUN_REAL_PEBBLE_TESTS not set',
+pytestmark = pytest.mark.skipif(
+    os.getenv('RUN_REAL_PEBBLE_TESTS') != '1', reason='RUN_REAL_PEBBLE_TESTS not set'
 )
+
+
 class TestGetFileInfo:
-    def test_ok(self, container: ops.Container, interesting_dir: pathlib.Path):
-        paths = list(interesting_dir.iterdir())
+    def test_ok(self, container: ops.Container, readable_interesting_dir: pathlib.Path):
+        paths = list(readable_interesting_dir.iterdir())
         fileinfos_synthetic: list[pebble.FileInfo] = []
         fileinfos_pebble: list[pebble.FileInfo] = []
         for path in paths:
@@ -47,14 +49,14 @@ class TestGetFileInfo:
                     get_fileinfo(path)
             else:
                 fileinfos_synthetic.append(get_fileinfo(path))
-        synthetic_result = [_fileinfo_to_dict(fileinfo) for fileinfo in fileinfos_synthetic]
-        pebble_result = [_fileinfo_to_dict(fileinfo) for fileinfo in fileinfos_pebble]
+        synthetic_result = [self._fileinfo_to_dict(fileinfo) for fileinfo in fileinfos_synthetic]
+        pebble_result = [self._fileinfo_to_dict(fileinfo) for fileinfo in fileinfos_pebble]
         assert synthetic_result == pebble_result
 
-
-def _fileinfo_to_dict(info: ops.pebble.FileInfo) -> dict[str, object] | None:
-    return {
-        name: getattr(info, name)
-        for name in dir(info)
-        if (not name.startswith('_')) and (name != 'from_dict')
-    }
+    @staticmethod
+    def _fileinfo_to_dict(info: ops.pebble.FileInfo) -> dict[str, object] | None:
+        return {
+            name: getattr(info, name)
+            for name in dir(info)
+            if (not name.startswith('_')) and (name != 'from_dict')
+        }

@@ -20,7 +20,7 @@ from pathlib import Path as _Path  # for __version__
 
 from ops.pebble import ConnectionError as PebbleConnectionError
 
-from ._container_path import ContainerPath
+from ._container_path import ContainerPath, RelativePathError
 from ._helpers import ensure_contents
 from ._local_path import LocalPath
 from ._types import PathProtocol
@@ -30,6 +30,7 @@ __all__ = (
     'LocalPath',
     'PathProtocol',
     'PebbleConnectionError',
+    'RelativePathError',
     'ensure_contents',
 )
 

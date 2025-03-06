@@ -235,34 +235,26 @@ class ContainerPath:
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         return info.group or ''
 
-    # protocol requires only 3.8 signature, but we provide the 3.12 follow_symlinks kwarg
-    def exists(self, follow_symlinks: bool = True) -> bool:
-        return self._exists_and_matches(filetype=None, follow_symlinks=follow_symlinks)
+    def exists(self) -> bool:
+        return self._exists_and_matches(filetype=None)
 
-    # protocol requires only 3.8 signature, but we provide the 3.13 follow_symlinks kwarg
-    def is_dir(self, follow_symlinks: bool = True) -> bool:
-        return self._exists_and_matches(pebble.FileType.DIRECTORY, follow_symlinks=follow_symlinks)
+    def is_dir(self) -> bool:
+        return self._exists_and_matches(pebble.FileType.DIRECTORY)
 
-    # protocol requires only 3.8 signature, but we provide the 3.13 follow_symlinks kwarg
-    def is_file(self, follow_symlinks: bool = True) -> bool:
-        return self._exists_and_matches(pebble.FileType.FILE, follow_symlinks=follow_symlinks)
-
-    def is_symlink(self) -> bool:
-        return self._exists_and_matches(pebble.FileType.SYMLINK, follow_symlinks=False)
+    def is_file(self) -> bool:
+        return self._exists_and_matches(pebble.FileType.FILE)
 
     def is_fifo(self) -> bool:
-        return self._exists_and_matches(pebble.FileType.NAMED_PIPE, follow_symlinks=False)
+        return self._exists_and_matches(pebble.FileType.NAMED_PIPE)
 
     def is_socket(self) -> bool:
-        return self._exists_and_matches(pebble.FileType.SOCKET, follow_symlinks=False)
+        return self._exists_and_matches(pebble.FileType.SOCKET)
 
-    def _exists_and_matches(self, filetype: pebble.FileType | None, follow_symlinks: bool) -> bool:
+    def _exists_and_matches(self, filetype: pebble.FileType | None) -> bool:
         try:
             info = _fileinfo.from_container_path(self)
         except FileNotFoundError:
             return False
-        if follow_symlinks and info.type is pebble.FileType.SYMLINK:
-            raise NotImplementedError()
         if filetype is None:  # we only care if the file exists
             return True
         return info.type is filetype

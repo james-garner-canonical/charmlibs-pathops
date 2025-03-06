@@ -268,31 +268,17 @@ class PathProtocol(typing.Protocol):
     #       and then only raise NotImplementedError if follow_symlinks=True AND the
     #       result type is pebble.FileTypes.SYMLINK, AND the pebble version is too old
 
-    def exists(self) -> bool:  # follow_symlinks=True added in 3.12
-        """Whether this path exists.
+    def exists(self) -> bool: ...  # follow_symlinks=True added in 3.12
 
-        WARNING: ContainerPath will raise a NotImplementedError if the path is a symlink.
-        """
-        ...
+    def is_dir(self) -> bool: ...  # follow_symlinks=True added in 3.13
 
-    def is_dir(self) -> bool:  # follow_symlinks=True added in 3.13
-        """Whether this path is a directory.
-
-        WARNING: ContainerPath will raise a NotImplementedError if the path is a symlink.
-        """
-        ...
-
-    def is_file(self) -> bool:  # follow_symlinks=True added in 3.13
-        """Whether path is a regular file.
-
-        WARNING: ContainerPath will raise a NotImplementedError if the path is a symlink.
-        """
-        ...
+    def is_file(self) -> bool: ...  # follow_symlinks=True added in 3.13
 
     # def is_mount(self) -> bool: ...
     # pebble doesn't support this
 
-    def is_symlink(self) -> bool: ...
+    # def is_symlink(self) -> bool: ...
+    # pebble doesn't support this
 
     # def is_junction(self) -> bool: ...
     # 3.12
