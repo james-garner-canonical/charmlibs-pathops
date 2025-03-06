@@ -182,9 +182,35 @@ class TestIsAbsolute:
             ContainerPath('.', container=container)
 
 
+class TestMatch:
+    @pytest.mark.parametrize('path_str', ('/', '/foo', '/foo/bar.txt', '/foo/bar_txt'))
+    @pytest.mark.parametrize('pattern', ('', '*', '**/bar', '/foo/bar*', '*.txt'))
+    def test_ok(self, path_str: str, pattern: str, container: ops.Container):
+        container_path = ContainerPath(path_str, container=container)
+        pathlib_path = pathlib.Path(path_str)
+        try:
+            pathlib_result = pathlib_path.match(pattern)
+        except ValueError:
+            with pytest.raises(ValueError):
+                container_path.match(pattern)
+        else:
+            assert container_path.match(pattern) == pathlib_result
+
+    def test_when_pattern_is_container_path_then_raises_type_error(self, container: ops.Container):
+        container_path = ContainerPath('/', container=container)
+        with pytest.raises(TypeError):
+            container_path.match(container_path)  # type: ignore
+
+
+# TODO: remaining pure path methods
+
+
 #########################
 # concrete path methods #
 #########################
+
+
+# TODO: remaining concrete path methods
 
 
 class TestIterDir:
@@ -224,6 +250,9 @@ class TestIterDir:
         with pytest.raises(NotADirectoryError) as ctx:
             next(container_path.iterdir())
         print(ctx.value)
+
+
+# TODO: remaining concrete path methods (glob, rglob, container, group)
 
 
 class TestExists:
@@ -279,3 +308,6 @@ class TestIsSocket:
 class TestIsSymlink:
     def test_not_provided(self):
         assert not hasattr(ContainerPath, 'is_symlink')
+
+
+# TODO: extended signature methods

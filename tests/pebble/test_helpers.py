@@ -62,9 +62,10 @@ class TestGetFileInfo:
         def mock_list_files(*args: object, **kwargs: object):
             raise pebble.ConnectionError()
 
-        monkeypatch.setattr(ops.Container, 'list_files', mock_list_files)
-        with pytest.raises(pebble.ConnectionError):
-            get_fileinfo(ContainerPath('/', container=container))
+        with monkeypatch.context() as m:
+            m.setattr(container, 'list_files', mock_list_files)
+            with pytest.raises(pebble.ConnectionError):
+                get_fileinfo(ContainerPath('/', container=container))
 
     def test_when_unknown_api_error_then_raises(
         self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
@@ -72,6 +73,7 @@ class TestGetFileInfo:
         def mock_list_files(*args: object, **kwargs: object):
             raise pebble.APIError(body={}, code=9000, status='', message='')
 
-        monkeypatch.setattr(ops.Container, 'list_files', mock_list_files)
-        with pytest.raises(pebble.APIError):
-            get_fileinfo(ContainerPath('/', container=container))
+        with monkeypatch.context() as m:
+            m.setattr(container, 'list_files', mock_list_files)
+            with pytest.raises(pebble.APIError):
+                get_fileinfo(ContainerPath('/', container=container))
