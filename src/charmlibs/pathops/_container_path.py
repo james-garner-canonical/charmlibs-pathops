@@ -91,9 +91,9 @@ class ContainerPath:
         return self._path == other._path
 
     def __truediv__(self, key: StrPathLike) -> Self:
-        """Return a new ContainerPath with the same container and the expected path.
+        """Return a new ContainerPath with the same container and the joined path.
 
-        That is, the new path is equivalent to str(self) / pathlib.PurePath(key).
+        The joined path is equivalent to str(self) / pathlib.PurePath(key).
 
         Note that the right hand operand here cannot be a ContainerPath.
         This is because ContainerPath objects only support absolute paths currently,

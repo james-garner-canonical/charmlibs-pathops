@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests that use a real Pebble to compare ContainerPath and LocalPath output."""
+"""Tests that use a real Pebble to test ContainerPath."""
 
 from __future__ import annotations
 
@@ -115,7 +115,9 @@ class TestComparison:
     def test_when_containers_are_different_then_equality_returns_false(
         self, container: ops.Container, another_container: ops.Container
     ):
-        assert ContainerPath('/', container=container) != ContainerPath('/', container=another_container)
+        container_path = ContainerPath('/', container=container)
+        another_container_path = ContainerPath('/', container=another_container)
+        assert container_path != another_container_path
 
     @pytest.mark.parametrize('operation', (operator.lt, operator.le, operator.gt, operator.ge))
     def test_when_containers_are_different_then_inequality_raises_type_error(
@@ -138,6 +140,46 @@ class TestComparison:
             operation(ContainerPath('/', container=container), LocalPath('/'))
         with pytest.raises(TypeError):
             operation(ContainerPath('/', container=container), '/')
+
+
+class TestTrueDiv:
+    @pytest.mark.parametrize(
+        ('left', 'right'),
+        (
+            ('/', 'foo'),
+            ('/foo', 'foo/bar'),
+            ('/foo/bar', 'bartholemew'),
+            ('/foo/bar', '/foo/bartholemew'),
+        ),
+    )
+    def test_ok(self, left: str, right: str, container: ops.Container):
+        pathlib_path = pathlib.Path(left)
+        container_path = ContainerPath(left, container=container)
+        assert str(container_path / right) == str(pathlib_path / right)
+        assert str(container_path / pathlib.Path(right)) == str(pathlib_path / pathlib.Path(right))
+        assert str(container_path / LocalPath(right)) == str(pathlib_path / LocalPath(right))
+
+    def test_when_container_path_is_right_hand_side_then_truediv_raises_type_error(
+        self, container: ops.Container
+    ):
+        container_path = ContainerPath('/foo', container=container)
+        with pytest.raises(TypeError):
+            '/foo' / container_path  # type: ignore
+        with pytest.raises(TypeError):
+            pathlib.Path('/foo') / container_path  # type: ignore
+        with pytest.raises(TypeError):
+            LocalPath('/foo') / container_path  # type: ignore
+        with pytest.raises(TypeError):
+            container_path / container_path  # type: ignore
+
+
+class TestIsAbsolute:
+    def test_ok(self, container: ops.Container):
+        assert ContainerPath('/', container=container).is_absolute()
+        # no further tests needed unless the case below fails
+        # which will mean we've added relative path support
+        with pytest.raises(RelativePathError):
+            ContainerPath('.', container=container)
 
 
 #########################

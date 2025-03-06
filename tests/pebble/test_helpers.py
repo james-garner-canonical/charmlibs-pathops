@@ -12,24 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests that use a real Pebble to compare ContainerPath and LocalPath output."""
+"""Tests that use a real Pebble to test helper functions."""
 
 from __future__ import annotations
 
 import os
-import typing
+import pathlib
 
+import ops
 import pytest
+from ops import pebble
 
 from charmlibs.pathops import ContainerPath
 from charmlibs.pathops._helpers import get_fileinfo
-
-if typing.TYPE_CHECKING:
-    import pathlib
-
-    import ops
-    from ops import pebble
-
 
 pytestmark = pytest.mark.skipif(
     os.getenv('RUN_REAL_PEBBLE_TESTS') != '1', reason='RUN_REAL_PEBBLE_TESTS not set'
@@ -60,3 +55,23 @@ class TestGetFileInfo:
             for name in dir(info)
             if (not name.startswith('_')) and (name != 'from_dict')
         }
+
+    def test_when_pebble_connection_error_then_raises(
+        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
+    ):
+        def mock_list_files(*args: object, **kwargs: object):
+            raise pebble.ConnectionError()
+
+        monkeypatch.setattr(ops.Container, 'list_files', mock_list_files)
+        with pytest.raises(pebble.ConnectionError):
+            get_fileinfo(ContainerPath('/', container=container))
+
+    def test_when_unknown_api_error_then_raises(
+        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
+    ):
+        def mock_list_files(*args: object, **kwargs: object):
+            raise pebble.APIError(body={}, code=9000, status='', message='')
+
+        monkeypatch.setattr(ops.Container, 'list_files', mock_list_files)
+        with pytest.raises(pebble.APIError):
+            get_fileinfo(ContainerPath('/', container=container))
