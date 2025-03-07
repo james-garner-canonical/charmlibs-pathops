@@ -290,7 +290,9 @@ class TestReadText:
         with pytest.raises(FileNotFoundError):
             pathlib.Path(readable_interesting_dir, 'does-not-exist').read_text()
         with pytest.raises(FileNotFoundError):
-            ContainerPath(readable_interesting_dir, 'does-not-exist', container=container).read_text()
+            ContainerPath(
+                readable_interesting_dir, 'does-not-exist', container=container
+            ).read_text()
 
     def test_when_pebble_connection_error_then_raises(
         self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
@@ -323,13 +325,23 @@ class TestReadBytes:
         ).read_bytes()
         assert container_result == pathlib_result
 
+    def test_when_file_is_directory_then_raises_is_a_directory_error(
+        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+    ):
+        with pytest.raises(IsADirectoryError):
+            pathlib.Path(readable_interesting_dir).read_bytes()
+        with pytest.raises(IsADirectoryError):
+            ContainerPath(readable_interesting_dir, container=container).read_bytes()
+
     def test_when_file_doesnt_exist_then_raises_file_not_found_error(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path
     ):
         with pytest.raises(FileNotFoundError):
             pathlib.Path(readable_interesting_dir, 'does-not-exist').read_bytes()
         with pytest.raises(FileNotFoundError):
-            ContainerPath(readable_interesting_dir, 'does-not-exist', container=container).read_bytes()
+            ContainerPath(
+                readable_interesting_dir, 'does-not-exist', container=container
+            ).read_bytes()
 
     def test_when_pebble_connection_error_then_raises(
         self, monkeypatch: pytest.MonkeyPatch, container: ops.Container

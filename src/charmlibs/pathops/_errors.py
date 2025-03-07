@@ -60,6 +60,14 @@ class FileNotFound:
 
 class IsADirectory:
     @staticmethod
+    def matches(error: pebble.Error) -> bool:
+        return (
+            isinstance(error, pebble.PathError)
+            and error.kind == 'generic-file-error'
+            and 'can only read a regular file' in error.message
+        )
+
+    @staticmethod
     def exception(msg: str) -> IsADirectoryError:
         return IsADirectoryError(errno.EISDIR, os.strerror(errno.EISDIR), msg)
 

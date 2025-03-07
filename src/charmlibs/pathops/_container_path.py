@@ -168,7 +168,7 @@ class ContainerPath:
         #     ) as f:
         #         return f.read()
         # except pebble.PathError as e:
-        #     for error in (_errors.FileNotFound, _errors.Permission):
+        #     for error in (...):
         #         if error.matches(e):
         #             raise error.exception(self._description()) from e
         #     raise
@@ -198,7 +198,7 @@ class ContainerPath:
             with self._container.pull(self._path, encoding=None) as f:
                 return f.read()
         except pebble.PathError as e:
-            for error in (_errors.FileNotFound, _errors.Permission):
+            for error in (_errors.FileNotFound, _errors.IsADirectory, _errors.Permission):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
