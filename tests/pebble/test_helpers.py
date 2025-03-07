@@ -23,9 +23,9 @@ import ops
 import pytest
 from ops import pebble
 
+import stuff
 from charmlibs.pathops import ContainerPath
 from charmlibs.pathops._helpers import get_fileinfo
-from conftest import FILENAMES, Mocks
 
 pytestmark = pytest.mark.skipif(
     os.getenv('RUN_REAL_PEBBLE_TESTS') != '1', reason='RUN_REAL_PEBBLE_TESTS not set'
@@ -33,7 +33,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestGetFileInfo:
-    @pytest.mark.parametrize('filename', FILENAMES)
+    @pytest.mark.parametrize('filename', stuff.FILENAMES_PLUS)
     def test_ok(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
     ):
@@ -60,7 +60,7 @@ class TestGetFileInfo:
         self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
     ):
         with monkeypatch.context() as m:
-            m.setattr(container, 'list_files', Mocks.raises_connection_error)
+            m.setattr(container, 'list_files', stuff.Mocks.raises_connection_error)
             with pytest.raises(pebble.ConnectionError):
                 get_fileinfo(ContainerPath('/', container=container))
 
@@ -68,6 +68,6 @@ class TestGetFileInfo:
         self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
     ):
         with monkeypatch.context() as m:
-            m.setattr(container, 'list_files', Mocks.raises_unknown_api_error)
+            m.setattr(container, 'list_files', stuff.Mocks.raises_unknown_api_error)
             with pytest.raises(pebble.APIError):
                 get_fileinfo(ContainerPath('/', container=container))
