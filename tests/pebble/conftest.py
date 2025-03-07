@@ -19,13 +19,14 @@ import os
 import pathlib
 import socket
 import string
+import tempfile
 import typing
 
 import ops
 import pytest
 
 if typing.TYPE_CHECKING:
-    from typing import Iterator
+    from typing import Iterator, Mapping
 
 
 def _get_socket_path() -> str:
@@ -60,6 +61,26 @@ def another_container() -> ops.Container:
     return _make_container('test2')
 
 
+TEXT_FILES: Mapping[str, str] = {
+    'foo.txt': string.ascii_lowercase,
+    # TODO: enable additional files if we figure out why the socket is timing out
+    # 'bar.txt': string.ascii_uppercase * 2,
+    # 'baz.txt': '',
+    # 'bartholemew.txt': 'Bartholemew',
+}
+UTF8_BINARY_FILES: Mapping[str, bytes] = {
+    str(pathlib.Path(k).with_suffix('.bin')): v.encode() for k, v in TEXT_FILES.items()
+}
+UTF16_BINARY_FILES: Mapping[str, bytes] = {
+    str(pathlib.Path(k).with_suffix('.bin16')): v.encode('utf-16') for k, v in TEXT_FILES.items()
+}
+BINARY_FILES: Mapping[str, bytes | bytearray] = {
+    'binary_file.bin': bytearray(range(256)),
+    **UTF8_BINARY_FILES,
+    **UTF16_BINARY_FILES,
+}
+
+
 @contextlib.contextmanager
 def _populate_interesting_dir(directory: pathlib.Path) -> Iterator[None]:
     (directory / 'empty_dir').mkdir()
@@ -69,14 +90,10 @@ def _populate_interesting_dir(directory: pathlib.Path) -> Iterator[None]:
     (directory / 'symlink_dir').symlink_to(directory / 'empty_dir')
     (directory / 'symlink_rec').symlink_to(directory)
     (directory / 'symlink_broken').symlink_to(directory / 'does_not_exist')
-    (directory / 'binary_file.bin').write_bytes(bytearray(range(256)))
-    text_files = {
-        'foo.txt': string.ascii_lowercase,
-        'bar.txt': string.ascii_uppercase * 2,
-        'baz.txt': '',
-    }
-    for filename, contents in text_files.items():
+    for filename, contents in TEXT_FILES.items():
         (directory / filename).write_text(contents)
+    for filename, contents in BINARY_FILES.items():
+        (directory / filename).write_bytes(contents)
     sock = socket.socket(socket.AddressFamily.AF_UNIX)
     sock.bind(str(directory / 'socket.socket'))
     # TODO: make block device?
@@ -85,6 +102,12 @@ def _populate_interesting_dir(directory: pathlib.Path) -> Iterator[None]:
     finally:
         sock.shutdown(socket.SHUT_RDWR)
         sock.close()
+
+
+with tempfile.TemporaryDirectory() as _dirname:
+    _tempdir = pathlib.Path(_dirname)
+    with _populate_interesting_dir(_tempdir):
+        FILENAMES = tuple(path.name for path in _tempdir.iterdir())
 
 
 @pytest.fixture(scope='session')

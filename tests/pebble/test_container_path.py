@@ -25,6 +25,7 @@ import ops
 import pytest
 
 from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError
+from conftest import BINARY_FILES, TEXT_FILES, UTF8_BINARY_FILES, UTF16_BINARY_FILES
 
 if typing.TYPE_CHECKING:
     from typing import Callable
@@ -211,6 +212,87 @@ class TestMatch:
 
 
 # TODO: remaining concrete path methods
+
+
+class TestReadText:
+    ERROR_SETTINGS = ('strict', 'ignore', 'replace')
+
+    @pytest.mark.parametrize('filename', TEXT_FILES)
+    @pytest.mark.parametrize('error_setting', ERROR_SETTINGS)
+    def test_ok(
+        self,
+        container: ops.Container,
+        readable_interesting_dir: pathlib.Path,
+        filename: str,
+        error_setting: str,
+    ):
+        pathlib_result = pathlib.Path(readable_interesting_dir, filename).read_text(
+            errors=error_setting
+        )
+        container_result = ContainerPath(
+            readable_interesting_dir, filename, container=container
+        ).read_text(errors=error_setting)
+        assert container_result == pathlib_result
+
+    @pytest.mark.parametrize(
+        ('encoding', 'filename'),
+        (
+            (None, next(iter(TEXT_FILES))),
+            ('utf-8', next(iter(UTF8_BINARY_FILES))),
+            ('utf-16', next(iter(UTF16_BINARY_FILES))),
+        ),
+    )
+    def test_when_explicit_encoding_used_then_ok(
+        self,
+        container: ops.Container,
+        readable_interesting_dir: pathlib.Path,
+        encoding: str,
+        filename: str,
+    ):
+        pathlib_result = pathlib.Path(readable_interesting_dir, filename).read_text(
+            encoding=encoding
+        )
+        container_result = ContainerPath(
+            readable_interesting_dir, filename, container=container
+        ).read_text(encoding=encoding)
+        assert container_result == pathlib_result
+
+    @pytest.mark.parametrize(
+        ('encoding', 'filename'),
+        (
+            (None, next(iter(UTF16_BINARY_FILES))),
+            ('utf-8', next(iter(UTF16_BINARY_FILES))),
+            ('utf-16', next(iter(UTF8_BINARY_FILES))),
+        ),
+    )
+    def test_when_wrong_encoding_used_then_raises_unicode_error(
+        self,
+        container: ops.Container,
+        readable_interesting_dir: pathlib.Path,
+        encoding: str,
+        filename: str,
+    ):
+        with pytest.raises(UnicodeError):
+            pathlib.Path(readable_interesting_dir, filename).read_text(encoding=encoding)
+        with pytest.raises(UnicodeError):
+            ContainerPath(readable_interesting_dir, filename, container=container).read_text(
+                encoding=encoding
+            )
+
+
+class TestReadBytes:
+    @pytest.mark.parametrize('filename', [*TEXT_FILES, *BINARY_FILES])
+    def test_ok(
+        self,
+        container: ops.Container,
+        readable_interesting_dir: pathlib.Path,
+        filename: str,
+    ):
+        pathlib_result = pathlib.Path(readable_interesting_dir, filename).read_bytes()
+        container_result = ContainerPath(
+            readable_interesting_dir, filename, container=container
+        ).read_bytes()
+        assert container_result == pathlib_result
 
 
 class TestIterDir:

@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import os
 import pathlib
 import typing
 
@@ -150,23 +151,57 @@ class ContainerPath:
     # protocol Path methods #
     #########################
 
-    def read_text(self, encoding: str | None = None, errors: str | None = None) -> str:
-        data = self.read_bytes()
+    def read_text(
+        self,
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.13+
+    ) -> str:
         if encoding is None:
             encoding = 'utf-8'
         if errors is None:
             errors = 'strict'
-        return data.decode(encoding=encoding, errors=errors)
+        # # TODO: update ops so this works
+        # try:
+        #     with self._container.pull(
+        #         self._path, encoding=encoding, errors=errors, newline=newline
+        #     ) as f:
+        #         return f.read()
+        # except pebble.PathError as e:
+        #     for error in (_errors.FileNotFound, _errors.Permission):
+        #         if error.matches(e):
+        #             raise error.exception(self._description()) from e
+        #     raise
+        #
+        # ## operate on bytes in memory since pull doesn't expose all the args we need
+        data = self.read_bytes()
+        # # efficient but doesn't error correctly on encoding mismatch
+        # # also can't handle newlines
+        # return data.decode(encoding=encoding, errors=errors)
+        #
+        # # tempfile because open somehow detects encoding mismatch
+        # import tempfile
+        # with tempfile.NamedTemporaryFile('wb', delete=False) as f:
+        #     f.write(data)
+        # with open(f.name, encoding=encoding, errors=errors, newline=newline) as f:
+        #     return f.read()
+        #
+        # # pipe so it stays in memory -- probably (silently?) breaks for big files
+        r, w = os.pipe()
+        with open(w, 'wb') as f:
+            f.write(data)
+        with open(r, encoding=encoding, errors=errors, newline=newline) as f:
+            return f.read()
 
     def read_bytes(self) -> bytes:
         try:
-            binary_io = self._container.pull(self._path, encoding=None)
+            with self._container.pull(self._path, encoding=None) as f:
+                return f.read()
         except pebble.PathError as e:
             for error in (_errors.FileNotFound, _errors.Permission):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
-        return binary_io.read()
 
     def rmdir(self) -> None:
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist

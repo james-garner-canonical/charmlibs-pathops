@@ -25,6 +25,7 @@ from ops import pebble
 
 from charmlibs.pathops import ContainerPath
 from charmlibs.pathops._helpers import get_fileinfo
+from conftest import FILENAMES
 
 pytestmark = pytest.mark.skipif(
     os.getenv('RUN_REAL_PEBBLE_TESTS') != '1', reason='RUN_REAL_PEBBLE_TESTS not set'
@@ -32,24 +33,23 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestGetFileInfo:
-    def test_ok(self, container: ops.Container, readable_interesting_dir: pathlib.Path):
-        paths = list(readable_interesting_dir.iterdir())
-        fileinfos_synthetic: list[pebble.FileInfo] = []
-        fileinfos_pebble: list[pebble.FileInfo] = []
-        for path in paths:
-            try:
-                fileinfos_pebble.append(get_fileinfo(ContainerPath(path, container=container)))
-            except FileNotFoundError:  # noqa: PERF203 (try-except in a loop)
-                with pytest.raises(FileNotFoundError):
-                    get_fileinfo(path)
-            else:
-                fileinfos_synthetic.append(get_fileinfo(path))
-        synthetic_result = [self._fileinfo_to_dict(fileinfo) for fileinfo in fileinfos_synthetic]
-        pebble_result = [self._fileinfo_to_dict(fileinfo) for fileinfo in fileinfos_pebble]
-        assert synthetic_result == pebble_result
+    @pytest.mark.parametrize('filename', FILENAMES)
+    def test_ok(
+        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
+    ):
+        path = readable_interesting_dir / filename
+        try:
+            pebble_result = get_fileinfo(ContainerPath(path, container=container))
+        except FileNotFoundError:
+            with pytest.raises(FileNotFoundError):
+                get_fileinfo(path)
+            return
+        else:
+            synthetic_result = get_fileinfo(path)
+            assert self._info_to_dict(synthetic_result) == self._info_to_dict(pebble_result)
 
     @staticmethod
-    def _fileinfo_to_dict(info: ops.pebble.FileInfo) -> dict[str, object] | None:
+    def _info_to_dict(info: ops.pebble.FileInfo) -> dict[str, object] | None:
         return {
             name: getattr(info, name)
             for name in dir(info)
