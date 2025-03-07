@@ -29,7 +29,7 @@ import stuff
 from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError
 
 if typing.TYPE_CHECKING:
-    from typing import Callable
+    from typing import Any, Callable
 
 
 pytestmark = pytest.mark.skipif(
@@ -213,11 +213,58 @@ class TestMatch:
 # TODO: remaining concrete path methods
 
 
-class TestReadText:
-    ERROR_SETTINGS = ('strict', 'ignore', 'replace')
+@pytest.mark.parametrize('method', ('read_bytes', 'read_text'))
+class TestReadCommon:
+    @pytest.mark.parametrize(
+        ('file', 'error'),
+        (
+            (stuff.EMPTY_DIR_NAME, IsADirectoryError),
+            (stuff.BROKEN_SYMLINK_NAME, FileNotFoundError),
+            (stuff.MISSING_FILE_NAME, FileNotFoundError),
+            (stuff.SOCKET_NAME, OSError),  # ContainerPath will raise FileNotFoundError
+        ),
+    )
+    def test_filetype_errors(
+        self,
+        container: ops.Container,
+        readable_interesting_dir: pathlib.Path,
+        method: str,
+        file: str,
+        error: type[Exception],
+    ):
+        pathlib_method = getattr(pathlib.Path, method)
+        with pytest.raises(error):
+            pathlib_method(readable_interesting_dir / file)
+        containerpath_method = getattr(ContainerPath, method)
+        container_path = ContainerPath(readable_interesting_dir, file, container=container)
+        with pytest.raises(error):
+            containerpath_method(container_path)
 
+    @pytest.mark.parametrize(
+        ('mock', 'error'),
+        (
+            (stuff.Mocks.raises_connection_error, pebble.ConnectionError),
+            (stuff.Mocks.raises_unknown_path_error, pebble.PathError),
+        ),
+    )
+    def test_unhandled_pebble_errors(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        container: ops.Container,
+        mock: Callable[[Any], None],
+        error: type[Exception],
+        method: str,
+    ):
+        containerpath_method = getattr(ContainerPath, method)
+        with monkeypatch.context() as m:
+            m.setattr(container, 'pull', mock)
+            with pytest.raises(error):
+                containerpath_method(ContainerPath('/', container=container))
+
+
+class TestReadText:
     @pytest.mark.parametrize('filename', stuff.TEXT_FILES)
-    @pytest.mark.parametrize('error_setting', ERROR_SETTINGS)
+    @pytest.mark.parametrize('error_setting', ('strict', 'ignore', 'replace'))
     def test_ok(
         self,
         container: ops.Container,
@@ -225,12 +272,9 @@ class TestReadText:
         filename: str,
         error_setting: str,
     ):
-        pathlib_result = pathlib.Path(readable_interesting_dir, filename).read_text(
-            errors=error_setting
-        )
-        container_result = ContainerPath(
-            readable_interesting_dir, filename, container=container
-        ).read_text(errors=error_setting)
+        pathlib_result = (readable_interesting_dir / filename).read_text(errors=error_setting)
+        container_path = ContainerPath(readable_interesting_dir, filename, container=container)
+        container_result = container_path.read_text(errors=error_setting)
         assert container_result == pathlib_result
 
     @pytest.mark.parametrize(
@@ -248,12 +292,9 @@ class TestReadText:
         encoding: str,
         filename: str,
     ):
-        pathlib_result = pathlib.Path(readable_interesting_dir, filename).read_text(
-            encoding=encoding
-        )
-        container_result = ContainerPath(
-            readable_interesting_dir, filename, container=container
-        ).read_text(encoding=encoding)
+        path = readable_interesting_dir / filename
+        pathlib_result = path.read_text(encoding=encoding)
+        container_result = ContainerPath(path, container=container).read_text(encoding=encoding)
         assert container_result == pathlib_result
 
     @pytest.mark.parametrize(
@@ -271,46 +312,12 @@ class TestReadText:
         encoding: str,
         filename: str,
     ):
+        path = readable_interesting_dir / filename
         with pytest.raises(UnicodeError):
-            pathlib.Path(readable_interesting_dir, filename).read_text(encoding=encoding)
+            path.read_text(encoding=encoding)
+        container_path = ContainerPath(path, container=container)
         with pytest.raises(UnicodeError):
-            ContainerPath(readable_interesting_dir, filename, container=container).read_text(
-                encoding=encoding
-            )
-
-    def test_when_file_is_directory_then_raises_is_a_directory_error(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
-    ):
-        with pytest.raises(IsADirectoryError):
-            pathlib.Path(readable_interesting_dir).read_text()
-        with pytest.raises(IsADirectoryError):
-            ContainerPath(readable_interesting_dir, container=container).read_text()
-
-    def test_when_file_doesnt_exist_then_raises_file_not_found_error(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
-    ):
-        with pytest.raises(FileNotFoundError):
-            pathlib.Path(readable_interesting_dir, stuff.MISSING_FILE_NAME).read_text()
-        with pytest.raises(FileNotFoundError):
-            ContainerPath(
-                readable_interesting_dir, stuff.MISSING_FILE_NAME, container=container
-            ).read_text()
-
-    def test_when_pebble_connection_error_then_raises(
-        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
-    ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'pull', stuff.Mocks.raises_connection_error)
-            with pytest.raises(pebble.ConnectionError):
-                ContainerPath('/', container=container).read_text()
-
-    def test_when_unknown_path_error_then_raises(
-        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
-    ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'pull', stuff.Mocks.raises_unknown_path_error)
-            with pytest.raises(pebble.PathError):
-                ContainerPath('/', container=container).read_text()
+            container_path.read_text(encoding=encoding)
 
 
 class TestReadBytes:
@@ -321,84 +328,46 @@ class TestReadBytes:
         readable_interesting_dir: pathlib.Path,
         filename: str,
     ):
-        pathlib_result = pathlib.Path(readable_interesting_dir, filename).read_bytes()
-        container_result = ContainerPath(
-            readable_interesting_dir, filename, container=container
-        ).read_bytes()
+        path = readable_interesting_dir / filename
+        pathlib_result = path.read_bytes()
+        container_result = ContainerPath(path, container=container).read_bytes()
         assert container_result == pathlib_result
-
-    def test_when_file_is_directory_then_raises_is_a_directory_error(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
-    ):
-        with pytest.raises(IsADirectoryError):
-            pathlib.Path(readable_interesting_dir).read_bytes()
-        with pytest.raises(IsADirectoryError):
-            ContainerPath(readable_interesting_dir, container=container).read_bytes()
-
-    def test_when_file_doesnt_exist_then_raises_file_not_found_error(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
-    ):
-        with pytest.raises(FileNotFoundError):
-            pathlib.Path(readable_interesting_dir, stuff.MISSING_FILE_NAME).read_bytes()
-        with pytest.raises(FileNotFoundError):
-            ContainerPath(
-                readable_interesting_dir, stuff.MISSING_FILE_NAME, container=container
-            ).read_bytes()
-
-    def test_when_pebble_connection_error_then_raises(
-        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
-    ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'pull', stuff.Mocks.raises_connection_error)
-            with pytest.raises(pebble.ConnectionError):
-                ContainerPath('/', container=container).read_bytes()
-
-    def test_when_unknown_path_error_then_raises(
-        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
-    ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'pull', stuff.Mocks.raises_unknown_path_error)
-            with pytest.raises(pebble.PathError):
-                ContainerPath('/', container=container).read_bytes()
 
 
 class TestIterDir:
     def test_ok(self, container: ops.Container, readable_interesting_dir: pathlib.Path):
-        local_path = LocalPath(readable_interesting_dir)
-        local_list = list(local_path.iterdir())
-        local_set = {str(p) for p in local_list}
-        assert len(local_list) == len(local_set)
+        pathlib_list = list(readable_interesting_dir.iterdir())
+        pathlib_set = {str(p) for p in pathlib_list}
+        assert len(pathlib_list) == len(pathlib_set)
         container_path = ContainerPath(readable_interesting_dir, container=container)
         container_list = list(container_path.iterdir())
         container_set = {str(p) for p in container_list}
         assert len(container_list) == len(container_set)
-        assert local_set == container_set
+        assert pathlib_set == container_set
 
-    def test_given_not_exists_when_iterdir_then_raises_file_not_found(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+    @pytest.mark.parametrize(
+        ('file', 'error'),
+        (
+            (stuff.BINARY_FILE_NAME, NotADirectoryError),
+            (stuff.TEXT_FILE_NAME, NotADirectoryError),
+            (stuff.BROKEN_SYMLINK_NAME, FileNotFoundError),
+            (stuff.MISSING_FILE_NAME, FileNotFoundError),
+            (stuff.SOCKET_NAME, NotADirectoryError),  # ContainerPath raises NotADirectory
+        ),
+    )
+    def test_filetype_errors(
+        self,
+        container: ops.Container,
+        readable_interesting_dir: pathlib.Path,
+        file: str,
+        error: type[Exception],
     ):
-        path = readable_interesting_dir / stuff.MISSING_FILE_NAME
-        local_path = LocalPath(path)
-        with pytest.raises(FileNotFoundError) as ctx:
-            next(local_path.iterdir())
-        print(ctx.value)
+        path = readable_interesting_dir / file
+        with pytest.raises(error):
+            next(path.iterdir())
         container_path = ContainerPath(path, container=container)
-        with pytest.raises(FileNotFoundError) as ctx:
+        with pytest.raises(error):
             next(container_path.iterdir())
-        print(ctx.value)
-
-    def test_given_not_a_directory_when_iterdir_then_raises_not_a_directory(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
-    ):
-        path = readable_interesting_dir / 'empty_file.bin'
-        local_path = LocalPath(path)
-        with pytest.raises(NotADirectoryError) as ctx:
-            next(local_path.iterdir())
-        print(ctx.value)
-        container_path = ContainerPath(path, container=container)
-        with pytest.raises(NotADirectoryError) as ctx:
-            next(container_path.iterdir())
-        print(ctx.value)
 
 
 # TODO: remaining concrete path methods (glob, rglob, container, group)

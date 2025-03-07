@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import typing
 
 import ops
 import pytest
@@ -26,6 +27,9 @@ from ops import pebble
 import stuff
 from charmlibs.pathops import ContainerPath
 from charmlibs.pathops._helpers import get_fileinfo
+
+if typing.TYPE_CHECKING:
+    from typing import Any, Callable
 
 pytestmark = pytest.mark.skipif(
     os.getenv('RUN_REAL_PEBBLE_TESTS') != '1', reason='RUN_REAL_PEBBLE_TESTS not set'
@@ -56,18 +60,21 @@ class TestGetFileInfo:
             if (not name.startswith('_')) and (name != 'from_dict')
         }
 
-    def test_when_pebble_connection_error_then_raises(
-        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
+    @pytest.mark.parametrize(
+        ('mock', 'error'),
+        (
+            (stuff.Mocks.raises_connection_error, pebble.ConnectionError),
+            (stuff.Mocks.raises_unknown_api_error, pebble.APIError),
+        ),
+    )
+    def test_unhandled_pebble_errors(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        container: ops.Container,
+        mock: Callable[[Any], None],
+        error: type[Exception],
     ):
         with monkeypatch.context() as m:
-            m.setattr(container, 'list_files', stuff.Mocks.raises_connection_error)
-            with pytest.raises(pebble.ConnectionError):
-                get_fileinfo(ContainerPath('/', container=container))
-
-    def test_when_unknown_api_error_then_raises(
-        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
-    ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'list_files', stuff.Mocks.raises_unknown_api_error)
-            with pytest.raises(pebble.APIError):
+            m.setattr(container, 'list_files', mock)
+            with pytest.raises(error):
                 get_fileinfo(ContainerPath('/', container=container))

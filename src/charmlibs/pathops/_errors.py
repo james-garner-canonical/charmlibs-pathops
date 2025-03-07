@@ -43,7 +43,7 @@ class FileExists:
 
     @staticmethod
     def exception(msg: str) -> FileExistsError:
-        return FileExistsError((errno.EEXIST), os.strerror(errno.EEXIST), msg)
+        return FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), msg)
 
 
 class FileNotFound:
@@ -55,6 +55,12 @@ class FileNotFound:
 
     @staticmethod
     def exception(msg: str) -> FileNotFoundError:
+        # pebble will return this error when trying to read_{text,bytes} a socket
+        # pathlib raises OSError(errno.ENXIO, os.strerror(errno.ENXIO), path) in this case
+        # displaying as "OSError: [Errno 6] No such device or address: '/path'"
+        # since FileNotFoundError is a subtype of OSError, and this case should be rare
+        # it seems sensible to just raise FileNotFoundError here, without checking
+        # if the file in question is a socket
         return FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), msg)
 
 

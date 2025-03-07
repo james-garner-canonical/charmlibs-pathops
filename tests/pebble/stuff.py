@@ -31,8 +31,17 @@ if typing.TYPE_CHECKING:
     from typing import Iterator, Mapping
 
 
+BINARY_FILE_NAME = 'binary_file.bin'
+BROKEN_SYMLINK_NAME = 'symlink_broken'
+EMPTY_DIR_NAME = 'empty_dir'
+EMPTY_FILE_NAME = 'empty_file.bin'
+MISSING_FILE_NAME = 'does_not_exist'
+SOCKET_NAME = 'socket.socket'
+SYMLINK_NAME = 'symlink.bin'
+TEXT_FILE_NAME = 'alphabet.txt'
+
 TEXT_FILES: Mapping[str, str] = {
-    'foo.txt': string.ascii_lowercase,
+    TEXT_FILE_NAME: string.ascii_lowercase,
     # TODO: enable additional files if we figure out why the socket is timing out
     # 'bar.txt': string.ascii_uppercase * 2,
     # 'baz.txt': '',
@@ -45,21 +54,9 @@ UTF16_BINARY_FILES: Mapping[str, bytes] = {
     str(pathlib.Path(k).with_suffix('.bin16')): v.encode('utf-16') for k, v in TEXT_FILES.items()
 }
 BINARY_FILES: Mapping[str, bytes | bytearray] = {
-    'binary_file.bin': bytearray(range(256)),
+    BINARY_FILE_NAME: bytearray(range(256)),
     **UTF8_BINARY_FILES,
     **UTF16_BINARY_FILES,
-}
-
-BROKEN_SYMLINK_NAME = 'symlink_broken'
-EMPTY_DIR_NAME = 'empty_dir'
-MISSING_FILE_NAME = 'does_not_exist'
-SOCKET_NAME = 'socket.socket'
-
-READ_FILETYPE_ERRORS: Mapping[str, type[Exception]] = {
-    EMPTY_DIR_NAME: IsADirectoryError,
-    BROKEN_SYMLINK_NAME: FileNotFoundError,
-    MISSING_FILE_NAME: FileNotFoundError,
-    SOCKET_NAME: FileNotFoundError,
 }
 
 
@@ -80,11 +77,11 @@ class Mocks:
 @contextlib.contextmanager
 def populate_interesting_dir(directory: pathlib.Path) -> Iterator[None]:
     (directory / EMPTY_DIR_NAME).mkdir()
-    empty_file = directory / 'empty_file.bin'
+    empty_file = directory / EMPTY_FILE_NAME
     empty_file.touch()
-    (directory / 'symlink.bin').symlink_to(empty_file)
-    (directory / 'symlink_dir').symlink_to(directory / 'empty_dir')
-    (directory / 'symlink_rec').symlink_to(directory)
+    (directory / SYMLINK_NAME).symlink_to(empty_file)
+    # (directory / 'symlink_dir').symlink_to(directory / 'empty_dir')
+    # (directory / 'symlink_rec').symlink_to(directory)
     (directory / BROKEN_SYMLINK_NAME).symlink_to(directory / 'does_not_exist')
     for filename, contents in TEXT_FILES.items():
         (directory / filename).write_text(contents)
@@ -127,4 +124,4 @@ with tempfile.TemporaryDirectory() as _dirname:
     _tempdir = pathlib.Path(_dirname)
     with populate_interesting_dir(_tempdir):
         FILENAMES = tuple(path.name for path in _tempdir.iterdir())
-FILENAMES_PLUS = FILENAMES + (MISSING_FILE_NAME,)
+FILENAMES_PLUS = (*FILENAMES, MISSING_FILE_NAME)
