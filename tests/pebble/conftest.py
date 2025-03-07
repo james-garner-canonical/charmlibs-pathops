@@ -24,6 +24,7 @@ import typing
 
 import ops
 import pytest
+from ops import pebble
 
 if typing.TYPE_CHECKING:
     from typing import Iterator, Mapping
@@ -121,3 +122,17 @@ def readable_interesting_dir(tmp_path_factory: pytest.TempPathFactory) -> Iterat
 def writeable_interesting_dir(tmp_path: pathlib.Path) -> Iterator[pathlib.Path]:
     with _populate_interesting_dir(tmp_path):
         yield tmp_path
+
+
+class Mocks:
+    @staticmethod
+    def raises_unknown_api_error(*args: object, **kwargs: object):
+        raise pebble.APIError(body={}, code=9000, status='', message='')
+
+    @staticmethod
+    def raises_connection_error(*args: object, **kwargs: object):
+        raise pebble.ConnectionError()
+
+    @staticmethod
+    def raises_unknown_path_error(*args: object, **kwargs: object):
+        raise pebble.PathError(kind='unknown-kind', message='unknown-message')

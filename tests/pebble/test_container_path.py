@@ -23,14 +23,19 @@ import typing
 
 import ops
 import pytest
+from ops import pebble
 
 from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError
-from conftest import BINARY_FILES, TEXT_FILES, UTF8_BINARY_FILES, UTF16_BINARY_FILES
+from conftest import (
+    BINARY_FILES,
+    TEXT_FILES,
+    UTF8_BINARY_FILES,
+    UTF16_BINARY_FILES,
+    Mocks,
+)
 
 if typing.TYPE_CHECKING:
     from typing import Callable
-
-    import ops
 
 
 pytestmark = pytest.mark.skipif(
@@ -279,6 +284,30 @@ class TestReadText:
                 encoding=encoding
             )
 
+    def test_when_file_doesnt_exist_then_raises_file_not_found_error(
+        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+    ):
+        with pytest.raises(FileNotFoundError):
+            pathlib.Path(readable_interesting_dir, 'does-not-exist').read_text()
+        with pytest.raises(FileNotFoundError):
+            ContainerPath(readable_interesting_dir, 'does-not-exist', container=container).read_text()
+
+    def test_when_pebble_connection_error_then_raises(
+        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
+    ):
+        with monkeypatch.context() as m:
+            m.setattr(container, 'pull', Mocks.raises_connection_error)
+            with pytest.raises(pebble.ConnectionError):
+                ContainerPath('/', container=container).read_text()
+
+    def test_when_unknown_path_error_then_raises(
+        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
+    ):
+        with monkeypatch.context() as m:
+            m.setattr(container, 'pull', Mocks.raises_unknown_path_error)
+            with pytest.raises(pebble.PathError):
+                ContainerPath('/', container=container).read_text()
+
 
 class TestReadBytes:
     @pytest.mark.parametrize('filename', [*TEXT_FILES, *BINARY_FILES])
@@ -293,6 +322,30 @@ class TestReadBytes:
             readable_interesting_dir, filename, container=container
         ).read_bytes()
         assert container_result == pathlib_result
+
+    def test_when_file_doesnt_exist_then_raises_file_not_found_error(
+        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+    ):
+        with pytest.raises(FileNotFoundError):
+            pathlib.Path(readable_interesting_dir, 'does-not-exist').read_bytes()
+        with pytest.raises(FileNotFoundError):
+            ContainerPath(readable_interesting_dir, 'does-not-exist', container=container).read_bytes()
+
+    def test_when_pebble_connection_error_then_raises(
+        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
+    ):
+        with monkeypatch.context() as m:
+            m.setattr(container, 'pull', Mocks.raises_connection_error)
+            with pytest.raises(pebble.ConnectionError):
+                ContainerPath('/', container=container).read_bytes()
+
+    def test_when_unknown_path_error_then_raises(
+        self, monkeypatch: pytest.MonkeyPatch, container: ops.Container
+    ):
+        with monkeypatch.context() as m:
+            m.setattr(container, 'pull', Mocks.raises_unknown_path_error)
+            with pytest.raises(pebble.PathError):
+                ContainerPath('/', container=container).read_bytes()
 
 
 class TestIterDir:
