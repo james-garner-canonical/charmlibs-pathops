@@ -317,7 +317,7 @@ class ContainerPath:
             group=group if isinstance(group, str) else None,
             group_id=group if isinstance(group, int) else None,
         )
-        return 0
+        return len(data)
 
     def write_text(
         self,
@@ -335,9 +335,10 @@ class ContainerPath:
             encoding = 'utf-8'
         if errors is None:
             errors = 'strict'
+        encoded_data = bytes(data, encoding=encoding, errors=errors)
         self._container.push(
             path=self._path,
-            source=bytes(data, encoding=encoding, errors=errors),
+            source=encoded_data,
             # source=io.StringIO(data, newline=newline),  # 3.10+?
             encoding=encoding if encoding is not None else 'utf-8',
             make_dirs=False,
@@ -347,7 +348,7 @@ class ContainerPath:
             group=group if isinstance(group, str) else None,
             group_id=group if isinstance(group, int) else None,
         )
-        return 0
+        return len(encoded_data)
 
     def mkdir(
         self,
@@ -359,6 +360,8 @@ class ContainerPath:
         user: str | int | None = None,
         group: str | int | None = None,
     ) -> None:
+        # only make an extra pebble call if parents xor exist_ok
+        # if both are true or both are false we can just let pebble's make_parents handle it
         if parents and not exist_ok and self.is_dir():
             raise _errors.FileExists.exception(self._description())
         elif exist_ok and not parents and not self.parent.is_dir():
