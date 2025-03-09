@@ -18,7 +18,7 @@ import typing
 
 import pytest
 
-import stuff
+import utils
 
 if typing.TYPE_CHECKING:
     import pathlib
@@ -29,22 +29,22 @@ if typing.TYPE_CHECKING:
 
 @pytest.fixture(scope='session')
 def container() -> ops.Container:
-    return stuff.make_container('test1')
+    return utils.make_container('test1')
 
 
 @pytest.fixture(scope='session')
 def another_container() -> ops.Container:
-    return stuff.make_container('test2')
+    return utils.make_container('test2')
 
 
 @pytest.fixture(scope='session')
 def readable_interesting_dir(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib.Path]:
     tmp_path = tmp_path_factory.mktemp('readable_interesting_dir')
-    with stuff.populate_interesting_dir(tmp_path):
+    with utils.populate_interesting_dir(tmp_path):
         yield tmp_path
 
 
 @pytest.fixture(scope='function')
 def writeable_interesting_dir(tmp_path: pathlib.Path) -> Iterator[pathlib.Path]:
-    with stuff.populate_interesting_dir(tmp_path):
+    with utils.populate_interesting_dir(tmp_path):
         yield tmp_path

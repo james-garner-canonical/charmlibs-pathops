@@ -98,6 +98,19 @@ def populate_interesting_dir(directory: pathlib.Path) -> Iterator[None]:
         sock.close()
 
 
+# import time
+# class SlowPebbleContainer(ops.Container):
+#     @property
+#     def _pebble(self):
+#         time.sleep(0.1)
+#         return self._real_pebble
+#
+#     @_pebble.setter
+#     def _pebble(self, value):
+#         self._real_pebble = value
+# ops.Container = SlowPebbleContainer
+
+
 def make_container(name: str) -> ops.Container:
     class dummy_backend:  # noqa: N801 (CapWords convention)
         class _juju_context:  # noqa: N801 (CapWords convention)

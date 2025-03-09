@@ -24,9 +24,9 @@ import ops
 import pytest
 from ops import pebble
 
-import stuff
+import utils
 from charmlibs.pathops import ContainerPath
-from charmlibs.pathops._helpers import get_fileinfo
+from charmlibs.pathops._functions import get_fileinfo
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable
@@ -37,7 +37,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestGetFileInfo:
-    @pytest.mark.parametrize('filename', stuff.FILENAMES_PLUS)
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
     def test_ok(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
     ):
@@ -63,8 +63,8 @@ class TestGetFileInfo:
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (
-            (stuff.Mocks.raises_connection_error, pebble.ConnectionError),
-            (stuff.Mocks.raises_unknown_api_error, pebble.APIError),
+            (utils.Mocks.raises_connection_error, pebble.ConnectionError),
+            (utils.Mocks.raises_unknown_api_error, pebble.APIError),
         ),
     )
     def test_unhandled_pebble_errors(

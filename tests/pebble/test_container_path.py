@@ -25,7 +25,7 @@ import ops
 import pytest
 from ops import pebble
 
-import stuff
+import utils
 from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError
 
 if typing.TYPE_CHECKING:
@@ -218,10 +218,10 @@ class TestReadCommon:
     @pytest.mark.parametrize(
         ('file', 'error'),
         (
-            (stuff.EMPTY_DIR_NAME, IsADirectoryError),
-            (stuff.BROKEN_SYMLINK_NAME, FileNotFoundError),
-            (stuff.MISSING_FILE_NAME, FileNotFoundError),
-            (stuff.SOCKET_NAME, OSError),  # ContainerPath will raise FileNotFoundError
+            (utils.EMPTY_DIR_NAME, IsADirectoryError),
+            (utils.BROKEN_SYMLINK_NAME, FileNotFoundError),
+            (utils.MISSING_FILE_NAME, FileNotFoundError),
+            (utils.SOCKET_NAME, OSError),  # ContainerPath will raise FileNotFoundError
         ),
     )
     def test_filetype_errors(
@@ -243,8 +243,8 @@ class TestReadCommon:
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (
-            (stuff.Mocks.raises_connection_error, pebble.ConnectionError),
-            (stuff.Mocks.raises_unknown_path_error, pebble.PathError),
+            (utils.Mocks.raises_connection_error, pebble.ConnectionError),
+            (utils.Mocks.raises_unknown_path_error, pebble.PathError),
         ),
     )
     def test_unhandled_pebble_errors(
@@ -263,7 +263,7 @@ class TestReadCommon:
 
 
 class TestReadText:
-    @pytest.mark.parametrize('filename', stuff.TEXT_FILES)
+    @pytest.mark.parametrize('filename', utils.TEXT_FILES)
     @pytest.mark.parametrize('error_setting', ('strict', 'ignore', 'replace'))
     def test_ok(
         self,
@@ -280,9 +280,9 @@ class TestReadText:
     @pytest.mark.parametrize(
         ('encoding', 'filename'),
         (
-            (None, next(iter(stuff.TEXT_FILES))),
-            ('utf-8', next(iter(stuff.UTF8_BINARY_FILES))),
-            ('utf-16', next(iter(stuff.UTF16_BINARY_FILES))),
+            (None, next(iter(utils.TEXT_FILES))),
+            ('utf-8', next(iter(utils.UTF8_BINARY_FILES))),
+            ('utf-16', next(iter(utils.UTF16_BINARY_FILES))),
         ),
     )
     def test_when_explicit_encoding_used_then_ok(
@@ -300,9 +300,9 @@ class TestReadText:
     @pytest.mark.parametrize(
         ('encoding', 'filename'),
         (
-            (None, next(iter(stuff.UTF16_BINARY_FILES))),
-            ('utf-8', next(iter(stuff.UTF16_BINARY_FILES))),
-            ('utf-16', next(iter(stuff.UTF8_BINARY_FILES))),
+            (None, next(iter(utils.UTF16_BINARY_FILES))),
+            ('utf-8', next(iter(utils.UTF16_BINARY_FILES))),
+            ('utf-16', next(iter(utils.UTF8_BINARY_FILES))),
         ),
     )
     def test_when_wrong_encoding_used_then_raises_unicode_error(
@@ -321,7 +321,7 @@ class TestReadText:
 
 
 class TestReadBytes:
-    @pytest.mark.parametrize('filename', [*stuff.TEXT_FILES, *stuff.BINARY_FILES])
+    @pytest.mark.parametrize('filename', [*utils.TEXT_FILES, *utils.BINARY_FILES])
     def test_ok(
         self,
         container: ops.Container,
@@ -348,11 +348,11 @@ class TestIterDir:
     @pytest.mark.parametrize(
         ('file', 'error'),
         (
-            (stuff.BINARY_FILE_NAME, NotADirectoryError),
-            (stuff.TEXT_FILE_NAME, NotADirectoryError),
-            (stuff.BROKEN_SYMLINK_NAME, FileNotFoundError),
-            (stuff.MISSING_FILE_NAME, FileNotFoundError),
-            (stuff.SOCKET_NAME, NotADirectoryError),  # ContainerPath raises NotADirectory
+            (utils.BINARY_FILE_NAME, NotADirectoryError),
+            (utils.TEXT_FILE_NAME, NotADirectoryError),
+            (utils.BROKEN_SYMLINK_NAME, FileNotFoundError),
+            (utils.MISSING_FILE_NAME, FileNotFoundError),
+            (utils.SOCKET_NAME, NotADirectoryError),  # ContainerPath raises NotADirectory
         ),
     )
     def test_filetype_errors(
@@ -374,7 +374,7 @@ class TestIterDir:
 
 
 class TestExists:
-    @pytest.mark.parametrize('filename', stuff.FILENAMES_PLUS)
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
     def test_ok(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
     ):
@@ -386,7 +386,7 @@ class TestExists:
 
 
 class TestIsDir:
-    @pytest.mark.parametrize('filename', stuff.FILENAMES_PLUS)
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
     def test_ok(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
     ):
@@ -398,7 +398,7 @@ class TestIsDir:
 
 
 class TestIsFile:
-    @pytest.mark.parametrize('filename', stuff.FILENAMES_PLUS)
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
     def test_ok(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
     ):
@@ -410,7 +410,7 @@ class TestIsFile:
 
 
 class TestIsFifo:
-    @pytest.mark.parametrize('filename', stuff.FILENAMES_PLUS)
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
     def test_ok(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
     ):
@@ -422,7 +422,7 @@ class TestIsFifo:
 
 
 class TestIsSocket:
-    @pytest.mark.parametrize('filename', stuff.FILENAMES_PLUS)
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
     def test_ok(
         self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
     ):
