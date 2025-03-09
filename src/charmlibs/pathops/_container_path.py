@@ -16,8 +16,8 @@
 
 from __future__ import annotations
 
-import os
 import pathlib
+import tempfile
 import typing
 
 from ops import pebble
@@ -180,18 +180,17 @@ class ContainerPath:
         # return data.decode(encoding=encoding, errors=errors)
         #
         # # tempfile because open somehow detects encoding mismatch
-        # import tempfile
-        # with tempfile.NamedTemporaryFile('wb', delete=False) as f:
-        #     f.write(data)
-        # with open(f.name, encoding=encoding, errors=errors, newline=newline) as f:
-        #     return f.read()
+        with tempfile.NamedTemporaryFile('wb', delete=False) as f:
+            f.write(data)
+        with open(f.name, encoding=encoding, errors=errors, newline=newline) as f:
+            return f.read()
         #
         # # pipe so it stays in memory -- probably (silently?) breaks for big files
-        r, w = os.pipe()
-        with open(w, 'wb') as f:
-            f.write(data)
-        with open(r, encoding=encoding, errors=errors, newline=newline) as f:
-            return f.read()
+        # r, w = os.pipe()
+        # with open(w, 'wb') as f:
+        #     f.write(data)
+        # with open(r, encoding=encoding, errors=errors, newline=newline) as f:
+        #     return f.read()
 
     def read_bytes(self) -> bytes:
         try:
