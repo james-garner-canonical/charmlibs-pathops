@@ -51,7 +51,7 @@ jobs:
 
       - name: Install Pebble
         if: ${{ env.NEEDS_PEBBLE == 'true' }}
-        run: go install github.com/canonical/pebble/cmd/pebble@master
+        run: go install github.com/canonical/pebble/cmd/pebble@v1.17.0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
