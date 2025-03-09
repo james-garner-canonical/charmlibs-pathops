@@ -340,7 +340,7 @@ class ContainerPath:
             path=self._path,
             source=encoded_data,
             # source=io.StringIO(data, newline=newline),  # 3.10+?
-            encoding=encoding if encoding is not None else 'utf-8',
+            encoding=encoding,
             make_dirs=False,
             permissions=mode,
             user=user if isinstance(user, str) else None,
