@@ -264,112 +264,38 @@ class TestReadCommon:
 
 class TestReadText:
     @pytest.mark.parametrize('newline', (None, ''))
-    @pytest.mark.parametrize('error_setting', ('strict', 'ignore', 'replace'))
     @pytest.mark.parametrize('filename', utils.TEXT_FILES)
     def test_ok(
         self,
         container: ops.Container,
         readable_interesting_dir: pathlib.Path,
         filename: str,
-        error_setting: str,
         newline: str | None,
     ):
         path = readable_interesting_dir / filename
         container_path = ContainerPath(path, container=container)
         try:  # python 3.13+ only
-            pathlib_result = path.read_text(errors=error_setting, newline=newline)  # pyright: ignore[reportCallIssue,reportUnknownVariableType]
+            pathlib_result = path.read_text(newline=newline)  # pyright: ignore[reportCallIssue,reportUnknownVariableType]
         except TypeError:
-            pathlib_result = path.read_text(errors=error_setting)
-            container_result = container_path.read_text(errors=error_setting)
+            pathlib_result = path.read_text()
+            container_result = container_path.read_text()
         else:
-            container_result = container_path.read_text(errors=error_setting, newline=newline)
+            container_result = container_path.read_text(newline=newline)
         assert container_result == pathlib_result
 
-    @pytest.mark.parametrize('newline', (None, ''))
-    @pytest.mark.parametrize('error_setting', ('strict', 'ignore', 'replace'))
-    @pytest.mark.parametrize(
-        ('encoding', 'filename'),
-        (
-            (None, next(iter(utils.TEXT_FILES))),
-            ('utf-8', next(iter(utils.UTF8_BINARY_FILES))),
-            ('utf-16', next(iter(utils.UTF16_BINARY_FILES))),
-        ),
-    )
-    def test_when_correct_explicit_encoding_used_then_ok(
+    @pytest.mark.parametrize('filename', [next(iter(utils.UTF16_BINARY_FILES))])
+    def test_when_file_is_not_utf8_then_raises_unicode_error(
         self,
         container: ops.Container,
         readable_interesting_dir: pathlib.Path,
-        encoding: str,
-        filename: str,
-        error_setting: str,
-        newline: str | None,
-    ):
-        path = readable_interesting_dir / filename
-        container_path = ContainerPath(path, container=container)
-        try:  # python 3.13+ only
-            pathlib_result = path.read_text(  # pyright: ignore[reportUnknownVariableType]
-                encoding=encoding,
-                errors=error_setting,
-                newline=newline,  # pyright: ignore[reportCallIssue]
-            )
-        except TypeError:
-            pathlib_result = path.read_text(encoding=encoding, errors=error_setting)
-            container_result = container_path.read_text(encoding=encoding, errors=error_setting)
-        else:
-            container_result = container_path.read_text(
-                encoding=encoding, errors=error_setting, newline=newline
-            )
-        assert container_result == pathlib_result
-
-    @pytest.mark.parametrize(
-        ('encoding', 'filename'),
-        (
-            (None, next(iter(utils.UTF16_BINARY_FILES))),
-            ('utf-8', next(iter(utils.UTF16_BINARY_FILES))),
-            ('utf-16', next(iter(utils.UTF8_BINARY_FILES))),
-        ),
-    )
-    def test_when_wrong_encoding_used_with_strict_errors_then_raises_unicode_error(
-        self,
-        container: ops.Container,
-        readable_interesting_dir: pathlib.Path,
-        encoding: str,
         filename: str,
     ):
         path = readable_interesting_dir / filename
         with pytest.raises(UnicodeError):
-            path.read_text(encoding=encoding)
+            path.read_text()
         container_path = ContainerPath(path, container=container)
         with pytest.raises(UnicodeError):
-            container_path.read_text(encoding=encoding)
-
-    @pytest.mark.parametrize('error_setting', ('ignore', 'replace'))
-    @pytest.mark.parametrize(
-        ('encoding', 'filename'),
-        (
-            (None, next(iter(utils.UTF16_BINARY_FILES))),
-            ('utf-8', next(iter(utils.UTF16_BINARY_FILES))),
-            ('utf-16', next(iter(utils.UTF8_BINARY_FILES))),
-        ),
-    )
-    def test_when_wrong_encoding_used_without_strict_errors_then_results_match(
-        self,
-        container: ops.Container,
-        readable_interesting_dir: pathlib.Path,
-        encoding: str,
-        filename: str,
-        error_setting: str,
-    ):
-        path = readable_interesting_dir / filename
-        container_path = ContainerPath(path, container=container)
-        try:
-            pathlib_result = path.read_text(encoding=encoding, errors=error_setting)
-        except UnicodeError:
-            with pytest.raises(UnicodeError):
-                container_path.read_text(encoding=encoding, errors=error_setting)
-        else:
-            container_result = container_path.read_text(encoding=encoding, errors=error_setting)
-            assert container_result == pathlib_result
+            container_path.read_text()
 
 
 class TestReadBytes:

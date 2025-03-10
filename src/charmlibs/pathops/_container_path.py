@@ -16,9 +16,8 @@
 
 from __future__ import annotations
 
-import os
 import pathlib
-import tempfile
+import re
 import typing
 
 from ops import pebble
@@ -27,7 +26,7 @@ from . import _errors, _fileinfo
 from ._types import StrPathLike
 
 if typing.TYPE_CHECKING:
-    from typing import Generator
+    from typing import Generator, Literal
 
     import ops
     from typing_extensions import Self
@@ -154,8 +153,7 @@ class ContainerPath:
 
     def read_text(
         self,
-        encoding: str | None = None,
-        errors: str | None = None,  # 'strict' or 'ignore'; defaults to 'strict'
+        *,
         newline: str | None = None,  # 3.13+
         # None -> treat \n \r \r\n as newlines, convert to \n
         # ''   -> treat \n \r \r\n as newlines, return unmodified
@@ -163,56 +161,25 @@ class ContainerPath:
         # since this method doesn't readlines or anything, the only difference is the return value
         # i.e. None -> convert to \n; any other value -> return unmodified
     ) -> str:
-        if encoding is None:
-            encoding = 'utf-8'
-        if errors is None:
-            errors = 'strict'
-        # # TODO: update ops so this works
-        # #       needs newline and errors parameters added
-        # try:
-        #     with self._container.pull(
-        #         self._path, encoding=encoding, errors=errors, newline=newline
-        #     ) as f:
-        #         return f.read()
-        # except pebble.PathError as e:
-        #     for error in (...):
-        #         if error.matches(e):
-        #             raise error.exception(self._description()) from e
-        #     raise
-        #
-        # ## operate on bytes in memory since pull doesn't expose all the args we need
-        data = self.read_bytes()
-        # # efficient but doesn't error correctly on encoding mismatch
-        # # even when we exclude 'strict'
-        # import re
-        # if errors != 'strict':
-        #     text = data.decode(encoding=encoding, errors=errors)
-        #     if newline is None:
-        #         return re.sub('\r\n|\r|\n', '\n', text)
-        #     return text
-        #
-        # # tempfile because open somehow detects encoding mismatch
-        with tempfile.NamedTemporaryFile('wb', delete=False) as f:
-            f.write(data)
-        with open(f.name, encoding=encoding, errors=errors, newline=newline) as f:
-            text = f.read()
-        os.unlink(f.name)
+        text = self._pull(text=True)
+        if newline is None:
+            return re.sub('\r\n|\r|\n', '\n', text)
         return text
-        #
-        # # pipe so it stays in memory -- probably (silently?) breaks for big files
-        # import os
-        # r, w = os.pipe()
-        # with open(w, 'wb') as f:
-        #     f.write(data)
-        # with open(r, encoding=encoding, errors=errors, newline=newline) as f:
-        #     return f.read()
 
     def read_bytes(self) -> bytes:
+        return self._pull(text=False)
+
+    @typing.overload
+    def _pull(self, *, text: Literal[True]) -> str: ...
+    @typing.overload
+    def _pull(self, *, text: Literal[False] = False) -> bytes: ...
+    def _pull(self, *, text: bool = False):
+        encoding = 'utf-8' if text else None
         try:
-            with self._container.pull(self._path, encoding=None) as f:
+            with self._container.pull(self._path, encoding=encoding) as f:
                 return f.read()
         except pebble.PathError as e:
-            for error in (_errors.FileNotFound, _errors.IsADirectory, _errors.Permission):
+            for error in (_errors.IsADirectory, _errors.FileNotFound, _errors.Permission):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise

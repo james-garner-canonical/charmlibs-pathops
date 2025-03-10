@@ -191,8 +191,10 @@ class PathProtocol(typing.Protocol):
     # pull
     def read_text(
         self,
-        encoding: str | None = None,
-        errors: typing.Literal['strict', 'ignore'] | None = None,
+        # # we drop encoding and errors for a simpler API
+        # encoding: str | None = None,
+        # errors: typing.Literal['strict', 'ignore'] | None = None,
+        # # newline is not part of the protocol since we support Python 3.8+
         # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.13+
     ) -> str: ...
 
