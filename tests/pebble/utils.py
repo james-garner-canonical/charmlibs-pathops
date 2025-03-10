@@ -34,10 +34,15 @@ if typing.TYPE_CHECKING:
 BINARY_FILE_NAME = 'binary_file.bin'
 BROKEN_SYMLINK_NAME = 'symlink_broken'
 EMPTY_DIR_NAME = 'empty_dir'
+EMPTY_DIR_SYMLINK_NAME = 'symlink_dir'
 EMPTY_FILE_NAME = 'empty_file.bin'
+FILE_SYMLINK_NAME = 'symlink.bin'
 MISSING_FILE_NAME = 'does_not_exist'
+NESTED_DIR_NAME = 'nested_dir'
+OUROBOROS_SYMLINK_NAME = 'symlink_to_itself'
+RECURSIVE_SYMLINK_NAME = 'symlink_rec'
 SOCKET_NAME = 'socket.socket'
-SYMLINK_NAME = 'symlink.bin'
+SOCKET_SYMLINK_NAME = 'symlink.socket'
 TEXT_FILE_NAME = 'alphabet.txt'
 
 TEXT_FILES: Mapping[str, str] = {
@@ -74,27 +79,39 @@ class Mocks:
 
 
 @contextlib.contextmanager
-def populate_interesting_dir(directory: pathlib.Path) -> Iterator[None]:
-    (directory / EMPTY_DIR_NAME).mkdir()
-    empty_file = directory / EMPTY_FILE_NAME
-    empty_file.touch()
-    (directory / SYMLINK_NAME).symlink_to(empty_file)
-    # (directory / 'symlink_dir').symlink_to(directory / 'empty_dir')
-    # (directory / 'symlink_rec').symlink_to(directory)
-    (directory / BROKEN_SYMLINK_NAME).symlink_to(directory / 'does_not_exist')
-    for filename, contents in TEXT_FILES.items():
-        (directory / filename).write_text(contents)
-    for filename, contents in BINARY_FILES.items():
-        (directory / filename).write_bytes(contents)
-    sock = socket.socket(socket.AddressFamily.AF_UNIX)
-    sock.bind(str(directory / SOCKET_NAME))
+def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:
+    nested_dir = main_dir / NESTED_DIR_NAME
+    nested_dir.mkdir()
+    doubly_nested_dir = nested_dir / NESTED_DIR_NAME
+    doubly_nested_dir.mkdir()
+    sockets: list[socket.socket] = []
+    for directory in (main_dir, nested_dir, doubly_nested_dir):
+        (directory / EMPTY_DIR_NAME).mkdir()
+        empty_file = directory / EMPTY_FILE_NAME
+        empty_file.touch()
+        (directory / FILE_SYMLINK_NAME).symlink_to(empty_file)
+        (directory / EMPTY_DIR_SYMLINK_NAME).symlink_to(directory / EMPTY_DIR_NAME)
+        (directory / RECURSIVE_SYMLINK_NAME).symlink_to(directory)
+        (directory / BROKEN_SYMLINK_NAME).symlink_to(directory / MISSING_FILE_NAME)
+        (directory / OUROBOROS_SYMLINK_NAME).symlink_to(directory / OUROBOROS_SYMLINK_NAME)
+        for filename, contents in TEXT_FILES.items():
+            (directory / filename).write_text(contents)
+        for filename, contents in BINARY_FILES.items():
+            (directory / filename).write_bytes(contents)
+        sock = socket.socket(socket.AddressFamily.AF_UNIX)
+        sock.bind(str(directory / SOCKET_NAME))
+        sockets.append(sock)
+        (directory / SOCKET_SYMLINK_NAME).symlink_to(directory / SOCKET_NAME)
     # TODO: make block device?
     try:
-        assert not (directory / MISSING_FILE_NAME).exists()
+        assert not (main_dir / MISSING_FILE_NAME).exists()
+        assert not (nested_dir / MISSING_FILE_NAME).exists()
+        assert not (doubly_nested_dir / MISSING_FILE_NAME).exists()
         yield
     finally:
-        sock.shutdown(socket.SHUT_RDWR)
-        sock.close()
+        for s in sockets:
+            s.shutdown(socket.SHUT_RDWR)
+            s.close()
 
 
 # import time

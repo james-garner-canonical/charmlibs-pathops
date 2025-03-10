@@ -197,14 +197,19 @@ class ContainerPath:
             raise
 
     def unlink(self, missing_ok: bool = False) -> None:
-        # known limitation -- can't remove broken symlinks
         try:
             info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
+            # but this prevents us from removing broken symlinks!
+            # and causes us to raise that error about ouroboros symlinks!
         except FileNotFoundError:
             if missing_ok:
                 return
             raise
         if info.type == pebble.FileType.DIRECTORY:
+            # this is actually incorrect behaviour if it's just a symlink to a directory
+            # but we can't tell the difference via Pebble
+            # so it's safer to prevent accidentally removing a directory (which may have contents)
+            # but wait, doesn't recursive handle this?
             raise _errors.IsADirectory.exception(self._description())
         try:
             self._container.remove_path(self._path, recursive=False)
@@ -277,6 +282,10 @@ class ContainerPath:
             info = _fileinfo.from_container_path(self)
         except FileNotFoundError:
             return False
+        except OSError as e:
+            if _errors.TooManyLevelsOfSymbolicLinks.matches_exception(e):
+                return False
+            raise
         if filetype is None:  # we only care if the file exists
             return True
         return info.type is filetype

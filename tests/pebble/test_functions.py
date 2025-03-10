@@ -42,8 +42,8 @@ class TestGetFileInfo:
         path = session_dir / filename
         try:
             pebble_result = get_fileinfo(ContainerPath(path, container=container))
-        except FileNotFoundError:
-            with pytest.raises(FileNotFoundError):
+        except OSError as e:
+            with pytest.raises(type(e)):
                 get_fileinfo(path)
             return
         else:

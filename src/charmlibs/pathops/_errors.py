@@ -89,10 +89,28 @@ class NotADirectory:
 
 
 class Permission:
-    @classmethod
-    def matches(cls, error: pebble.Error) -> bool:
+    @staticmethod
+    def matches(error: pebble.Error) -> bool:
         return isinstance(error, pebble.PathError) and error.kind == 'permission-denied'
 
     @staticmethod
     def exception(msg: str) -> PermissionError:
         return PermissionError(errno.EPERM, os.strerror(errno.EPERM), msg)
+
+
+class TooManyLevelsOfSymbolicLinks:
+    @staticmethod
+    def matches(error: pebble.Error) -> bool:
+        return (
+            isinstance(error, pebble.APIError)
+            and error.code == 400
+            and 'too many levels of symbolic links' in error.message
+        )
+
+    @classmethod
+    def exception(cls, msg: str) -> OSError:
+        return OSError(errno.ELOOP, os.strerror(errno.ELOOP), msg)
+
+    @staticmethod
+    def matches_exception(exception: Exception) -> bool:
+        return isinstance(exception, OSError) and exception.errno == errno.ELOOP
