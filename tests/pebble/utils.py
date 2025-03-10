@@ -20,7 +20,6 @@ import contextlib
 import os
 import pathlib
 import socket
-import string
 import tempfile
 import typing
 
@@ -41,17 +40,17 @@ SYMLINK_NAME = 'symlink.bin'
 TEXT_FILE_NAME = 'alphabet.txt'
 
 TEXT_FILES: Mapping[str, str] = {
-    TEXT_FILE_NAME: string.ascii_lowercase,
+    TEXT_FILE_NAME: 'abcd\r\nefg\rhijk\nlmnop\r\nqrs\rtuv\nw\r\nx\ry\nz',
     # TODO: enable additional files if we figure out why the socket is timing out
-    # 'bar.txt': string.ascii_uppercase * 2,
+    # 'bar.txt': string.ascii_uppercase + string.ascii_lowercase,
     # 'baz.txt': '',
     # 'bartholemew.txt': 'Bartholemew',
 }
 UTF8_BINARY_FILES: Mapping[str, bytes] = {
-    str(pathlib.Path(k).with_suffix('.bin')): v.encode() for k, v in TEXT_FILES.items()
+    str(pathlib.Path(k).with_suffix('.utf-8')): v.encode() for k, v in TEXT_FILES.items()
 }
 UTF16_BINARY_FILES: Mapping[str, bytes] = {
-    str(pathlib.Path(k).with_suffix('.bin16')): v.encode('utf-16') for k, v in TEXT_FILES.items()
+    str(pathlib.Path(k).with_suffix('.utf-16')): v.encode('utf-16') for k, v in TEXT_FILES.items()
 }
 BINARY_FILES: Mapping[str, bytes | bytearray] = {
     BINARY_FILE_NAME: bytearray(range(256)),
