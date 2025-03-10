@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import os
 import pathlib
-import re
 import tempfile
 import typing
 
@@ -184,11 +183,13 @@ class ContainerPath:
         # ## operate on bytes in memory since pull doesn't expose all the args we need
         data = self.read_bytes()
         # # efficient but doesn't error correctly on encoding mismatch
-        if errors != 'strict':
-            text = data.decode(encoding=encoding, errors=errors)
-            if newline is None:
-                return re.sub('\r\n|\r|\n', '\n', text)
-            return text
+        # # even when we exclude 'strict'
+        # import re
+        # if errors != 'strict':
+        #     text = data.decode(encoding=encoding, errors=errors)
+        #     if newline is None:
+        #         return re.sub('\r\n|\r|\n', '\n', text)
+        #     return text
         #
         # # tempfile because open somehow detects encoding mismatch
         with tempfile.NamedTemporaryFile('wb', delete=False) as f:
@@ -199,6 +200,7 @@ class ContainerPath:
         return text
         #
         # # pipe so it stays in memory -- probably (silently?) breaks for big files
+        # import os
         # r, w = os.pipe()
         # with open(w, 'wb') as f:
         #     f.write(data)
