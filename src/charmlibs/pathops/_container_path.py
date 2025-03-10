@@ -16,7 +16,9 @@
 
 from __future__ import annotations
 
+import os
 import pathlib
+import re
 import tempfile
 import typing
 
@@ -154,14 +156,20 @@ class ContainerPath:
     def read_text(
         self,
         encoding: str | None = None,
-        errors: str | None = None,
-        newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.13+
+        errors: str | None = None,  # 'strict' or 'ignore'; defaults to 'strict'
+        newline: str | None = None,  # 3.13+
+        # None -> treat \n \r \r\n as newlines, convert to \n
+        # ''   -> treat \n \r \r\n as newlines, return unmodified
+        # (\n, \r, \r\n) -> only treat that option as a newline, return unmodified
+        # since this method doesn't readlines or anything, the only difference is the return value
+        # i.e. None -> convert to \n; any other value -> return unmodified
     ) -> str:
         if encoding is None:
             encoding = 'utf-8'
         if errors is None:
             errors = 'strict'
         # # TODO: update ops so this works
+        # #       needs newline and errors parameters added
         # try:
         #     with self._container.pull(
         #         self._path, encoding=encoding, errors=errors, newline=newline
@@ -176,14 +184,19 @@ class ContainerPath:
         # ## operate on bytes in memory since pull doesn't expose all the args we need
         data = self.read_bytes()
         # # efficient but doesn't error correctly on encoding mismatch
-        # # also can't handle newlines
-        # return data.decode(encoding=encoding, errors=errors)
+        if errors != 'strict':
+            text = data.decode(encoding=encoding, errors=errors)
+            if newline is None:
+                return re.sub('\r\n|\r|\n', '\n', text)
+            return text
         #
         # # tempfile because open somehow detects encoding mismatch
         with tempfile.NamedTemporaryFile('wb', delete=False) as f:
             f.write(data)
         with open(f.name, encoding=encoding, errors=errors, newline=newline) as f:
-            return f.read()
+            text = f.read()
+        os.unlink(f.name)
+        return text
         #
         # # pipe so it stays in memory -- probably (silently?) breaks for big files
         # r, w = os.pipe()

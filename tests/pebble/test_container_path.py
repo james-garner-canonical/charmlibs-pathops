@@ -265,16 +265,24 @@ class TestReadCommon:
 class TestReadText:
     @pytest.mark.parametrize('filename', utils.TEXT_FILES)
     @pytest.mark.parametrize('error_setting', ('strict', 'ignore', 'replace'))
+    @pytest.mark.parametrize('newline', (None, ''))
     def test_ok(
         self,
         container: ops.Container,
         readable_interesting_dir: pathlib.Path,
         filename: str,
         error_setting: str,
+        newline: str | None,
     ):
-        pathlib_result = (readable_interesting_dir / filename).read_text(errors=error_setting)
-        container_path = ContainerPath(readable_interesting_dir, filename, container=container)
-        container_result = container_path.read_text(errors=error_setting)
+        path = readable_interesting_dir / filename
+        container_path = ContainerPath(path, container=container)
+        try:  # python 3.13+ only
+            pathlib_result = path.read_text(errors=error_setting, newline=newline)  # pyright: ignore[reportCallIssue,reportUnknownVariableType]
+        except TypeError:
+            pathlib_result = path.read_text(errors=error_setting)
+            container_result = container_path.read_text(errors=error_setting)
+        else:
+            container_result = container_path.read_text(errors=error_setting, newline=newline)
         assert container_result == pathlib_result
 
     @pytest.mark.parametrize(
