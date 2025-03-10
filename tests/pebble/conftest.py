@@ -57,6 +57,5 @@ def class_tmp_dirs(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib
     two = tmp_path / '2'
     one.mkdir()
     two.mkdir()
-    with utils.populate_interesting_dir(one):
-        with utils.populate_interesting_dir(two):
-            yield tmp_path
+    with utils.populate_interesting_dir(one), utils.populate_interesting_dir(two):
+        yield tmp_path
