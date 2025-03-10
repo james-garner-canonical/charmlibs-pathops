@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import errno
 import operator
 import os
 import pathlib
@@ -310,6 +311,80 @@ class TestReadBytes:
         pathlib_result = path.read_bytes()
         container_result = ContainerPath(path, container=container).read_bytes()
         assert container_result == pathlib_result
+
+
+class TestRmDir:
+    def test_ok(self, container: ops.Container, tmp_path: pathlib.Path):
+        directory = tmp_path / 'dir'
+        # setup
+        directory.mkdir()
+        assert directory.is_dir()
+        # pathlib
+        directory.rmdir()
+        assert not directory.exists()
+        # setup
+        directory.mkdir()
+        assert directory.is_dir()
+        # container
+        ContainerPath(directory, container=container).rmdir()
+        assert not directory.exists()
+
+    @pytest.mark.parametrize('filename', [utils.MISSING_FILE_NAME, utils.BROKEN_SYMLINK_NAME])
+    def test_when_target_doesnt_exist_then_raises_file_not_found_error(
+        self, container: ops.Container, tmp_path: pathlib.Path, filename: str
+    ):
+        directory = tmp_path / filename
+        # pathlib
+        assert not directory.exists()
+        with pytest.raises(FileNotFoundError):
+            directory.rmdir()
+        # container
+        assert not directory.exists()
+        with pytest.raises(FileNotFoundError):
+            ContainerPath(directory, container=container).rmdir()
+
+    @pytest.mark.parametrize('filename', [utils.TEXT_FILE_NAME, utils.SOCKET_NAME])
+    def test_when_target_isnt_a_directory_then_raises_not_a_directory_error(
+        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
+    ):
+        path = readable_interesting_dir / filename
+        # pathlib
+        assert not path.is_dir()
+        with pytest.raises(NotADirectoryError):
+            path.rmdir()
+        # container
+        assert not path.is_dir()
+        with pytest.raises(NotADirectoryError):
+            ContainerPath(path, container=container).rmdir()
+
+    def test_when_directory_isnt_empty_then_raises_directory_not_empty_error(
+        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+    ):
+        with pytest.raises(OSError) as pathlib_ctx:
+            readable_interesting_dir.rmdir()
+        assert pathlib_ctx.value.errno == errno.ENOTEMPTY
+        with pytest.raises(OSError) as container_ctx:
+            ContainerPath(readable_interesting_dir, container=container).rmdir()
+        assert container_ctx.value.errno == errno.ENOTEMPTY
+
+    @pytest.mark.parametrize(
+        ('mock', 'error'),
+        (
+            (utils.Mocks.raises_connection_error, pebble.ConnectionError),
+            (utils.Mocks.raises_unknown_path_error, pebble.PathError),
+        ),
+    )
+    def test_unhandled_pebble_errors(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        container: ops.Container,
+        mock: Callable[[Any], None],
+        error: type[Exception],
+    ):
+        with monkeypatch.context() as m:
+            m.setattr(container, 'remove_path', mock)
+            with pytest.raises(error):
+                ContainerPath('/', container=container).rmdir()
 
 
 class TestIterDir:

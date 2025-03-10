@@ -25,7 +25,11 @@ from ops import pebble
 class DirectoryNotEmpty:
     @staticmethod
     def matches(error: pebble.Error) -> bool:
-        return False
+        return (
+            isinstance(error, pebble.PathError)
+            and error.kind == 'generic-file-error'
+            and 'directory not empty' in error.message
+        )
 
     @staticmethod
     def exception(msg: str) -> OSError:
