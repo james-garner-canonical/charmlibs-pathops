@@ -197,7 +197,13 @@ class ContainerPath:
             raise
 
     def unlink(self, missing_ok: bool = False) -> None:
-        info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
+        # known limitation -- can't remove broken symlinks
+        try:
+            info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
+        except FileNotFoundError:
+            if missing_ok:
+                return
+            raise
         if info.type == pebble.FileType.DIRECTORY:
             raise _errors.IsADirectory.exception(self._description())
         try:

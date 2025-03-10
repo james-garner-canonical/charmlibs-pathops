@@ -387,6 +387,72 @@ class TestRmDir:
                 ContainerPath('/', container=container).rmdir()
 
 
+class TestUnlink:
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+    def test_ok(self, container: ops.Container, class_tmp_dirs: pathlib.Path, filename: str):
+        pathlib_dir = class_tmp_dirs / '1'
+        container_dir = class_tmp_dirs / '2'
+        pathlib_path = pathlib_dir / filename
+        container_path = ContainerPath(container_dir / filename, container=container)
+        exists = pathlib_path.exists()
+        try:
+            pathlib_path.unlink()
+            assert not pathlib_path.exists()
+        except OSError as e:
+            with pytest.raises(type(e)):
+                container_path.unlink()
+            return
+        try:
+            container_path.unlink()
+        except FileNotFoundError:
+            assert not exists  # known limitation -- can't remove broken symlink
+        assert not container_path.exists()
+
+    def test_unlink_symlink_then_unlink_target(
+        self, container: ops.Container, tmp_path: pathlib.Path
+    ):
+        # pathlib
+        pathlib_target = tmp_path / 'target'
+        pathlib_target.touch()
+        pathlib_symlink = tmp_path / 'link'
+        pathlib_symlink.symlink_to(pathlib_target)
+        pathlib_symlink.unlink()
+        pathlib_target.unlink()
+        # container
+        container_target = tmp_path / 'target'
+        container_target.touch()
+        container_symlink = tmp_path / 'link'
+        container_symlink.symlink_to(container_target)
+        ContainerPath(container_symlink, container=container).unlink()
+        ContainerPath(container_target, container=container).unlink()
+
+    def test_unlink_target_then_unlink_symlink(
+        self, container: ops.Container, tmp_path: pathlib.Path
+    ):
+        # pathlib
+        pathlib_target = tmp_path / 'target'
+        pathlib_target.touch()
+        pathlib_symlink = tmp_path / 'link'
+        pathlib_symlink.symlink_to(pathlib_target)
+        pathlib_target.unlink()
+        pathlib_symlink.unlink()
+        # container
+        container_target = tmp_path / 'target'
+        container_target.touch()
+        container_symlink = tmp_path / 'link'
+        container_symlink.symlink_to(container_target)
+        ContainerPath(container_target, container=container).unlink()
+        with pytest.raises(FileNotFoundError):  # known limitation -- can't remove broken symlink
+            ContainerPath(container_symlink, container=container).unlink()
+
+    def test_when_missing_ok_then_remove_missing_file_ok(
+        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+    ):
+        path = readable_interesting_dir / utils.MISSING_FILE_NAME
+        path.unlink(missing_ok=True)
+        ContainerPath(path, container=container).unlink(missing_ok=True)
+
+
 class TestIterDir:
     def test_ok(self, container: ops.Container, readable_interesting_dir: pathlib.Path):
         pathlib_list = list(readable_interesting_dir.iterdir())
