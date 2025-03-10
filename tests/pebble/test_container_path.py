@@ -228,16 +228,16 @@ class TestReadCommon:
     def test_filetype_errors(
         self,
         container: ops.Container,
-        readable_interesting_dir: pathlib.Path,
+        session_dir: pathlib.Path,
         method: str,
         file: str,
         error: type[Exception],
     ):
         pathlib_method = getattr(pathlib.Path, method)
         with pytest.raises(error):
-            pathlib_method(readable_interesting_dir / file)
+            pathlib_method(session_dir / file)
         containerpath_method = getattr(ContainerPath, method)
-        container_path = ContainerPath(readable_interesting_dir, file, container=container)
+        container_path = ContainerPath(session_dir, file, container=container)
         with pytest.raises(error):
             containerpath_method(container_path)
 
@@ -269,11 +269,11 @@ class TestReadText:
     def test_ok(
         self,
         container: ops.Container,
-        readable_interesting_dir: pathlib.Path,
+        session_dir: pathlib.Path,
         filename: str,
         newline: str | None,
     ):
-        path = readable_interesting_dir / filename
+        path = session_dir / filename
         container_path = ContainerPath(path, container=container)
         try:  # python 3.13+ only
             pathlib_result = path.read_text(newline=newline)  # pyright: ignore[reportCallIssue,reportUnknownVariableType]
@@ -288,10 +288,10 @@ class TestReadText:
     def test_when_file_is_not_utf8_then_raises_unicode_error(
         self,
         container: ops.Container,
-        readable_interesting_dir: pathlib.Path,
+        session_dir: pathlib.Path,
         filename: str,
     ):
-        path = readable_interesting_dir / filename
+        path = session_dir / filename
         with pytest.raises(UnicodeError):
             path.read_text()
         container_path = ContainerPath(path, container=container)
@@ -304,10 +304,10 @@ class TestReadBytes:
     def test_ok(
         self,
         container: ops.Container,
-        readable_interesting_dir: pathlib.Path,
+        session_dir: pathlib.Path,
         filename: str,
     ):
-        path = readable_interesting_dir / filename
+        path = session_dir / filename
         pathlib_result = path.read_bytes()
         container_result = ContainerPath(path, container=container).read_bytes()
         assert container_result == pathlib_result
@@ -345,9 +345,9 @@ class TestRmDir:
 
     @pytest.mark.parametrize('filename', [utils.TEXT_FILE_NAME, utils.SOCKET_NAME])
     def test_when_target_isnt_a_directory_then_raises_not_a_directory_error(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
+        self, container: ops.Container, session_dir: pathlib.Path, filename: str
     ):
-        path = readable_interesting_dir / filename
+        path = session_dir / filename
         # pathlib
         assert not path.is_dir()
         with pytest.raises(NotADirectoryError):
@@ -358,13 +358,13 @@ class TestRmDir:
             ContainerPath(path, container=container).rmdir()
 
     def test_when_directory_isnt_empty_then_raises_directory_not_empty_error(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+        self, container: ops.Container, session_dir: pathlib.Path
     ):
         with pytest.raises(OSError) as pathlib_ctx:
-            readable_interesting_dir.rmdir()
+            session_dir.rmdir()
         assert pathlib_ctx.value.errno == errno.ENOTEMPTY
         with pytest.raises(OSError) as container_ctx:
-            ContainerPath(readable_interesting_dir, container=container).rmdir()
+            ContainerPath(session_dir, container=container).rmdir()
         assert container_ctx.value.errno == errno.ENOTEMPTY
 
     @pytest.mark.parametrize(
@@ -446,19 +446,19 @@ class TestUnlink:
             ContainerPath(container_symlink, container=container).unlink()
 
     def test_when_missing_ok_then_remove_missing_file_ok(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path
+        self, container: ops.Container, session_dir: pathlib.Path
     ):
-        path = readable_interesting_dir / utils.MISSING_FILE_NAME
+        path = session_dir / utils.MISSING_FILE_NAME
         path.unlink(missing_ok=True)
         ContainerPath(path, container=container).unlink(missing_ok=True)
 
 
 class TestIterDir:
-    def test_ok(self, container: ops.Container, readable_interesting_dir: pathlib.Path):
-        pathlib_list = list(readable_interesting_dir.iterdir())
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path):
+        pathlib_list = list(session_dir.iterdir())
         pathlib_set = {str(p) for p in pathlib_list}
         assert len(pathlib_list) == len(pathlib_set)
-        container_path = ContainerPath(readable_interesting_dir, container=container)
+        container_path = ContainerPath(session_dir, container=container)
         container_list = list(container_path.iterdir())
         container_set = {str(p) for p in container_list}
         assert len(container_list) == len(container_set)
@@ -477,11 +477,11 @@ class TestIterDir:
     def test_filetype_errors(
         self,
         container: ops.Container,
-        readable_interesting_dir: pathlib.Path,
+        session_dir: pathlib.Path,
         file: str,
         error: type[Exception],
     ):
-        path = readable_interesting_dir / file
+        path = session_dir / file
         with pytest.raises(error):
             next(path.iterdir())
         container_path = ContainerPath(path, container=container)
@@ -494,11 +494,9 @@ class TestIterDir:
 
 class TestExists:
     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
-    ):
-        pathlib_path = readable_interesting_dir / filename
-        container_path = ContainerPath(readable_interesting_dir, filename, container=container)
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
+        pathlib_path = session_dir / filename
+        container_path = ContainerPath(session_dir, filename, container=container)
         pathlib_result = pathlib_path.exists()
         container_result = container_path.exists()
         assert container_result == pathlib_result
@@ -506,11 +504,9 @@ class TestExists:
 
 class TestIsDir:
     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
-    ):
-        pathlib_path = readable_interesting_dir / filename
-        container_path = ContainerPath(readable_interesting_dir, filename, container=container)
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
+        pathlib_path = session_dir / filename
+        container_path = ContainerPath(session_dir, filename, container=container)
         pathlib_result = pathlib_path.is_dir()
         container_result = container_path.is_dir()
         assert container_result == pathlib_result
@@ -518,11 +514,9 @@ class TestIsDir:
 
 class TestIsFile:
     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
-    ):
-        pathlib_path = readable_interesting_dir / filename
-        container_path = ContainerPath(readable_interesting_dir, filename, container=container)
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
+        pathlib_path = session_dir / filename
+        container_path = ContainerPath(session_dir, filename, container=container)
         pathlib_result = pathlib_path.is_file()
         container_result = container_path.is_file()
         assert container_result == pathlib_result
@@ -530,11 +524,9 @@ class TestIsFile:
 
 class TestIsFifo:
     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
-    ):
-        pathlib_path = readable_interesting_dir / filename
-        container_path = ContainerPath(readable_interesting_dir, filename, container=container)
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
+        pathlib_path = session_dir / filename
+        container_path = ContainerPath(session_dir, filename, container=container)
         pathlib_result = pathlib_path.is_fifo()
         container_result = container_path.is_fifo()
         assert container_result == pathlib_result
@@ -542,11 +534,9 @@ class TestIsFifo:
 
 class TestIsSocket:
     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
-    ):
-        pathlib_path = readable_interesting_dir / filename
-        container_path = ContainerPath(readable_interesting_dir, filename, container=container)
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
+        pathlib_path = session_dir / filename
+        container_path = ContainerPath(session_dir, filename, container=container)
         pathlib_result = pathlib_path.is_socket()
         container_result = container_path.is_socket()
         assert container_result == pathlib_result

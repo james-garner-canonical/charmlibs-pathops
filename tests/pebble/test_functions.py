@@ -38,10 +38,8 @@ pytestmark = pytest.mark.skipif(
 
 class TestGetFileInfo:
     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(
-        self, container: ops.Container, readable_interesting_dir: pathlib.Path, filename: str
-    ):
-        path = readable_interesting_dir / filename
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
+        path = session_dir / filename
         try:
             pebble_result = get_fileinfo(ContainerPath(path, container=container))
         except FileNotFoundError:

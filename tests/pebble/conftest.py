@@ -38,8 +38,8 @@ def another_container() -> ops.Container:
 
 
 @pytest.fixture(scope='session')
-def readable_interesting_dir(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib.Path]:
-    tmp_path = tmp_path_factory.mktemp('readable_interesting_dir')
+def session_dir(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib.Path]:
+    tmp_path = tmp_path_factory.mktemp('session_dir')
     with utils.populate_interesting_dir(tmp_path):
         yield tmp_path
 
