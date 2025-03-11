@@ -216,14 +216,15 @@ class PathProtocol(typing.Protocol):
         # recurse_symlinks: bool = False,  # added in 3.13
     ) -> Generator[Self]: ...
 
-    # NOTE: to ease implementation, this could be dropped from the v1 release
-    def rglob(
-        self,
-        pattern: str,  # support for _StrPath added in 3.13
-        # *,
-        # case_sensitive: bool = False,  # added in 3.12
-        # recurse_symlinks: bool = False,  # added in 3.13
-    ) -> Generator[Self]: ...
+    # recursive glob is problematic because Pebble doesn't tell us whether something is a symlink
+    # so we can easily recurse until we hit Pebble's api limit
+    # def rglob(
+    #     self,
+    #     pattern: str,  # support for _StrPath added in 3.13
+    #     # *,
+    #     # case_sensitive: bool = False,  # added in 3.12
+    #     # recurse_symlinks: bool = False,  # added in 3.13
+    # ) -> Generator[Self]: ...
 
     # walk was only added in 3.12 -- let's not support this for now, as we'd need to
     # implement the walk logic for LocalPath as well as whatever we do for ContainerPath

@@ -240,21 +240,25 @@ class ContainerPath:
     ) -> Generator[Self]:
         if not isinstance(pattern, str):
             pattern = str(pattern)
-        file_infos = self._container.list_files(self._path, pattern=pattern)
-        for f in file_infos:
-            yield self.with_segments(f.path)
-
-    def rglob(
-        self,
-        pattern: StrPathLike,  # support for _StrPath added in 3.13
-        # *,
-        # case_sensitive: bool = False,  # added in 3.12
-        # recurse_symlinks: bool = False,  # added in 3.13
-    ) -> Generator[Self]:
-        # NOTE: to ease implementation, this could be dropped from the v1 release
-        if not isinstance(pattern, str):
-            pattern = str(pattern)
-        return self.rglob(f'**/{pattern}')
+        *pattern_parents, pattern_itself = pathlib.PurePath(pattern).parts
+        if '**' in pattern_parents:
+            raise NotImplementedError('Recursive glob is not supported.')
+        if '**' in pattern:
+            raise ValueError("Invalid pattern: '**' can only be an entire path component")
+        if not pattern_parents:
+            file_infos = self._container.list_files(self._path, pattern=pattern_itself)
+            for f in file_infos:
+                yield self.with_segments(f.path)
+            return
+        first, *rest = pattern_parents
+        next_pattern = pathlib.PurePath(*rest, pattern_itself)
+        if first == '*':
+            for container_path in self.iterdir():
+                if container_path.is_dir():
+                    yield from container_path.glob(next_pattern)
+        else:
+            assert '*' not in first
+            yield from (self / first).glob(next_pattern)
 
     def owner(self) -> str:
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist

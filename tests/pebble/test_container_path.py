@@ -482,7 +482,7 @@ class TestIterDir:
         container_list = list(container_path.iterdir())
         container_set = {str(p) for p in container_list}
         assert len(container_list) == len(container_set)
-        assert pathlib_set == container_set
+        assert container_set == pathlib_set
 
     @pytest.mark.parametrize(
         ('file', 'error'),
@@ -507,6 +507,44 @@ class TestIterDir:
         container_path = ContainerPath(path, container=container)
         with pytest.raises(error):
             next(container_path.iterdir())
+
+
+class TestGlob:
+    @pytest.mark.parametrize(
+        'pattern',
+        (
+            '*',
+            '*.txt',
+            'foo*',
+            'ba*.txt',
+            f'{utils.NESTED_DIR_NAME}/*.txt',
+            '*/*.txt',
+        ),
+    )
+    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, pattern: str):
+        pathlib_result = sorted(str(p) for p in session_dir.glob(pattern))
+        container_path = ContainerPath(session_dir, container=container)
+        container_result = sorted(str(p) for p in container_path.glob(pattern))
+        assert container_result == pathlib_result
+
+    @pytest.mark.parametrize('pattern', [f'{utils.NESTED_DIR_NAME}/**/*.txt', '**/*.txt'])
+    def test_when_recursive_glob_then_raises_not_implemented_error(
+        self, container: ops.Container, session_dir: pathlib.Path, pattern: str
+    ):
+        list(session_dir.glob(pattern))  # pattern is fine
+        container_path = ContainerPath(session_dir, container=container)
+        with pytest.raises(NotImplementedError):
+            list(container_path.glob(pattern))
+
+    @pytest.mark.parametrize('pattern', ['**.txt', '***/*.txt'])
+    def test_when_bad_pattern_then_raises_not_implemented_error(
+        self, container: ops.Container, session_dir: pathlib.Path, pattern: str
+    ):
+        with pytest.raises(ValueError):
+            list(session_dir.glob(pattern))
+        container_path = ContainerPath(session_dir, container=container)
+        with pytest.raises(ValueError):
+            list(container_path.glob(pattern))
 
 
 # TODO: remaining concrete path methods (glob, rglob, container, group)
