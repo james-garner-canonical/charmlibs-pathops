@@ -19,6 +19,7 @@ from __future__ import annotations
 import errno
 import operator
 import pathlib
+import sys
 import typing
 
 import ops
@@ -537,8 +538,12 @@ class TestGlob:
     def test_when_bad_pattern_then_raises_not_implemented_error(
         self, container: ops.Container, session_dir: pathlib.Path, pattern: str
     ):
-        with pytest.raises(ValueError):
+        try:
             list(session_dir.glob(pattern))
+        except ValueError:
+            assert sys.version_info < (3, 13)
+        else:
+            assert sys.version_info >= (3, 13)
         container_path = ContainerPath(session_dir, container=container)
         with pytest.raises(ValueError):
             list(container_path.glob(pattern))
