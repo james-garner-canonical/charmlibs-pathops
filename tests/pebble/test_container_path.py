@@ -629,6 +629,17 @@ class TestWriteBytes:
         assert path.read_bytes() == contents
 
 
+class TestWriteText:
+    @pytest.mark.parametrize(('filename', 'contents'), tuple(utils.TEXT_FILES.items()))
+    def test_ok(
+        self, container: ops.Container, tmp_path: pathlib.Path, filename: str, contents: str
+    ):
+        path = tmp_path / filename
+        container_path = ContainerPath(path, container=container)
+        container_path.write_text(contents)
+        assert container_path.read_text() == path.read_text()
+
+
 @pytest.mark.parametrize(
     'attr',
     (
