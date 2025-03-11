@@ -243,12 +243,14 @@ class PathProtocol(typing.Protocol):
 
     # def stat(self) -> os.stat_result: ...
     # stat follows symlinks to return information about the target
-    # Pebble's list_files tells you if a file is a symlink, but not what the target is
-    # TODO: support if we add follow_symlinks to Pebble's list_files API
+    # this may not be in v1, because we can only provide best effort completion on the
+    # pebble side -- for example, we can't distinguish block and char devices, and we can't
+    # detect if something is a symlink. Maybe we can provide a top-level fileinfo helper
 
     # def lstat(self) -> os.stat_result: ...
-    # this may not be in v1, because we can only provide best effort completion on the
-    # pebble side. Maybe we can provide a top-level fileinfo helper
+    # lstat tells you about the symlink rather than its target
+    # pebble only tells you about the target
+    # TODO: support if we add follow_symlinks to Pebble's list_files API
 
     def owner(self) -> str: ...
 

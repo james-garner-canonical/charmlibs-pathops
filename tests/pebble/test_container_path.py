@@ -547,7 +547,24 @@ class TestGlob:
             list(container_path.glob(pattern))
 
 
-# TODO: remaining concrete path methods (glob, rglob, container, group)
+@pytest.mark.parametrize('method', ['owner', 'group'])
+class TestOwnerAndGroup:
+    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+    def test_ok(
+        self, container: ops.Container, session_dir: pathlib.Path, method: str, filename: str
+    ):
+        path = session_dir / filename
+        pathlib_method = getattr(path, method)
+        container_path = ContainerPath(path, container=container)
+        container_method = getattr(container_path, method)
+        try:
+            pathlib_result = pathlib_method()
+        except Exception as e:
+            with pytest.raises(type(e)):
+                container_result = container_method()
+        else:
+            container_result = container_method()
+            assert container_result == pathlib_result
 
 
 class TestExists:
@@ -600,9 +617,34 @@ class TestIsSocket:
         assert container_result == pathlib_result
 
 
-class TestIsSymlink:
-    def test_not_provided(self):
-        assert not hasattr(ContainerPath, 'is_symlink')
+class TestWriteBytes:
+    pass
 
 
-# TODO: extended signature methods
+@pytest.mark.parametrize(
+    'attr',
+    (
+        '__rtruediv__',
+        '__fspath__',
+        '__bytes__',
+        'as_uri',
+        'relative_to',
+        'rglob',
+        'stat',
+        'lstat',
+        'is_mount',
+        'is_symlink',
+        'is_block_device',
+        'is_char_device',
+        'chmod',
+        'lchmod',
+        'symlink_to',
+        'resolve',
+        'samefile',
+        'open',
+        'touch',
+    ),
+)
+def test_not_provided(attr: str):
+    assert hasattr(pathlib.Path, attr)
+    assert not hasattr(ContainerPath, attr)
