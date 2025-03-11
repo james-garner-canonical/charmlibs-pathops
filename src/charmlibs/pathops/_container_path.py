@@ -197,27 +197,29 @@ class ContainerPath:
             raise
 
     def unlink(self, missing_ok: bool = False) -> None:
-        try:
-            info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
-            # but this prevents us from removing broken symlinks!
-            # and causes us to raise that error about ouroboros symlinks!
-        except FileNotFoundError:
-            if missing_ok:
-                return
-            raise
-        if info.type == pebble.FileType.DIRECTORY:
-            # this is actually incorrect behaviour if it's just a symlink to a directory
-            # but we can't tell the difference via Pebble
-            # so it's safer to prevent accidentally removing a directory (which may have contents)
-            # but wait, doesn't recursive handle this?
-            raise _errors.IsADirectory.exception(self._description())
+        sentinel = None
+        if self.is_dir():
+            sentinel_path = self / '.sentinel'
+            if not sentinel_path.exists():
+                sentinel_path.write_text('')
+                sentinel = sentinel_path
         try:
             self._container.remove_path(self._path, recursive=False)
         except pebble.PathError as e:
+            if _errors.DirectoryNotEmpty.matches(e):
+                if sentinel is not None:
+                    sentinel.unlink()
+                raise _errors.IsADirectory.exception(self._description()) from e
+            if _errors.FileNotFound.matches(e):
+                if missing_ok:
+                    return
+                raise _errors.FileNotFound.exception(self._description()) from e
             for error in (_errors.Permission,):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
+        if sentinel is not None:
+            sentinel.unlink()
 
     def iterdir(self) -> typing.Generator[Self]:
         # python < 3.13 defers NotADirectoryError to iteration time, but python 3.13 raises on call
@@ -303,16 +305,22 @@ class ContainerPath:
         user: str | int | None = None,
         group: str | int | None = None,
     ) -> int:
-        self._container.push(
-            path=self._path,
-            source=data,
-            make_dirs=False,
-            permissions=mode,
-            user=user if isinstance(user, str) else None,
-            user_id=user if isinstance(user, int) else None,
-            group=group if isinstance(group, str) else None,
-            group_id=group if isinstance(group, int) else None,
-        )
+        try:
+            self._container.push(
+                path=self._path,
+                source=data,
+                make_dirs=False,
+                permissions=mode,
+                user=user if isinstance(user, str) else None,
+                user_id=user if isinstance(user, int) else None,
+                group=group if isinstance(group, str) else None,
+                group_id=group if isinstance(group, int) else None,
+            )
+        except pebble.PathError as e:
+            for error in (_errors.FileNotFound, _errors.Permission):
+                if error.matches(e):
+                    raise error.exception(self._description()) from e
+            raise
         return len(data)
 
     def write_text(
@@ -332,19 +340,7 @@ class ContainerPath:
         if errors is None:
             errors = 'strict'
         encoded_data = bytes(data, encoding=encoding, errors=errors)
-        self._container.push(
-            path=self._path,
-            source=encoded_data,
-            # source=io.StringIO(data, newline=newline),  # 3.10+?
-            encoding=encoding,
-            make_dirs=False,
-            permissions=mode,
-            user=user if isinstance(user, str) else None,
-            user_id=user if isinstance(user, int) else None,
-            group=group if isinstance(group, str) else None,
-            group_id=group if isinstance(group, int) else None,
-        )
-        return len(encoded_data)
+        return self.write_bytes(encoded_data, mode=mode, user=user, group=group)
 
     def mkdir(
         self,

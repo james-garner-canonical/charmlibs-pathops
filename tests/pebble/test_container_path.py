@@ -27,7 +27,7 @@ import pytest
 from ops import pebble
 
 import utils
-from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError, _errors
+from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable
@@ -357,6 +357,22 @@ class TestRmDir:
         with pytest.raises(NotADirectoryError):
             ContainerPath(path, container=container).rmdir()
 
+    @pytest.mark.parametrize(
+        'filename', (utils.EMPTY_DIR_SYMLINK_NAME, utils.RECURSIVE_SYMLINK_NAME)
+    )
+    def test_when_target_is_a_symlink_to_a_directory_then_raises_not_a_directory_error(
+        self, container: ops.Container, session_dir: pathlib.Path, filename: str
+    ):
+        path = session_dir / filename
+        # pathlib
+        assert path.is_dir()
+        assert path.is_symlink()
+        with pytest.raises(NotADirectoryError):
+            path.rmdir()
+        # container
+        with pytest.raises(NotADirectoryError):
+            ContainerPath(path, container=container).rmdir()
+
     def test_when_directory_isnt_empty_then_raises_directory_not_empty_error(
         self, container: ops.Container, session_dir: pathlib.Path
     ):
@@ -394,8 +410,6 @@ class TestUnlink:
         container_dir = class_tmp_dirs / '2'
         pathlib_path = pathlib_dir / filename
         container_path = ContainerPath(container_dir / filename, container=container)
-        exists = pathlib_path.exists()
-        is_dir = pathlib_path.is_dir()
         try:
             pathlib_path.unlink()
             assert not pathlib_path.exists()
@@ -403,19 +417,7 @@ class TestUnlink:
             with pytest.raises(type(e)):
                 container_path.unlink()
             return
-        try:
-            container_path.unlink()
-        except FileNotFoundError:
-            assert not exists  # known limitation -- can't remove broken symlink
-            assert not container_path.exists()
-        except IsADirectoryError:
-            assert is_dir  # known limitation -- can't remove symlinks to directories ... safely?
-            # this exception is raised because we explicitly test if it's a directory first
-            # because otherwise it could remove the entire contents of the directory
-            assert container_path.is_dir()
-        except OSError as e:
-            assert _errors.TooManyLevelsOfSymbolicLinks.matches_exception(e)
-            # known limitation -- can't remove symlinks that link to themselves
+        container_path.unlink()
 
     def test_unlink_symlink_then_unlink_target(
         self, container: ops.Container, tmp_path: pathlib.Path
@@ -461,8 +463,7 @@ class TestUnlink:
         ContainerPath(container_target, container=container).unlink()
         assert not container_target.exists()
         assert not pathlib_symlink.exists()  # because it's a broken symlink and exists follows it
-        with pytest.raises(FileNotFoundError):  # known limitation -- can't remove broken symlink
-            ContainerPath(container_symlink, container=container).unlink()
+        ContainerPath(container_symlink, container=container).unlink()
 
     def test_when_missing_ok_then_remove_missing_file_ok(
         self, container: ops.Container, session_dir: pathlib.Path
