@@ -25,6 +25,7 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self, TypeAlias
 
 
+Bytes: TypeAlias = 'bytes | bytearray | memoryview'
 StrPathLike: TypeAlias = 'str | os.PathLike[str]'
 
 
@@ -255,23 +256,6 @@ class PathProtocol(typing.Protocol):
     def owner(self) -> str: ...
 
     def group(self) -> str: ...
-
-    # exists, is_dir and is_file are problematic, because they follow symlinks by default
-    # and Pebble will only tell us if the file is a symlink - nothing about its target.
-    #
-    # as written currently, the behaviour for ContainerPath will be to raise a
-    # NotImplementedError if the target is a symlink
-    #
-    # Python 3.12 and 3.13 add keyword arguments to control this (defaulting to True)
-    # The ContainerPath implementation should accept the follow_symlinks argument.
-    # Maybe the LocalPath implementation should too, so that the protocol can as well?
-    #
-    # In this case, for ContainerPath, if follow_symlinks==True and the result type
-    # is pebble.FileTypes.SYMLINK, then we'll raise a NotImplementedError at runtime.
-    #
-    # TODO: add to Pebble an optional eval/follow_symlinks arg for the list_files api,
-    #       and then only raise NotImplementedError if follow_symlinks=True AND the
-    #       result type is pebble.FileTypes.SYMLINK, AND the pebble version is too old
 
     def exists(self) -> bool: ...  # follow_symlinks=True added in 3.12
 

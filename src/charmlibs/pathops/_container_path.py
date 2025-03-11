@@ -23,7 +23,7 @@ import typing
 from ops import pebble
 
 from . import _errors, _fileinfo
-from ._types import StrPathLike
+from ._types import Bytes, StrPathLike
 
 if typing.TYPE_CHECKING:
     from typing import Generator, Literal
@@ -302,13 +302,16 @@ class ContainerPath:
 
     def write_bytes(
         self,
-        data: bytes,
+        data: Bytes,
         # extended with chmod + chown args
         *,
         mode: int | None = None,
         user: str | int | None = None,
         group: str | int | None = None,
     ) -> int:
+        if isinstance(data, (bytearray, memoryview)):
+            # TODO: update ops to correctly test for bytearray and memoryview in push
+            data = bytes(data)
         try:
             self._container.push(
                 path=self._path,

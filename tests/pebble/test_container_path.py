@@ -618,7 +618,15 @@ class TestIsSocket:
 
 
 class TestWriteBytes:
-    pass
+    @pytest.mark.parametrize(('filename', 'contents'), tuple(utils.BINARY_FILES.items()))
+    def test_ok(
+        self, container: ops.Container, tmp_path: pathlib.Path, filename: str, contents: bytes
+    ):
+        path = tmp_path / filename
+        path.write_bytes(contents)
+        assert path.read_bytes() == contents
+        ContainerPath(path, container=container).write_bytes(contents)
+        assert path.read_bytes() == contents
 
 
 @pytest.mark.parametrize(
