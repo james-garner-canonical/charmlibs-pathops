@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import pathlib
+import re
 import shutil
 
 import pytest
@@ -55,7 +56,7 @@ def mock_chown():
 
 
 @pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
-def test_mkdir_chown(
+def test_mkdir_calls_chown(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: pathlib.Path,
     mock_chown: MockChown,
@@ -75,7 +76,51 @@ def test_mkdir_chown(
         assert call == (path, user, group)
 
 
+@pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
+def test_write_bytes_calls_chown(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pathlib.Path,
+    mock_chown: MockChown,
+    user: int | str | None,
+    group: int | str | None,
+):
+    monkeypatch.setattr(shutil, 'chown', mock_chown)
+    path = LocalPath(tmp_path, 'file.txt')
+    assert not path.exists()
+    content = b'hell\r\no\r'
+    path.write_bytes(content, user=user, group=group)
+    assert path.exists()
+    assert path.is_file()
+    assert path.read_bytes() == content
+    if (user, group) == (None, None):
+        assert not mock_chown.calls
+    else:
+        [call] = mock_chown.calls
+        assert call == (path, user, group)
+
+
+@pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
+def test_write_text_calls_chown(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pathlib.Path,
+    mock_chown: MockChown,
+    user: int | str | None,
+    group: int | str | None,
+):
+    monkeypatch.setattr(shutil, 'chown', mock_chown)
+    path = LocalPath(tmp_path, 'file.txt')
+    assert not path.exists()
+    content = 'hell\r\no\r'
+    path.write_text(content, user=user, group=group)
+    assert path.exists()
+    assert path.is_file()
+    assert path.read_text() == re.sub('\r\n|\r', '\n', content)
+    if (user, group) == (None, None):
+        assert not mock_chown.calls
+    else:
+        [call] = mock_chown.calls
+        assert call == (path, user, group)
+
+
 def test_write_bytes_chmod(): ...
-def test_write_bytes_chown(): ...
 def test_write_text_chmod(): ...
-def test_write_text_chown(): ...
