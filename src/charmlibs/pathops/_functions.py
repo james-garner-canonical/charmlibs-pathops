@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import pathlib
+import shutil
 import typing
 
 from ops import pebble
@@ -107,3 +108,18 @@ def ensure_contents(
     elif isinstance(source, str):
         path.write_text(source, encoding=encoding, mode=mode, user=user, group=group)
     return True
+
+
+def rm(path: pathlib.Path | ContainerPath, *, recursive: bool = False) -> None:
+    if isinstance(path, ContainerPath):
+        path._container.remove_path(path._path, recursive=recursive)
+        return
+    if recursive:
+        shutil.rmtree(path)
+        return
+    # non-recursive case
+    if path.is_symlink() or not path.is_dir():
+        path.unlink()
+    else:  # not a symlink, is a directory
+        path.rmdir()  # error if not empty
+    return
