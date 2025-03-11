@@ -43,7 +43,7 @@ show_missing = true
 line-length = 99
 target-version = "py38"
 extend-exclude = ["__pycache__", "*.egg_info", "htmlcov"]
-src = ["src", "tests/pebble"]  # correctly sort local imports in tests
+src = ["src", "tests/unit"]  # correctly sort local imports in tests
 
 # Ruff formatter configuration
 [tool.ruff.format]
@@ -162,3 +162,7 @@ reportUnnecessaryIsInstance = false  # types aren't perfect
 reportUnnecessaryComparison = false  # types aren't perfect
 reportUnnecessaryTypeIgnoreComment = "error"  # unnecessary ignores should be removed
 stubPath = ""  # silence warning: https://github.com/microsoft/pyright/issues/777
+
+[tool.pytest.ini_options]
+addopts = ["--strict-markers"]
+markers = ["pebble: tests that require a running Pebble to interact with"]

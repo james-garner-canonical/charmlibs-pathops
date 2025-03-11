@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-import os
 import pathlib
 import typing
 
@@ -31,9 +30,7 @@ from charmlibs.pathops._functions import get_fileinfo
 if typing.TYPE_CHECKING:
     from typing import Any, Callable
 
-pytestmark = pytest.mark.skipif(
-    os.getenv('RUN_REAL_PEBBLE_TESTS') != '1', reason='RUN_REAL_PEBBLE_TESTS not set'
-)
+pytestmark = pytest.mark.pebble
 
 
 class TestGetFileInfo:
