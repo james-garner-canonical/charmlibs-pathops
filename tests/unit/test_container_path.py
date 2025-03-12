@@ -295,6 +295,21 @@ class TestReadText:
         with pytest.raises(UnicodeError):
             container_path.read_text()
 
+    @pytest.mark.parametrize(('filename', 'contents'), tuple(utils.TEXT_FILES.items()))
+    def test_when_newline_provided_then_reads_raw_content(
+        self,
+        container: ops.Container,
+        tmp_path: pathlib.Path,
+        filename: str,
+        contents: str,
+    ):
+        path = tmp_path / filename
+        container_path = ContainerPath(path, container=container)
+        path.write_text(contents)
+        if path.read_text() != contents:
+            assert container_path.read_text() != contents
+        assert container_path.read_text(newline='') == contents
+
 
 class TestReadBytes:
     @pytest.mark.parametrize('filename', [*utils.TEXT_FILES, *utils.BINARY_FILES])
