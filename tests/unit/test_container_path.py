@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-import errno
 import operator
 import pathlib
 import sys
@@ -311,164 +310,164 @@ class TestReadBytes:
         assert container_result == pathlib_result
 
 
-class TestRmDir:
-    def test_ok(self, container: ops.Container, tmp_path: pathlib.Path):
-        directory = tmp_path / 'dir'
-        # setup
-        directory.mkdir()
-        assert directory.is_dir()
-        # pathlib
-        directory.rmdir()
-        assert not directory.exists()
-        # setup
-        directory.mkdir()
-        assert directory.is_dir()
-        # container
-        ContainerPath(directory, container=container).rmdir()
-        assert not directory.exists()
+# class TestRmDir:
+#     def test_ok(self, container: ops.Container, tmp_path: pathlib.Path):
+#         directory = tmp_path / 'dir'
+#         # setup
+#         directory.mkdir()
+#         assert directory.is_dir()
+#         # pathlib
+#         directory.rmdir()
+#         assert not directory.exists()
+#         # setup
+#         directory.mkdir()
+#         assert directory.is_dir()
+#         # container
+#         ContainerPath(directory, container=container).rmdir()
+#         assert not directory.exists()
+#
+#     @pytest.mark.parametrize('filename', [utils.MISSING_FILE_NAME, utils.BROKEN_SYMLINK_NAME])
+#     def test_when_target_doesnt_exist_then_raises_file_not_found_error(
+#         self, container: ops.Container, tmp_path: pathlib.Path, filename: str
+#     ):
+#         directory = tmp_path / filename
+#         # pathlib
+#         assert not directory.exists()
+#         with pytest.raises(FileNotFoundError):
+#             directory.rmdir()
+#         # container
+#         assert not directory.exists()
+#         with pytest.raises(FileNotFoundError):
+#             ContainerPath(directory, container=container).rmdir()
+#
+#     @pytest.mark.parametrize('filename', [utils.TEXT_FILE_NAME, utils.SOCKET_NAME])
+#     def test_when_target_isnt_a_directory_then_raises_not_a_directory_error(
+#         self, container: ops.Container, session_dir: pathlib.Path, filename: str
+#     ):
+#         path = session_dir / filename
+#         # pathlib
+#         assert not path.is_dir()
+#         with pytest.raises(NotADirectoryError):
+#             path.rmdir()
+#         # container
+#         assert not path.is_dir()
+#         with pytest.raises(NotADirectoryError):
+#             ContainerPath(path, container=container).rmdir()
+#
+#     @pytest.mark.parametrize(
+#         'filename', (utils.EMPTY_DIR_SYMLINK_NAME, utils.RECURSIVE_SYMLINK_NAME)
+#     )
+#     def test_when_target_is_a_symlink_to_a_directory_then_raises_not_a_directory_error(
+#         self, container: ops.Container, session_dir: pathlib.Path, filename: str
+#     ):
+#         path = session_dir / filename
+#         # pathlib
+#         assert path.is_dir()
+#         assert path.is_symlink()
+#         with pytest.raises(NotADirectoryError):
+#             path.rmdir()
+#         # container
+#         with pytest.raises(NotADirectoryError):
+#             ContainerPath(path, container=container).rmdir()
+#
+#     def test_when_directory_isnt_empty_then_raises_directory_not_empty_error(
+#         self, container: ops.Container, session_dir: pathlib.Path
+#     ):
+#         with pytest.raises(OSError) as pathlib_ctx:
+#             session_dir.rmdir()
+#         assert pathlib_ctx.value.errno == errno.ENOTEMPTY
+#         with pytest.raises(OSError) as container_ctx:
+#             ContainerPath(session_dir, container=container).rmdir()
+#         assert container_ctx.value.errno == errno.ENOTEMPTY
+#
+#     @pytest.mark.parametrize(
+#         ('mock', 'error'),
+#         (
+#             (utils.Mocks.raises_connection_error, pebble.ConnectionError),
+#             (utils.Mocks.raises_unknown_path_error, pebble.PathError),
+#         ),
+#     )
+#     def test_unhandled_pebble_errors(
+#         self,
+#         monkeypatch: pytest.MonkeyPatch,
+#         container: ops.Container,
+#         mock: Callable[[Any], None],
+#         error: type[Exception],
+#     ):
+#         with monkeypatch.context() as m:
+#             m.setattr(container, 'remove_path', mock)
+#             with pytest.raises(error):
+#                 ContainerPath('/', container=container).rmdir()
 
-    @pytest.mark.parametrize('filename', [utils.MISSING_FILE_NAME, utils.BROKEN_SYMLINK_NAME])
-    def test_when_target_doesnt_exist_then_raises_file_not_found_error(
-        self, container: ops.Container, tmp_path: pathlib.Path, filename: str
-    ):
-        directory = tmp_path / filename
-        # pathlib
-        assert not directory.exists()
-        with pytest.raises(FileNotFoundError):
-            directory.rmdir()
-        # container
-        assert not directory.exists()
-        with pytest.raises(FileNotFoundError):
-            ContainerPath(directory, container=container).rmdir()
 
-    @pytest.mark.parametrize('filename', [utils.TEXT_FILE_NAME, utils.SOCKET_NAME])
-    def test_when_target_isnt_a_directory_then_raises_not_a_directory_error(
-        self, container: ops.Container, session_dir: pathlib.Path, filename: str
-    ):
-        path = session_dir / filename
-        # pathlib
-        assert not path.is_dir()
-        with pytest.raises(NotADirectoryError):
-            path.rmdir()
-        # container
-        assert not path.is_dir()
-        with pytest.raises(NotADirectoryError):
-            ContainerPath(path, container=container).rmdir()
-
-    # @pytest.mark.parametrize(
-    #     'filename', (utils.EMPTY_DIR_SYMLINK_NAME, utils.RECURSIVE_SYMLINK_NAME)
-    # )
-    # def test_when_target_is_a_symlink_to_a_directory_then_raises_not_a_directory_error(
-    #     self, container: ops.Container, session_dir: pathlib.Path, filename: str
-    # ):
-    #     path = session_dir / filename
-    #     # pathlib
-    #     assert path.is_dir()
-    #     assert path.is_symlink()
-    #     with pytest.raises(NotADirectoryError):
-    #         path.rmdir()
-    #     # container
-    #     with pytest.raises(NotADirectoryError):
-    #         ContainerPath(path, container=container).rmdir()
-
-    def test_when_directory_isnt_empty_then_raises_directory_not_empty_error(
-        self, container: ops.Container, session_dir: pathlib.Path
-    ):
-        with pytest.raises(OSError) as pathlib_ctx:
-            session_dir.rmdir()
-        assert pathlib_ctx.value.errno == errno.ENOTEMPTY
-        with pytest.raises(OSError) as container_ctx:
-            ContainerPath(session_dir, container=container).rmdir()
-        assert container_ctx.value.errno == errno.ENOTEMPTY
-
-    @pytest.mark.parametrize(
-        ('mock', 'error'),
-        (
-            (utils.Mocks.raises_connection_error, pebble.ConnectionError),
-            (utils.Mocks.raises_unknown_path_error, pebble.PathError),
-        ),
-    )
-    def test_unhandled_pebble_errors(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        container: ops.Container,
-        mock: Callable[[Any], None],
-        error: type[Exception],
-    ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'remove_path', mock)
-            with pytest.raises(error):
-                ContainerPath('/', container=container).rmdir()
-
-
-class TestUnlink:
-    # @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    # def test_ok(self, container: ops.Container, class_tmp_dirs: pathlib.Path, filename: str):
-    #     pathlib_dir = class_tmp_dirs / '1'
-    #     container_dir = class_tmp_dirs / '2'
-    #     pathlib_path = pathlib_dir / filename
-    #     container_path = ContainerPath(container_dir / filename, container=container)
-    #     try:
-    #         pathlib_path.unlink()
-    #         assert not pathlib_path.exists()
-    #     except OSError as e:
-    #         with pytest.raises(type(e)):
-    #             container_path.unlink()
-    #         return
-    #     container_path.unlink()
-
-    def test_unlink_symlink_then_unlink_target(
-        self, container: ops.Container, tmp_path: pathlib.Path
-    ):
-        # pathlib
-        pathlib_target = tmp_path / 'target'
-        pathlib_target.touch()
-        pathlib_symlink = tmp_path / 'link'
-        pathlib_symlink.symlink_to(pathlib_target)
-        pathlib_symlink.unlink()
-        assert not pathlib_symlink.exists()
-        assert pathlib_target.exists()
-        pathlib_target.unlink()
-        assert not pathlib_target.exists()
-        # container
-        container_target = tmp_path / 'target'
-        container_target.touch()
-        container_symlink = tmp_path / 'link'
-        container_symlink.symlink_to(container_target)
-        ContainerPath(container_symlink, container=container).unlink()
-        assert not container_symlink.exists()
-        assert container_target.exists()
-        ContainerPath(container_target, container=container).unlink()
-        assert not container_target.exists()
-
-    def test_unlink_target_then_unlink_symlink(
-        self, container: ops.Container, tmp_path: pathlib.Path
-    ):
-        # pathlib
-        pathlib_target = tmp_path / 'target'
-        pathlib_target.touch()
-        pathlib_symlink = tmp_path / 'link'
-        pathlib_symlink.symlink_to(pathlib_target)
-        pathlib_target.unlink()
-        assert not pathlib_target.exists()
-        assert not pathlib_symlink.exists()  # because it's a broken symlink and exists follows it
-        pathlib_symlink.unlink()  # ok because there is actually a target, the broken symlink
-        # container
-        container_target = tmp_path / 'target'
-        container_target.touch()
-        container_symlink = tmp_path / 'link'
-        container_symlink.symlink_to(container_target)
-        ContainerPath(container_target, container=container).unlink()
-        assert not container_target.exists()
-        assert not pathlib_symlink.exists()  # because it's a broken symlink and exists follows it
-        ContainerPath(container_symlink, container=container).unlink()
-
-    def test_when_missing_ok_then_remove_missing_file_ok(
-        self, container: ops.Container, session_dir: pathlib.Path
-    ):
-        path = session_dir / utils.MISSING_FILE_NAME
-        path.unlink(missing_ok=True)
-        ContainerPath(path, container=container).unlink(missing_ok=True)
+# class TestUnlink:
+#     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+#     def test_ok(self, container: ops.Container, class_tmp_dirs: pathlib.Path, filename: str):
+#         pathlib_dir = class_tmp_dirs / '1'
+#         container_dir = class_tmp_dirs / '2'
+#         pathlib_path = pathlib_dir / filename
+#         container_path = ContainerPath(container_dir / filename, container=container)
+#         try:
+#             pathlib_path.unlink()
+#             assert not pathlib_path.exists()
+#         except OSError as e:
+#             with pytest.raises(type(e)):
+#                 container_path.unlink()
+#             return
+#         container_path.unlink()
+#
+#     def test_unlink_symlink_then_unlink_target(
+#         self, container: ops.Container, tmp_path: pathlib.Path
+#     ):
+#         # pathlib
+#         pathlib_target = tmp_path / 'target'
+#         pathlib_target.touch()
+#         pathlib_symlink = tmp_path / 'link'
+#         pathlib_symlink.symlink_to(pathlib_target)
+#         pathlib_symlink.unlink()
+#         assert not pathlib_symlink.exists()
+#         assert pathlib_target.exists()
+#         pathlib_target.unlink()
+#         assert not pathlib_target.exists()
+#         # container
+#         container_target = tmp_path / 'target'
+#         container_target.touch()
+#         container_symlink = tmp_path / 'link'
+#         container_symlink.symlink_to(container_target)
+#         ContainerPath(container_symlink, container=container).unlink()
+#         assert not container_symlink.exists()
+#         assert container_target.exists()
+#         ContainerPath(container_target, container=container).unlink()
+#         assert not container_target.exists()
+#
+#     def test_unlink_target_then_unlink_symlink(
+#         self, container: ops.Container, tmp_path: pathlib.Path
+#     ):
+#         # pathlib
+#         pathlib_target = tmp_path / 'target'
+#         pathlib_target.touch()
+#         pathlib_symlink = tmp_path / 'link'
+#         pathlib_symlink.symlink_to(pathlib_target)
+#         pathlib_target.unlink()
+#         assert not pathlib_target.exists()
+#         assert not pathlib_symlink.exists()  # because it's a broken symlink and we follow it
+#         pathlib_symlink.unlink()  # ok because there is actually a target, the broken symlink
+#         # container
+#         container_target = tmp_path / 'target'
+#         container_target.touch()
+#         container_symlink = tmp_path / 'link'
+#         container_symlink.symlink_to(container_target)
+#         ContainerPath(container_target, container=container).unlink()
+#         assert not container_target.exists()
+#         assert not pathlib_symlink.exists()  # because it's a broken symlink and we follow it
+#         ContainerPath(container_symlink, container=container).unlink()
+#
+#     def test_when_missing_ok_then_remove_missing_file_ok(
+#         self, container: ops.Container, session_dir: pathlib.Path
+#     ):
+#         path = session_dir / utils.MISSING_FILE_NAME
+#         path.unlink(missing_ok=True)
+#         ContainerPath(path, container=container).unlink(missing_ok=True)
 
 
 class TestIterDir:
@@ -650,6 +649,8 @@ class TestWriteText:
         '__bytes__',
         'as_uri',
         'relative_to',
+        'rmdir',
+        'unlink',
         'rglob',
         'stat',
         'lstat',

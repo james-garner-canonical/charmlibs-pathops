@@ -202,9 +202,16 @@ class PathProtocol(typing.Protocol):
     def read_bytes(self) -> bytes: ...
 
     # remove
-    def rmdir(self) -> None: ...
-
-    def unlink(self, missing_ok: bool = False) -> None: ...
+    # these methods are problematic because Pebble
+    # 1. doesn't let us distinguish in advance between dirs and symlinks to them
+    # 2. doesn't provide a way not to remove an empty directory
+    #
+    # If provided, would have to also remove symlinks to directories
+    # def rmdir(self) -> None: ...
+    #
+    # If provided, would either have to also remove empty directories
+    # or be unable to remove symlinks to directories
+    # def unlink(self, missing_ok: bool = False) -> None: ...
 
     # list_files
     def iterdir(self) -> typing.Iterable[Self]: ...
