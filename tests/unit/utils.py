@@ -77,6 +77,10 @@ class Mocks:
     def raises_unknown_path_error(*args: object, **kwargs: object):
         raise pebble.PathError(kind='unknown-kind', message='unknown-message')
 
+    @staticmethod
+    def raises_unknown_os_error(*args: object, **kwargs: object):
+        raise OSError(9000, 'unknown-kind', 'unknown-message')
+
 
 @contextlib.contextmanager
 def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:

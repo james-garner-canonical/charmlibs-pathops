@@ -26,7 +26,7 @@ import pytest
 from ops import pebble
 
 import utils
-from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError
+from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError, _fileinfo
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable
@@ -312,15 +312,9 @@ class TestStem:
         assert container_result == pathlib_result
 
 
-# TODO: remaining pure path methods
-
-
 #########################
 # concrete path methods #
 #########################
-
-
-# TODO: remaining concrete path methods
 
 
 @pytest.mark.parametrize('method', ('read_bytes', 'read_text'))
@@ -704,6 +698,12 @@ class TestExists:
         container_result = container_path.exists()
         assert container_result == pathlib_result
 
+    def test_unhandled_os_error(self, monkeypatch: pytest.MonkeyPatch, container: ops.Container):
+        with monkeypatch.context() as m:
+            m.setattr(_fileinfo, 'from_container_path', utils.Mocks.raises_unknown_os_error)
+            with pytest.raises(OSError):
+                ContainerPath('/', container=container).exists()
+
 
 class TestIsDir:
     @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
@@ -755,6 +755,37 @@ class TestWriteBytes:
         assert path.read_bytes() == contents
         ContainerPath(path, container=container).write_bytes(contents)
         assert path.read_bytes() == contents
+
+    def test_when_parent_dir_doesnt_exist_then_raises_file_not_found_error(
+        self, container: ops.Container, tmp_path: pathlib.Path
+    ):
+        parent = tmp_path / 'dirname'
+        assert not parent.exists()
+        path = parent / 'filename'
+        assert not path.exists()
+        with pytest.raises(FileNotFoundError):
+            path.write_bytes(b'')
+        with pytest.raises(FileNotFoundError):
+            ContainerPath(path, container=container).write_bytes(b'')
+
+    @pytest.mark.parametrize(
+        ('mock', 'error'),
+        (
+            (utils.Mocks.raises_connection_error, pebble.ConnectionError),
+            (utils.Mocks.raises_unknown_path_error, pebble.PathError),
+        ),
+    )
+    def test_unhandled_pebble_errors(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        container: ops.Container,
+        mock: Callable[[Any], None],
+        error: type[Exception],
+    ):
+        with monkeypatch.context() as m:
+            m.setattr(container, 'push', mock)
+            with pytest.raises(error):
+                ContainerPath('/', container=container).write_bytes(b'')
 
 
 class TestWriteText:
