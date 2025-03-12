@@ -322,6 +322,8 @@ class ContainerPath:
                 group=group if isinstance(group, str) else None,
             )
         except pebble.PathError as e:
+            if _errors.Lookup.matches(e):
+                raise _errors.Lookup.exception(e.message) from e
             for error in (_errors.FileNotFound, _errors.Permission):
                 if error.matches(e):
                     raise error.exception(self._description()) from e

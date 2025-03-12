@@ -57,25 +57,41 @@ def mock_chown():
     return MockChown()
 
 
-class TestMkDir:
+@pytest.mark.parametrize(
+    ('method', 'content'),
+    [('write_bytes', b'hell\r\no\r'), ('write_text', 'hell\r\no\r'), ('mkdir', None)],
+)
+class TestChown:
     @pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
     def test_calls_chown(
         self,
         monkeypatch: pytest.MonkeyPatch,
         tmp_path: pathlib.Path,
         mock_chown: MockChown,
+        method: str,
+        content: bytes | str | None,
         user: str | None,
         group: str | None,
     ):
+        args = [content] if content is not None else ()
         path = LocalPath(tmp_path, 'subdirectory')
         assert not path.exists()
+        path_method = getattr(path, method)
         with monkeypatch.context() as m:
             m.setattr(shutil, 'chown', mock_chown)
             m.setattr(pwd, 'getpwnam', mock_pass)
             m.setattr(grp, 'getgrnam', mock_pass)
-            path.mkdir(user=user, group=group)
+            path_method(*args, user=user, group=group)
         assert path.exists()
-        assert path.is_dir()
+        if method == 'read_bytes':
+            assert isinstance(content, bytes)
+            assert path.read_bytes() == content
+        elif method == 'read_text':
+            assert isinstance(content, str)
+            expected_result = re.sub('\r\n|\r', '\n', content)
+            assert path.read_text == expected_result
+        elif method == 'mkdir':
+            assert path.is_dir()
         if (user, group) == (None, None):
             assert not mock_chown.calls
         else:
@@ -84,8 +100,13 @@ class TestMkDir:
 
     @pytest.mark.pebble
     def test_unknown_user_raises_before_other_errors(
-        self, container: ops.Container, tmp_path: pathlib.Path
+        self,
+        container: ops.Container,
+        tmp_path: pathlib.Path,
+        method: str,
+        content: bytes | str | None,
     ):
+        args = [content] if content is not None else ()
         unknown_user = 'unknown_user'
         with pytest.raises(LookupError):
             pwd.getpwnam(unknown_user)
@@ -95,19 +116,26 @@ class TestMkDir:
         assert not path.exists()
         container_path = ContainerPath(path, container=container)
         local_path = LocalPath(path)
+        container_path_method = getattr(container_path, method)
+        local_path_method = getattr(local_path, method)
         with pytest.raises(LookupError) as ctx:
-            container_path.mkdir(user=unknown_user)
+            container_path_method(*args, user=unknown_user)
         print(ctx.value)
         assert not path.exists()
         with pytest.raises(LookupError) as ctx:
-            local_path.mkdir(user=unknown_user)
+            local_path_method(*args, user=unknown_user)
         print(ctx.value)
         assert not path.exists()
 
     @pytest.mark.pebble
     def test_unknown_group_raises_before_other_errors(
-        self, container: ops.Container, tmp_path: pathlib.Path
+        self,
+        container: ops.Container,
+        tmp_path: pathlib.Path,
+        method: str,
+        content: bytes | str | None,
     ):
+        args = [content] if content is not None else ()
         unknown_group = 'unknown_group'
         with pytest.raises(LookupError):
             grp.getgrnam(unknown_group)
@@ -117,66 +145,16 @@ class TestMkDir:
         assert not path.exists()
         container_path = ContainerPath(path, container=container)
         local_path = LocalPath(path)
+        container_path_method = getattr(container_path, method)
+        local_path_method = getattr(local_path, method)
         with pytest.raises(LookupError) as ctx:
-            container_path.mkdir(group=unknown_group)
+            container_path_method(*args, group=unknown_group)
         print(ctx.value)
         assert not path.exists()
         with pytest.raises(LookupError) as ctx:
-            local_path.mkdir(group=unknown_group)
+            local_path_method(*args, group=unknown_group)
         print(ctx.value)
         assert not path.exists()
-
-
-@pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
-def test_write_bytes_calls_chown(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: pathlib.Path,
-    mock_chown: MockChown,
-    user: str | None,
-    group: str | None,
-):
-    path = LocalPath(tmp_path, 'file.txt')
-    assert not path.exists()
-    content = b'hell\r\no\r'
-    with monkeypatch.context() as m:
-        m.setattr(shutil, 'chown', mock_chown)
-        m.setattr(pwd, 'getpwnam', mock_pass)
-        m.setattr(grp, 'getgrnam', mock_pass)
-        path.write_bytes(content, user=user, group=group)
-    assert path.exists()
-    assert path.is_file()
-    assert path.read_bytes() == content
-    if (user, group) == (None, None):
-        assert not mock_chown.calls
-    else:
-        [call] = mock_chown.calls
-        assert call == (path, user, group)
-
-
-@pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
-def test_write_text_calls_chown(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: pathlib.Path,
-    mock_chown: MockChown,
-    user: str | None,
-    group: str | None,
-):
-    path = LocalPath(tmp_path, 'file.txt')
-    assert not path.exists()
-    content = 'hell\r\no\r'
-    with monkeypatch.context() as m:
-        m.setattr(shutil, 'chown', mock_chown)
-        m.setattr(pwd, 'getpwnam', mock_pass)
-        m.setattr(grp, 'getgrnam', mock_pass)
-        path.write_text(content, user=user, group=group)
-    assert path.exists()
-    assert path.is_file()
-    assert path.read_text() == re.sub('\r\n|\r', '\n', content)
-    if (user, group) == (None, None):
-        assert not mock_chown.calls
-    else:
-        [call] = mock_chown.calls
-        assert call == (path, user, group)
 
 
 def test_write_bytes_chmod(): ...
