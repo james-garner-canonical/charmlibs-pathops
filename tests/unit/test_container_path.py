@@ -200,6 +200,118 @@ class TestMatch:
             container_path.match(container_path)  # type: ignore
 
 
+class TestWithName:
+    def test_ok(self, container: ops.Container):
+        name = 'baz'
+        path = pathlib.PurePath('/foo/bar.txt')
+        container_path = ContainerPath(path, container=container)
+        pathlib_result = path.with_name(name)
+        container_result = container_path.with_name(name)
+        assert str(container_result) == str(pathlib_result)
+
+
+class TestWithSuffix:
+    def test_ok(self, container: ops.Container):
+        suffix = '.bin'
+        path = pathlib.PurePath('/foo/bar.txt')
+        container_path = ContainerPath(path, container=container)
+        pathlib_result = path.with_suffix(suffix)
+        container_result = container_path.with_suffix(suffix)
+        assert str(container_result) == str(pathlib_result)
+
+    def test_when_suffix_doesnt_start_with_dot_then_raises_value_error(
+        self, container: ops.Container
+    ):
+        suffix = 'bin'
+        path = pathlib.PurePath('/foo/bar.txt')
+        container_path = ContainerPath(path, container=container)
+        with pytest.raises(ValueError):
+            path.with_suffix(suffix)
+        with pytest.raises(ValueError):
+            container_path.with_suffix(suffix)
+
+
+class TestJoinPath:
+    def test_ok(self, container: ops.Container):
+        other = ('bar', 'baz')
+        path = pathlib.PurePath('/foo')
+        pathlib_result = path.joinpath(*other)
+        container_path = ContainerPath(path, container=container)
+        container_result = container_path.joinpath(*other)
+        assert str(container_result) == str(pathlib_result)
+
+    def test_when_other_is_container_path_then_raises_type_error(self, container: ops.Container):
+        path = pathlib.PurePath('/foo')
+        container_path = ContainerPath(path, container=container)
+        with pytest.raises(TypeError):
+            path.joinpath(container_path)  # type: ignore
+        with pytest.raises(TypeError):
+            container_path.joinpath(container_path)  # type: ignore
+
+
+class TestParents:
+    def test_ok(self, container: ops.Container):
+        path = pathlib.PurePath('/foo/bar/baz')
+        pathlib_result = tuple(str(p) for p in path.parents)
+        container_path = ContainerPath(path, container=container)
+        container_result = tuple(str(p) for p in container_path.parents)
+        assert container_result == pathlib_result
+
+
+class TestParent:
+    def test_ok(self, container: ops.Container):
+        path = pathlib.PurePath('/foo/bar/baz')
+        pathlib_result = str(path.parent)
+        container_path = ContainerPath(path, container=container)
+        container_result = str(container_path.parent)
+        assert container_result == pathlib_result
+
+
+class TestParts:
+    def test_ok(self, container: ops.Container):
+        path = pathlib.PurePath('/foo/bar/baz.txt')
+        pathlib_result = path.parts
+        container_path = ContainerPath(path, container=container)
+        container_result = container_path.parts
+        assert container_result == pathlib_result
+
+
+class TestName:
+    def test_ok(self, container: ops.Container):
+        path = pathlib.PurePath('/foo.txt')
+        pathlib_result = path.name
+        container_path = ContainerPath(path, container=container)
+        container_result = container_path.name
+        assert container_result == pathlib_result
+
+
+class TestSuffix:
+    def test_ok(self, container: ops.Container):
+        path = pathlib.PurePath('/foo.txt.zip')
+        pathlib_result = path.suffix
+        container_path = ContainerPath(path, container=container)
+        container_result = container_path.suffix
+        assert container_result == pathlib_result
+
+
+class TestSuffixes:
+    def test_ok(self, container: ops.Container):
+        path = pathlib.PurePath('/foo.txt.zip')
+        pathlib_result = path.suffixes
+        container_path = ContainerPath(path, container=container)
+        container_result = container_path.suffixes
+        assert container_result == pathlib_result
+
+
+class TestStem:
+    def test_ok(self, container: ops.Container):
+        path = pathlib.PurePath('/foo.txt.zip')
+        pathlib_result = path.stem
+        container_path = ContainerPath(path, container=container)
+        container_result = container_path.stem
+        assert container_result == pathlib_result
+
+
 # TODO: remaining pure path methods
 
 
