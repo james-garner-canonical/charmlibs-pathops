@@ -319,9 +319,7 @@ class ContainerPath:
                 make_dirs=False,
                 permissions=mode,
                 user=user if isinstance(user, str) else None,
-                user_id=user if isinstance(user, int) else None,
                 group=group if isinstance(group, str) else None,
-                group_id=group if isinstance(group, int) else None,
             )
         except pebble.PathError as e:
             for error in (_errors.FileNotFound, _errors.Permission):
@@ -366,19 +364,30 @@ class ContainerPath:
     ) -> None:
         # only make an extra pebble call if parents xor exist_ok
         # if both are true or both are false we can just let pebble's make_parents handle it
-        if parents and not exist_ok and self.is_dir():
+        if parents and not exist_ok and self.exists():
             raise _errors.FileExists.exception(self._description())
-        elif exist_ok and not parents and not self.parent.is_dir():
+        elif exist_ok and not parents and not self.parent.exists():
             raise _errors.FileNotFound.exception(self.parent._description())
-        self._container.make_dir(
-            path=self._path,
-            make_parents=parents or exist_ok,  # see validation above
-            permissions=mode,
-            user=user if isinstance(user, str) else None,
-            user_id=user if isinstance(user, int) else None,
-            group=group if isinstance(group, str) else None,
-            group_id=group if isinstance(group, int) else None,
-        )
+        try:
+            self._container.make_dir(
+                path=self._path,
+                make_parents=parents or exist_ok,  # see validation above
+                permissions=mode,
+                user=user if isinstance(user, str) else None,
+                group=group if isinstance(group, str) else None,
+            )
+        except pebble.PathError as e:
+            if _errors.Lookup.matches(e):
+                raise _errors.Lookup.exception(e.message) from e
+            if _errors.NotADirectory.matches(e):
+                # target exists and isn't a directory, or parent isn't a directory
+                if not self.parent.is_dir():
+                    raise _errors.NotADirectory.exception(self._description()) from e
+                raise _errors.FileExists.exception(self._description()) from e
+            for error in (_errors.FileExists, _errors.FileNotFound, _errors.Permission):
+                if error.matches(e):
+                    raise error.exception(self._description()) from e
+            raise
 
     #############################
     # non-protocol Path methods #

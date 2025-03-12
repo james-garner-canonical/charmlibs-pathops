@@ -45,8 +45,8 @@ def ensure_contents(
     encoding: str = 'utf-8',
     parents: bool = True,
     mode: int | None = None,
-    user: str | int | None = None,
-    group: str | int | None = None,
+    user: str | None = None,
+    group: str | None = None,
 ) -> bool:
     """Ensure source can be read from path. Return True if any changes were made.
 
@@ -66,9 +66,7 @@ def ensure_contents(
         info is None
         or (mode is not None and info.permissions != mode)
         or (isinstance(user, str) and info.user != user)
-        or (isinstance(user, int) and info.user_id != user)
         or (isinstance(group, str) and info.group != group)
-        or (isinstance(group, int) and info.group_id != group)
     )
     # check if file already has the correct contents (if it exists and has correct metadata)
     if not write_required:
@@ -92,9 +90,7 @@ def ensure_contents(
             make_dirs=parents,
             permissions=mode,
             user=user if isinstance(user, str) else None,
-            user_id=user if isinstance(user, int) else None,
             group=group if isinstance(group, str) else None,
-            group_id=group if isinstance(group, int) else None,
         )
         return True
     if parents:

@@ -16,7 +16,9 @@
 
 from __future__ import annotations
 
+import grp
 import pathlib
+import pwd
 import shutil
 import typing
 
@@ -31,13 +33,14 @@ class LocalPath(pathlib.PosixPath):
         # extended with chmod + chown args
         *,
         mode: int | None = None,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> int:
+        _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_bytes(data)
+        _chown(self, user=user, group=group)
         if mode is not None:
             self.chmod(mode)
-        _chown(self, user=user, group=group)
         return bytes_written
 
     def write_text(
@@ -48,13 +51,14 @@ class LocalPath(pathlib.PosixPath):
         # extended with chmod + chown args
         *,
         mode: int | None = None,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> int:
+        _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
+        _chown(self, user=user, group=group)
         if mode is not None:
             self.chmod(mode)
-        _chown(self, user=user, group=group)
         return bytes_written
 
     def mkdir(
@@ -64,11 +68,19 @@ class LocalPath(pathlib.PosixPath):
         exist_ok: bool = False,
         # extended with chown args
         *,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> None:
+        _validate_user_and_group(user=user, group=group)
         super().mkdir(mode=mode, parents=parents, exist_ok=exist_ok)
         _chown(self, user=user, group=group)
+
+
+def _validate_user_and_group(user: str | None, group: str | None):
+    if user is not None:
+        pwd.getpwnam(user)
+    if group is not None:
+        grp.getgrnam(group)
 
 
 def _chown(path: pathlib.Path, user: str | int | None, group: str | int | None) -> None:

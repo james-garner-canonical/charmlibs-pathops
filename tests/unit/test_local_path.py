@@ -16,23 +16,21 @@
 
 from __future__ import annotations
 
+import grp
 import pathlib
+import pwd
 import re
 import shutil
 
+import ops
 import pytest
 
-from charmlibs.pathops import LocalPath
+from charmlibs.pathops import ContainerPath, LocalPath
 
 USER_AND_GROUP_COMBINATIONS = [
     ('user', 'group'),
-    ('user', 2),
     ('user', None),
-    (1, 'group'),
     (None, 'group'),
-    (1, 2),
-    (1, None),
-    (None, 2),
     (None, None),
 ]
 
@@ -50,30 +48,83 @@ class MockChown:
         return
 
 
+def mock_pass(*args: object, **kwargs: object) -> None:
+    pass
+
+
 @pytest.fixture
 def mock_chown():
     return MockChown()
 
 
-@pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
-def test_mkdir_calls_chown(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: pathlib.Path,
-    mock_chown: MockChown,
-    user: int | str | None,
-    group: int | str | None,
-):
-    monkeypatch.setattr(shutil, 'chown', mock_chown)
-    path = LocalPath(tmp_path, 'subdirectory')
-    assert not path.exists()
-    path.mkdir(user=user, group=group)
-    assert path.exists()
-    assert path.is_dir()
-    if (user, group) == (None, None):
-        assert not mock_chown.calls
-    else:
-        [call] = mock_chown.calls
-        assert call == (path, user, group)
+class TestMkDir:
+    @pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
+    def test_calls_chown(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: pathlib.Path,
+        mock_chown: MockChown,
+        user: str | None,
+        group: str | None,
+    ):
+        path = LocalPath(tmp_path, 'subdirectory')
+        assert not path.exists()
+        with monkeypatch.context() as m:
+            m.setattr(shutil, 'chown', mock_chown)
+            m.setattr(pwd, 'getpwnam', mock_pass)
+            m.setattr(grp, 'getgrnam', mock_pass)
+            path.mkdir(user=user, group=group)
+        assert path.exists()
+        assert path.is_dir()
+        if (user, group) == (None, None):
+            assert not mock_chown.calls
+        else:
+            [call] = mock_chown.calls
+            assert call == (path, user, group)
+
+    @pytest.mark.pebble
+    def test_unknown_user_raises_before_other_errors(
+        self, container: ops.Container, tmp_path: pathlib.Path
+    ):
+        unknown_user = 'unknown_user'
+        with pytest.raises(LookupError):
+            pwd.getpwnam(unknown_user)
+        parent = tmp_path / 'dirname'
+        assert not parent.exists()
+        path = parent / 'subdirname'
+        assert not path.exists()
+        container_path = ContainerPath(path, container=container)
+        local_path = LocalPath(path)
+        with pytest.raises(LookupError) as ctx:
+            container_path.mkdir(user=unknown_user)
+        print(ctx.value)
+        assert not path.exists()
+        with pytest.raises(LookupError) as ctx:
+            local_path.mkdir(user=unknown_user)
+        print(ctx.value)
+        assert not path.exists()
+
+    @pytest.mark.pebble
+    def test_unknown_group_raises_before_other_errors(
+        self, container: ops.Container, tmp_path: pathlib.Path
+    ):
+        unknown_group = 'unknown_group'
+        with pytest.raises(LookupError):
+            grp.getgrnam(unknown_group)
+        parent = tmp_path / 'dirname'
+        assert not parent.exists()
+        path = parent / 'subdirname'
+        assert not path.exists()
+        container_path = ContainerPath(path, container=container)
+        local_path = LocalPath(path)
+        with pytest.raises(LookupError) as ctx:
+            container_path.mkdir(group=unknown_group)
+        print(ctx.value)
+        assert not path.exists()
+        with pytest.raises(LookupError) as ctx:
+            local_path.mkdir(group=unknown_group)
+        print(ctx.value)
+        assert not path.exists()
 
 
 @pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
@@ -81,14 +132,17 @@ def test_write_bytes_calls_chown(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: pathlib.Path,
     mock_chown: MockChown,
-    user: int | str | None,
-    group: int | str | None,
+    user: str | None,
+    group: str | None,
 ):
-    monkeypatch.setattr(shutil, 'chown', mock_chown)
     path = LocalPath(tmp_path, 'file.txt')
     assert not path.exists()
     content = b'hell\r\no\r'
-    path.write_bytes(content, user=user, group=group)
+    with monkeypatch.context() as m:
+        m.setattr(shutil, 'chown', mock_chown)
+        m.setattr(pwd, 'getpwnam', mock_pass)
+        m.setattr(grp, 'getgrnam', mock_pass)
+        path.write_bytes(content, user=user, group=group)
     assert path.exists()
     assert path.is_file()
     assert path.read_bytes() == content
@@ -104,14 +158,17 @@ def test_write_text_calls_chown(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: pathlib.Path,
     mock_chown: MockChown,
-    user: int | str | None,
-    group: int | str | None,
+    user: str | None,
+    group: str | None,
 ):
-    monkeypatch.setattr(shutil, 'chown', mock_chown)
     path = LocalPath(tmp_path, 'file.txt')
     assert not path.exists()
     content = 'hell\r\no\r'
-    path.write_text(content, user=user, group=group)
+    with monkeypatch.context() as m:
+        m.setattr(shutil, 'chown', mock_chown)
+        m.setattr(pwd, 'getpwnam', mock_pass)
+        m.setattr(grp, 'getgrnam', mock_pass)
+        path.write_text(content, user=user, group=group)
     assert path.exists()
     assert path.is_file()
     assert path.read_text() == re.sub('\r\n|\r', '\n', content)

@@ -653,7 +653,80 @@ class TestWriteText:
         path = tmp_path / filename
         container_path = ContainerPath(path, container=container)
         container_path.write_text(contents)
-        assert container_path.read_text() == path.read_text()
+        with path.open(newline='') as f:
+            assert f.read() == contents
+
+
+class TestMkDir:
+    def test_ok(self, container: ops.Container, tmp_path: pathlib.Path):
+        path = tmp_path / 'dirname'
+        assert not path.exists()
+        container_path = ContainerPath(path, container=container)
+        container_path.mkdir()
+        assert path.exists()
+        assert path.is_dir()
+
+    @pytest.mark.parametrize('parents', (False, True))
+    @pytest.mark.parametrize('filename', utils.FILENAMES)
+    def test_when_file_already_exists_then_raises_file_exists_error(
+        self, container: ops.Container, session_dir: pathlib.Path, filename: str, parents: bool
+    ):
+        path = session_dir / filename
+        container_path = ContainerPath(path, container=container)
+        path.lstat()  # will fail if there isn't a file there (catches broken links)
+        with pytest.raises(FileExistsError):
+            path.mkdir(parents=parents)
+        with pytest.raises(FileExistsError):
+            container_path.mkdir(parents=parents)
+
+    @pytest.mark.parametrize('exist_ok', (False, True))
+    def test_when_parent_doesnt_exist_then_raises_file_not_found_error(
+        self, container: ops.Container, tmp_path: pathlib.Path, exist_ok: bool
+    ):
+        parent = tmp_path / 'dirname'
+        assert not parent.exists()
+        path = parent / 'subdirname'
+        assert not path.exists()
+        container_path = ContainerPath(path, container=container)
+        with pytest.raises(FileNotFoundError):
+            path.mkdir(exist_ok=exist_ok)
+        with pytest.raises(FileNotFoundError):
+            container_path.mkdir(exist_ok=exist_ok)
+
+    @pytest.mark.parametrize('exist_ok', (False, True))
+    def test_when_parent_isnt_a_directory_then_raises_not_a_directory_error(
+        self, container: ops.Container, tmp_path: pathlib.Path, exist_ok: bool
+    ):
+        parent = tmp_path / 'dirname'
+        assert not parent.exists()
+        parent.touch()
+        assert parent.exists()
+        path = parent / 'subdirname'
+        assert not path.exists()
+        container_path = ContainerPath(path, container=container)
+        with pytest.raises(NotADirectoryError):
+            path.mkdir(exist_ok=exist_ok)
+        with pytest.raises(NotADirectoryError):
+            container_path.mkdir(exist_ok=exist_ok)
+
+    @pytest.mark.parametrize(
+        ('mock', 'error'),
+        (
+            (utils.Mocks.raises_connection_error, pebble.ConnectionError),
+            (utils.Mocks.raises_unknown_path_error, pebble.PathError),
+        ),
+    )
+    def test_unhandled_pebble_errors(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        container: ops.Container,
+        mock: Callable[[Any], None],
+        error: type[Exception],
+    ):
+        with monkeypatch.context() as m:
+            m.setattr(container, 'make_dir', mock)
+            with pytest.raises(error):
+                ContainerPath('/', container=container).mkdir()
 
 
 @pytest.mark.parametrize(
