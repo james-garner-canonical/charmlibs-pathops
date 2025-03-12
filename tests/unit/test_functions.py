@@ -24,7 +24,7 @@ import pytest
 from ops import pebble
 
 import utils
-from charmlibs.pathops import ContainerPath
+from charmlibs.pathops import ContainerPath, _fileinfo
 from charmlibs.pathops._functions import get_fileinfo
 
 if typing.TYPE_CHECKING:
@@ -45,15 +45,7 @@ class TestGetFileInfo:
             return
         else:
             synthetic_result = get_fileinfo(path)
-            assert self._info_to_dict(synthetic_result) == self._info_to_dict(pebble_result)
-
-    @staticmethod
-    def _info_to_dict(info: ops.pebble.FileInfo) -> dict[str, object] | None:
-        return {
-            name: getattr(info, name)
-            for name in dir(info)
-            if (not name.startswith('_')) and (name != 'from_dict')
-        }
+            assert _fileinfo.to_dict(synthetic_result) == _fileinfo.to_dict(pebble_result)
 
     @pytest.mark.parametrize(
         ('mock', 'error'),

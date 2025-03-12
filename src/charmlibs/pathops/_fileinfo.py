@@ -28,6 +28,8 @@ from ops import pebble
 from . import _errors
 
 if typing.TYPE_CHECKING:
+    from typing import Sequence
+
     from ._container_path import ContainerPath
 
 
@@ -71,3 +73,13 @@ def from_pathlib_path(path: pathlib.Path) -> pebble.FileInfo:
         group_id=stat_result.st_gid,
         group=grp.getgrgid(stat_result.st_gid).gr_name,
     )
+
+
+def to_dict(info: pebble.FileInfo, *, exclude: Sequence[str] | str = ()) -> dict[str, object]:
+    if isinstance(exclude, str):
+        exclude = (exclude,)
+    return {
+        name: getattr(info, name)
+        for name in dir(info)
+        if (not name.startswith('_')) and (name != 'from_dict') and (name not in exclude)
+    }
