@@ -306,8 +306,8 @@ class ContainerPath:
         # extended with chmod + chown args
         *,
         mode: int | None = None,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> int:
         if isinstance(data, (bytearray, memoryview)):
             # TODO: update ops to correctly test for bytearray and memoryview in push
@@ -339,8 +339,8 @@ class ContainerPath:
         # extended with chmod + chown args
         *,
         mode: int | None = None,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> int:
         # if encoding is None:
         #     encoding = 'utf-8'
@@ -361,8 +361,8 @@ class ContainerPath:
         exist_ok: bool = False,
         # extended with chown args
         *,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> None:
         # only make an extra pebble call if parents xor exist_ok
         # if both are true or both are false we can just let pebble's make_parents handle it

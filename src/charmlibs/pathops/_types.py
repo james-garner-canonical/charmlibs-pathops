@@ -357,8 +357,8 @@ class PathProtocol(typing.Protocol):
         # extended with chmod + chown args:
         *,
         mode: int | None = None,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> int: ...
 
     def write_text(
@@ -372,8 +372,8 @@ class PathProtocol(typing.Protocol):
         # extended with chmod + chown args:
         *,
         mode: int | None = None,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> int: ...
 
     # make_dir
@@ -384,6 +384,6 @@ class PathProtocol(typing.Protocol):
         exist_ok: bool = False,
         # extended with chown args:
         *,
-        user: str | int | None = None,
-        group: str | int | None = None,
+        user: str | None = None,
+        group: str | None = None,
     ) -> None: ...
