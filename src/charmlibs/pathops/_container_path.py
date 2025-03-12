@@ -333,22 +333,24 @@ class ContainerPath:
     def write_text(
         self,
         data: str,
-        encoding: str | None = None,
-        errors: typing.Literal['strict', 'ignore'] | None = None,
-        newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.10+
+        # encoding: str | None = None,
+        # errors: typing.Literal['strict', 'ignore'] | None = None,
+        # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.10+
         # extended with chmod + chown args
         *,
         mode: int | None = None,
         user: str | int | None = None,
         group: str | int | None = None,
     ) -> int:
-        if encoding is None:
-            encoding = 'utf-8'
-        if errors is None:
-            errors = 'strict'
-        if newline in ('\r', '\r\n'):
-            data = re.sub('\n', newline, data)
-        # else newline in (None, '', '\n') and we do nothing, assuming os.linesep == '\n'
+        # if encoding is None:
+        #     encoding = 'utf-8'
+        # if errors is None:
+        #     errors = 'strict'
+        # if newline in ('\r', '\r\n'):
+        #     data = re.sub('\n', newline, data)
+        # # else newline in (None, '', '\n') and we do nothing, assuming os.linesep == '\n'
+        encoding = 'utf-8'
+        errors = 'strict'
         encoded_data = bytes(data, encoding=encoding, errors=errors)
         return self.write_bytes(encoded_data, mode=mode, user=user, group=group)
 
