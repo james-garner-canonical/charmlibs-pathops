@@ -34,7 +34,7 @@ class LocalPath(pathlib.PosixPath):
         data: Buffer,
         # extended with chmod + chown args
         *,
-        mode: int | None = None,
+        mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
@@ -52,7 +52,7 @@ class LocalPath(pathlib.PosixPath):
         errors: str | None = None,
         # extended with chmod + chown args
         *,
-        mode: int | None = None,
+        mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:

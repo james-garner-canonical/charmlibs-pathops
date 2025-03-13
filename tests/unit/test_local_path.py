@@ -196,10 +196,53 @@ class TestChown:
 
 
 @pytest.mark.pebble
+@pytest.mark.parametrize(('method', 'data'), [('write_bytes', b'bytes'), ('write_text', 'text')])
+class TestWriteChmod:
+    @pytest.mark.parametrize('mode_str', [None, *ALL_MODES])
+    def test_ok(
+        self,
+        container: ops.Container,
+        tmp_path: pathlib.Path,
+        method: str,
+        data: str | bytes,
+        mode_str: str,
+    ):
+        mode = int(mode_str, base=8) if mode_str is not None else None
+        path = tmp_path / 'path'
+        # container
+        container_path = ContainerPath(path, container=container)
+        container_path_method = getattr(container_path, method)
+        assert not path.exists()
+        if mode is not None:
+            container_path_method(data, mode=mode)
+        else:
+            container_path_method(data)
+        assert path.exists()
+        container_info = get_fileinfo(container_path)
+        # cleanup
+        _unlink(path)
+        # local
+        local_path = LocalPath(path)
+        local_path_method = getattr(local_path, method)
+        assert not path.exists()
+        if mode is not None:
+            local_path_method(data, mode=mode)
+        else:
+            local_path_method(data)
+        assert path.exists()
+        local_info = get_fileinfo(local_path)
+        # cleanup
+        _unlink(path)
+        exclude = 'last_modified'
+        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
+        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        assert local_dict == container_dict
+
+
+@pytest.mark.pebble
 class TestMkdirChmod:
     @pytest.mark.parametrize('mode_str', [None, *ALL_MODES])
     def test_ok(self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str | None):
-        print(mode_str)
         mode = int(mode_str, base=8) if mode_str is not None else None
         path = tmp_path / 'directory'
         # container
@@ -237,7 +280,6 @@ class TestMkdirChmod:
     def test_when_parent_missing_and_parents_flag_then_ok(
         self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str | None
     ):
-        print(mode_str)
         mode = int(mode_str, base=8) if mode_str is not None else None
         parent = tmp_path / 'directory'
         path = parent / 'subdirectory'
@@ -379,15 +421,16 @@ class TestMkdirChmod:
         assert _oct(local_parent_info.permissions) == _oct(_constants.DEFAULT_MKDIR_MODE)
 
 
-def test_write_bytes_chmod(): ...
-def test_write_text_chmod(): ...
-
-
 def _oct(i: int) -> str:
     return f'0o{i:03o}'
 
 
 def _rmdirs(path: pathlib.Path, *paths: pathlib.Path):
     for p in (path, *paths):
-        os.chmod(p, 0o755)
+        os.chmod(p, _constants.DEFAULT_MKDIR_MODE)
         p.rmdir()
+
+
+def _unlink(path: pathlib.Path):
+    os.chmod(path, _constants.DEFAULT_WRITE_MODE)
+    path.unlink()

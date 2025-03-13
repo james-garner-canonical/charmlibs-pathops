@@ -15,3 +15,4 @@
 """Magic numbers."""
 
 DEFAULT_MKDIR_MODE = 0o755  # pebble default (493) -- pathlib default is 0o777 (511)
+DEFAULT_WRITE_MODE = 0o644  # pebble default (420) -- pathlib default is 0o666 (438)

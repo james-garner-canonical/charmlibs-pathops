@@ -358,7 +358,7 @@ class PathProtocol(typing.Protocol):
         data: bytes,
         # extended with chmod + chown args:
         *,
-        mode: int | None = None,
+        mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int: ...
@@ -373,7 +373,7 @@ class PathProtocol(typing.Protocol):
         # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.10+
         # extended with chmod + chown args:
         *,
-        mode: int | None = None,
+        mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int: ...
