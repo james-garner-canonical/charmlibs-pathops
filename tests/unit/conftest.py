@@ -18,17 +18,27 @@ import typing
 
 import pytest
 
-import utils
-
 if typing.TYPE_CHECKING:
     import ops
 
 
 @pytest.fixture(scope='session')
 def container() -> ops.Container:
-    return utils.make_container('test1')
+    return _make_container('test1')
 
 
 @pytest.fixture(scope='session')
 def another_container() -> ops.Container:
-    return utils.make_container('test2')
+    return _make_container('test2')
+
+
+def _make_container(name: str) -> ops.Container:
+    class dummy_backend:  # noqa: N801 (CapWords convention)
+        class _juju_context:  # noqa: N801 (CapWords convention)
+            version = '9000'
+
+    return ops.Container(
+        name=name,
+        backend=dummy_backend,  # pyright: ignore[reportArgumentType]
+        pebble_client=object(),  # pyright: ignore[reportArgumentType]
+    )
