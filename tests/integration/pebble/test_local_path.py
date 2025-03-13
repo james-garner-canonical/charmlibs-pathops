@@ -309,6 +309,9 @@ class TestMkdirChmod:
 
         Pebble must try some operation that requires read permissions on the parent directory
         after creating the file inside it. Pathlib doesn't, so it has no problems here.
+
+        Actually this only applies to more recent Pebbles -- of those I've tested,
+        1.17.0+ has this behaviour, but 1.10.2 (and earlier versions I've tested) don't.
         """
         mode = int(mode_str, base=8)
         parent = tmp_path / 'directory'
@@ -317,8 +320,10 @@ class TestMkdirChmod:
         assert not path.exists()
         assert not parent.exists()
         container_path = ContainerPath(path, container=container)
-        with pytest.raises(PermissionError):
+        try:
             container_path.mkdir(parents=True, mode=mode)
+        except PermissionError:  # expected in recent Pebble for some reason (see docstring)
+            pass
         assert parent.exists()
         assert path.exists()
         container_parent_info = get_fileinfo(container_path.parent)
@@ -336,7 +341,7 @@ class TestMkdirChmod:
         local_info = get_fileinfo(local_path)
         # cleanup -- pytest is bad at cleaning up when permissions are funky
         _rmdirs(path, parent)
-        # comparison -- let's see
+        # comparison
         exclude = 'last_modified'
         container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
         local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
