@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import typing
 
+from . import _constants
+
 if typing.TYPE_CHECKING:
     import os
     from typing import Generator, Sequence
@@ -379,7 +381,7 @@ class PathProtocol(typing.Protocol):
     # make_dir
     def mkdir(
         self,
-        mode: int = 0o777,
+        mode: int = _constants.DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
         # extended with chown args:

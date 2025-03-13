@@ -22,6 +22,8 @@ import pwd
 import shutil
 import typing
 
+from . import _constants
+
 if typing.TYPE_CHECKING:
     from typing_extensions import Buffer
 
@@ -63,7 +65,7 @@ class LocalPath(pathlib.PosixPath):
 
     def mkdir(
         self,
-        mode: int = 0o777,
+        mode: int = _constants.DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
         # extended with chown args

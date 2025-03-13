@@ -22,7 +22,7 @@ import typing
 
 from ops import pebble
 
-from . import _errors, _fileinfo
+from . import _constants, _errors, _fileinfo
 from ._types import Bytes, StrPathLike
 
 if typing.TYPE_CHECKING:
@@ -356,7 +356,7 @@ class ContainerPath:
 
     def mkdir(
         self,
-        mode: int = 0o777,
+        mode: int = _constants.DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
         # extended with chown args

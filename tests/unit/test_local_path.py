@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import grp
+import os
 import pathlib
 import pwd
 import re
@@ -25,14 +26,43 @@ import shutil
 import ops
 import pytest
 
-from charmlibs.pathops import ContainerPath, LocalPath
+from charmlibs.pathops import ContainerPath, LocalPath, _constants, _fileinfo
+from charmlibs.pathops._functions import get_fileinfo
 
-USER_AND_GROUP_COMBINATIONS = [
-    ('user', 'group'),
-    ('user', None),
-    (None, 'group'),
-    (None, None),
-]
+os.umask(0o000)  # Pebble seems to operate with umask=0; this makes it easy to compare permissions
+
+
+GOOD_PARENT_DIRECTORY_MODES = (
+    '0o777',
+    '0o766',
+    '0o755',  # pebble default for mkdir
+    '0o700',
+)
+BAD_PARENT_DIRECTORY_MODES_CREATE = (
+    '0o344',
+    '0o333',
+    '0o300',
+)
+BAD_PARENT_DIRECTORY_MODES_NO_CREATE = (
+    '0o666',
+    '0o644',  # pebble default for file push
+    '0o600',
+    '0o544',
+    '0o500',
+    '0o444',
+    '0o400',
+    '0o200',
+    '0o100',
+    '0o010',
+    '0o007',
+    '0o000',
+)
+_MODES = (
+    *GOOD_PARENT_DIRECTORY_MODES,
+    *BAD_PARENT_DIRECTORY_MODES_NO_CREATE,
+    *BAD_PARENT_DIRECTORY_MODES_CREATE,
+)
+ALL_MODES = tuple(sorted(_MODES, reverse=True))
 
 
 class MockChown:
@@ -62,7 +92,15 @@ def mock_chown():
     [('write_bytes', b'hell\r\no\r'), ('write_text', 'hell\r\no\r'), ('mkdir', None)],
 )
 class TestChown:
-    @pytest.mark.parametrize(('user', 'group'), USER_AND_GROUP_COMBINATIONS)
+    @pytest.mark.parametrize(
+        ('user', 'group'),
+        (
+            ('user-name', 'group-name'),
+            ('user-name', None),
+            (None, 'group-name'),
+            (None, None),
+        ),
+    )
     def test_calls_chown(
         self,
         monkeypatch: pytest.MonkeyPatch,
@@ -157,5 +195,199 @@ class TestChown:
         assert not path.exists()
 
 
+@pytest.mark.pebble
+class TestMkdirChmod:
+    @pytest.mark.parametrize('mode_str', [None, *ALL_MODES])
+    def test_ok(self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str | None):
+        print(mode_str)
+        mode = int(mode_str, base=8) if mode_str is not None else None
+        path = tmp_path / 'directory'
+        # container
+        container_path = ContainerPath(path, container=container)
+        assert not path.exists()
+        if mode is not None:
+            container_path.mkdir(mode=mode)
+        else:
+            container_path.mkdir()
+        assert path.exists()
+        assert path.is_dir()
+        container_info = get_fileinfo(container_path)
+        # cleanup
+        _rmdirs(path)
+        # local
+        local_path = LocalPath(path)
+        assert not path.exists()
+        if mode is not None:
+            local_path.mkdir(mode=mode)
+        else:
+            local_path.mkdir()
+        assert path.exists()
+        assert path.is_dir()
+        local_info = get_fileinfo(local_path)
+        # cleanup -- pytest is bad at cleaning up when permissions are funky
+        _rmdirs(path)
+        # comparison
+        exclude = ('last_modified', 'permissions')
+        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
+        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        assert local_dict == container_dict
+        assert _oct(local_info.permissions) == _oct(container_info.permissions)
+
+    @pytest.mark.parametrize('mode_str', [None, *GOOD_PARENT_DIRECTORY_MODES])
+    def test_when_parent_missing_and_parents_flag_then_ok(
+        self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str | None
+    ):
+        print(mode_str)
+        mode = int(mode_str, base=8) if mode_str is not None else None
+        parent = tmp_path / 'directory'
+        path = parent / 'subdirectory'
+        # container
+        container_path = ContainerPath(path, container=container)
+        assert not path.exists()
+        assert not parent.exists()
+        if mode is not None:
+            container_path.mkdir(parents=True, mode=mode)
+        else:
+            container_path.mkdir(parents=True)
+        assert parent.exists()
+        assert parent.is_dir()
+        assert path.exists()
+        assert path.is_dir()
+        container_parent_info = get_fileinfo(container_path.parent)
+        container_info = get_fileinfo(container_path)
+        # cleanup
+        _rmdirs(path, parent)
+        # local
+        local_path = LocalPath(path)
+        assert not path.exists()
+        assert not parent.exists()
+        if mode is not None:
+            local_path.mkdir(parents=True, mode=mode)
+        else:
+            local_path.mkdir(parents=True)
+        assert parent.exists()
+        assert parent.is_dir()
+        assert path.exists()
+        assert path.is_dir()
+        local_parent_info = get_fileinfo(local_path.parent)
+        local_info = get_fileinfo(local_path)
+        # cleanup -- pytest is bad at cleaning up when permissions are funky
+        _rmdirs(path, parent)
+        # comparison
+        exclude = ('last_modified', 'permissions')
+        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
+        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        assert local_dict == container_dict
+        assert _oct(local_info.permissions) == _oct(container_info.permissions)
+        container_parent_dict = _fileinfo.to_dict(container_parent_info, exclude=exclude)
+        local_parent_dict = _fileinfo.to_dict(local_parent_info, exclude=exclude)
+        assert local_parent_dict == container_parent_dict
+        try:
+            assert _oct(local_parent_info.permissions) == _oct(container_parent_info.permissions)
+        except AssertionError:  # TODO: resolve this difference in behaviour
+            assert _oct(local_parent_info.permissions) == _oct(_constants.DEFAULT_MKDIR_MODE)
+            assert _oct(container_parent_info.permissions) == mode_str
+
+    @pytest.mark.parametrize('mode_str', BAD_PARENT_DIRECTORY_MODES_NO_CREATE)
+    def test_when_parent_missing_and_parents_flag_and_no_execute_perm_then_pebble_errors(
+        self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str
+    ):
+        """The permissions are bad because they lack the execute permission.
+
+        This means that pebble creates the parent directory without the ability to write to it,
+        and subdirectory creation then fails with a permission error.
+
+        This does not apply to pathlib, because it creates the parent directory using its default
+        permission (determined by the mode argument default), rather than the requested mode.
+        """
+        mode = int(mode_str, base=8)
+        parent = tmp_path / 'directory'
+        path = parent / 'subdirectory'
+        # container
+        container_path = ContainerPath(path, container=container)
+        assert not path.exists()
+        assert not parent.exists()
+        with pytest.raises(PermissionError):  # TODO: resolve this difference in behaviour
+            container_path.mkdir(parents=True, mode=mode)
+        assert parent.exists()
+        container_parent_info = get_fileinfo(container_path.parent)
+        assert _oct(container_parent_info.permissions) == mode_str
+        os.chmod(parent, 0o755)  # so that we can check if path exists!
+        assert not path.exists()
+        # cleanup
+        _rmdirs(parent)
+        # no container
+        local_path = LocalPath(path)
+        assert not path.exists()
+        assert not parent.exists()
+        local_path.mkdir(parents=True, mode=mode)
+        assert parent.exists()
+        local_parent_info = get_fileinfo(local_path.parent)
+        assert _oct(local_parent_info.permissions) == _oct(_constants.DEFAULT_MKDIR_MODE)
+        assert path.exists()
+        local_info = get_fileinfo(local_path)
+        assert _oct(local_info.permissions) == mode_str
+        # cleanup -- pytest is bad at cleaning up when permissions are funky
+        _rmdirs(path, parent)
+        # comparison -- none since the results are different
+
+    @pytest.mark.parametrize('mode_str', BAD_PARENT_DIRECTORY_MODES_CREATE)
+    def test_subdirectory_make_parents_bad_permissions_create(
+        self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str
+    ):
+        """The permissions are bad because they lack the read permission.
+
+        Pebble must try some operation that requires read permissions on the parent directory
+        after creating the file inside it. Pathlib doesn't, so it has no problems here.
+        """
+        mode = int(mode_str, base=8)
+        parent = tmp_path / 'directory'
+        path = parent / 'subdirectory'
+        # container
+        assert not path.exists()
+        assert not parent.exists()
+        container_path = ContainerPath(path, container=container)
+        with pytest.raises(PermissionError):
+            container_path.mkdir(parents=True, mode=mode)
+        assert parent.exists()
+        assert path.exists()
+        container_parent_info = get_fileinfo(container_path.parent)
+        container_info = get_fileinfo(container_path)
+        # cleanup
+        _rmdirs(path, parent)
+        # local
+        assert not path.exists()
+        assert not parent.exists()
+        local_path = LocalPath(path)
+        local_path.mkdir(parents=True, mode=mode)
+        assert parent.exists()
+        assert path.exists()
+        local_parent_info = get_fileinfo(local_path.parent)
+        local_info = get_fileinfo(local_path)
+        # cleanup -- pytest is bad at cleaning up when permissions are funky
+        _rmdirs(path, parent)
+        # comparison -- let's see
+        exclude = 'last_modified'
+        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
+        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        assert local_dict == container_dict
+        exclude = ('last_modified', 'permissions')
+        container_parent_dict = _fileinfo.to_dict(container_parent_info, exclude=exclude)
+        local_parent_dict = _fileinfo.to_dict(local_parent_info, exclude=exclude)
+        assert local_parent_dict == container_parent_dict
+        assert _oct(container_parent_info.permissions) == mode_str
+        assert _oct(local_parent_info.permissions) == _oct(_constants.DEFAULT_MKDIR_MODE)
+
+
 def test_write_bytes_chmod(): ...
 def test_write_text_chmod(): ...
+
+
+def _oct(i: int) -> str:
+    return f'0o{i:03o}'
+
+
+def _rmdirs(path: pathlib.Path, *paths: pathlib.Path):
+    for p in (path, *paths):
+        os.chmod(p, 0o755)
+        p.rmdir()
