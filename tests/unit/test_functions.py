@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests that use a real Pebble to test helper functions."""
+"""Tests that don't use a real Pebble to test helper functions."""
 
 from __future__ import annotations
 
-import pathlib
 import typing
 
 import ops
@@ -24,29 +23,14 @@ import pytest
 from ops import pebble
 
 import utils
-from charmlibs.pathops import ContainerPath, _fileinfo
+from charmlibs.pathops import ContainerPath
 from charmlibs.pathops._functions import get_fileinfo
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable
 
-pytestmark = pytest.mark.pebble
-
 
 class TestGetFileInfo:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
-        path = session_dir / filename
-        try:
-            pebble_result = get_fileinfo(ContainerPath(path, container=container))
-        except OSError as e:
-            with pytest.raises(type(e)):
-                get_fileinfo(path)
-            return
-        else:
-            synthetic_result = get_fileinfo(path)
-            assert _fileinfo.to_dict(synthetic_result) == _fileinfo.to_dict(pebble_result)
-
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (

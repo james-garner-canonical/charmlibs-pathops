@@ -12,56 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Constants and helpers for use in conftest.py and tests."""
+"""Mocks for use in tests."""
 
 from __future__ import annotations
 
-import contextlib
-import os
-import pathlib
-import socket
-import string
-import tempfile
-import typing
-
 import ops
 from ops import pebble
-
-if typing.TYPE_CHECKING:
-    from typing import Iterator, Mapping
-
-
-BINARY_FILE_NAME = 'binary_file.bin'
-BROKEN_SYMLINK_NAME = 'symlink_broken'
-EMPTY_DIR_NAME = 'empty_dir'
-EMPTY_DIR_SYMLINK_NAME = 'symlink_dir'
-EMPTY_FILE_NAME = 'empty_file.bin'
-FILE_SYMLINK_NAME = 'symlink.bin'
-MISSING_FILE_NAME = 'does_not_exist'
-NESTED_DIR_NAME = 'nested_dir'
-OUROBOROS_SYMLINK_NAME = 'symlink_to_itself'
-RECURSIVE_SYMLINK_NAME = 'symlink_rec'
-SOCKET_NAME = 'socket.socket'
-SOCKET_SYMLINK_NAME = 'symlink.socket'
-TEXT_FILE_NAME = 'alphabet.txt'
-
-TEXT_FILES: Mapping[str, str] = {
-    TEXT_FILE_NAME: 'abcd\r\nefg\rhijk\nlmnop\r\nqrs\rtuv\nw\r\nx\ry\nz',
-    'bar.txt': string.ascii_uppercase + string.ascii_lowercase,
-    'baz.txt': '',
-    'bartholemew.txt': 'Bartholemew',
-}
-UTF8_BINARY_FILES: Mapping[str, bytes] = {
-    str(pathlib.Path(k).with_suffix('.utf-8')): v.encode() for k, v in TEXT_FILES.items()
-}
-UTF16_BINARY_FILES: Mapping[str, bytes] = {
-    str(pathlib.Path(k).with_suffix('.utf-16')): v.encode('utf-16') for k, v in TEXT_FILES.items()
-}
-BINARY_FILES: Mapping[str, bytes | bytearray] = {
-    BINARY_FILE_NAME: bytearray(range(256)),
-    **UTF8_BINARY_FILES,
-    **UTF16_BINARY_FILES,
-}
 
 
 class Mocks:
@@ -82,55 +38,6 @@ class Mocks:
         raise OSError(9000, 'unknown-kind', 'unknown-message')
 
 
-@contextlib.contextmanager
-def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:
-    nested_dir = main_dir / NESTED_DIR_NAME
-    nested_dir.mkdir()
-    doubly_nested_dir = nested_dir / NESTED_DIR_NAME
-    doubly_nested_dir.mkdir()
-    sockets: list[socket.socket] = []
-    for directory in (main_dir, nested_dir, doubly_nested_dir):
-        (directory / EMPTY_DIR_NAME).mkdir()
-        empty_file = directory / EMPTY_FILE_NAME
-        empty_file.touch()
-        (directory / FILE_SYMLINK_NAME).symlink_to(empty_file)
-        (directory / EMPTY_DIR_SYMLINK_NAME).symlink_to(directory / EMPTY_DIR_NAME)
-        (directory / RECURSIVE_SYMLINK_NAME).symlink_to(directory)
-        (directory / BROKEN_SYMLINK_NAME).symlink_to(directory / MISSING_FILE_NAME)
-        (directory / OUROBOROS_SYMLINK_NAME).symlink_to(directory / OUROBOROS_SYMLINK_NAME)
-        for filename, contents in TEXT_FILES.items():
-            (directory / filename).write_text(contents)
-        for filename, contents in BINARY_FILES.items():
-            (directory / filename).write_bytes(contents)
-        sock = socket.socket(socket.AddressFamily.AF_UNIX)
-        sock.bind(str(directory / SOCKET_NAME))
-        sockets.append(sock)
-        (directory / SOCKET_SYMLINK_NAME).symlink_to(directory / SOCKET_NAME)
-    # TODO: make block device?
-    try:
-        assert not (main_dir / MISSING_FILE_NAME).exists()
-        assert not (nested_dir / MISSING_FILE_NAME).exists()
-        assert not (doubly_nested_dir / MISSING_FILE_NAME).exists()
-        yield
-    finally:
-        for s in sockets:
-            s.shutdown(socket.SHUT_RDWR)
-            s.close()
-
-
-# import time
-# class SlowPebbleContainer(ops.Container):
-#     @property
-#     def _pebble(self):
-#         time.sleep(0.1)
-#         return self._real_pebble
-#
-#     @_pebble.setter
-#     def _pebble(self, value):
-#         self._real_pebble = value
-# ops.Container = SlowPebbleContainer
-
-
 def make_container(name: str) -> ops.Container:
     class dummy_backend:  # noqa: N801 (CapWords convention)
         class _juju_context:  # noqa: N801 (CapWords convention)
@@ -139,22 +46,5 @@ def make_container(name: str) -> ops.Container:
     return ops.Container(
         name=name,
         backend=dummy_backend,  # pyright: ignore[reportArgumentType]
-        pebble_client=ops.pebble.Client(socket_path=_get_socket_path()),
+        pebble_client=object(),  # pyright: ignore[reportArgumentType]
     )
-
-
-def _get_socket_path() -> str:
-    socket_path = os.getenv('PEBBLE_SOCKET')
-    pebble_path = os.getenv('PEBBLE')
-    if not socket_path and pebble_path:
-        assert isinstance(pebble_path, str)
-        socket_path = os.path.join(pebble_path, '.pebble.socket')
-    assert socket_path, 'PEBBLE or PEBBLE_SOCKET must be set if RUN_REAL_PEBBLE_TESTS set'
-    return socket_path
-
-
-with tempfile.TemporaryDirectory() as _dirname:
-    _tempdir = pathlib.Path(_dirname)
-    with populate_interesting_dir(_tempdir):
-        FILENAMES = tuple(path.name for path in _tempdir.iterdir())
-FILENAMES_PLUS = (*FILENAMES, MISSING_FILE_NAME)
