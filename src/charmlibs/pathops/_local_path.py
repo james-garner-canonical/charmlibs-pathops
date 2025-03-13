@@ -41,8 +41,7 @@ class LocalPath(pathlib.PosixPath):
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_bytes(data)
         _chown(self, user=user, group=group)
-        if mode is not None:
-            self.chmod(mode)
+        self.chmod(mode)
         return bytes_written
 
     def write_text(
@@ -59,8 +58,7 @@ class LocalPath(pathlib.PosixPath):
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
         _chown(self, user=user, group=group)
-        if mode is not None:
-            self.chmod(mode)
+        self.chmod(mode)
         return bytes_written
 
     def mkdir(
