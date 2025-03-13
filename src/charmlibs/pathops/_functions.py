@@ -22,7 +22,7 @@ import typing
 
 from ops import pebble
 
-from . import _fileinfo
+from . import _constants, _fileinfo
 from ._container_path import ContainerPath
 from ._local_path import LocalPath
 
@@ -42,9 +42,8 @@ def ensure_contents(
     path: StrPathLike | ContainerPath,
     source: bytes | str | BinaryIO | TextIO,
     *,
-    encoding: str = 'utf-8',
     parents: bool = True,
-    mode: int | None = None,
+    mode: int = _constants.DEFAULT_WRITE_MODE,
     user: str | None = None,
     group: str | None = None,
 ) -> bool:
@@ -55,7 +54,7 @@ def ensure_contents(
     Return True if any changes were made, including chown or chmod, otherwise
     return False.
     """
-    if not isinstance(path, ContainerPath):
+    if not isinstance(path, ContainerPath):  # most likely str or pathlib.Path
         path = LocalPath(path)
     # check if file already exists and has the correct metadata
     try:
@@ -68,42 +67,27 @@ def ensure_contents(
         or (isinstance(user, str) and info.user != user)
         or (isinstance(group, str) and info.group != group)
     )
-    # check if file already has the correct contents (if it exists and has correct metadata)
+    source = _as_bytes(source)
     if not write_required:
+        # check if file already has the correct contents (since it exists and has correct metadata)
         contents = path.read_bytes()
-        if not isinstance(source, (bytes, str)):
-            source = source.read()
-        if isinstance(source, str):
-            source = bytes(source, encoding=encoding)
         if source != contents:
             write_required = True
     if not write_required:
         return False
     # actually write contents to target
-    if isinstance(path, ContainerPath):
-        # for efficiency -- ContainerPath.write_{bytes,text} will call push anyway
-        #                   this way we potentially avoid reading source twice
-        path._container.push(
-            path=path._path,
-            source=source,
-            encoding=encoding,
-            make_dirs=parents,
-            permissions=mode,
-            user=user if isinstance(user, str) else None,
-            group=group if isinstance(group, str) else None,
-        )
-        return True
     if parents:
         path.parent.mkdir(parents=True, exist_ok=True)
-    # note: source may already have been narrowed to bytes when checking if writing is required
-    #       this is completely fine and doesn't affect the logic below
-    if not isinstance(source, (bytes, str)):
-        source = source.read()
-    if isinstance(source, bytes):
-        path.write_bytes(source, mode=mode, user=user, group=group)
-    elif isinstance(source, str):
-        path.write_text(source, encoding=encoding, mode=mode, user=user, group=group)
+    path.write_bytes(source, mode=mode, user=user, group=group)
     return True
+
+
+def _as_bytes(source: bytes | str | BinaryIO | TextIO) -> bytes:
+    if isinstance(source, bytes):
+        return source
+    if isinstance(source, str):
+        return bytes(source, encoding='utf-8')
+    return _as_bytes(source.read())
 
 
 def rm(path: pathlib.Path | ContainerPath, *, recursive: bool = False) -> None:
