@@ -22,7 +22,7 @@ import typing
 
 from ops import pebble
 
-from . import _constants, _fileinfo
+from . import _constants, _errors, _fileinfo
 from ._container_path import ContainerPath
 from ._local_path import LocalPath
 
@@ -92,8 +92,22 @@ def _as_bytes(source: bytes | str | BinaryIO | TextIO) -> bytes:
 
 def rm(path: pathlib.Path | ContainerPath, *, recursive: bool = False) -> None:
     if isinstance(path, ContainerPath):
+        _rm_container_path(path)
+    else:
+        _rm_pathlib_path(path)
+
+
+def _rm_container_path(path: ContainerPath, *, recursive: bool = False) -> None:
+    try:
         path._container.remove_path(path._path, recursive=recursive)
-        return
+    except pebble.PathError as e:
+        if _errors.DirectoryNotEmpty.matches(e):
+            assert not recursive
+            raise _errors.DirectoryNotEmpty.exception(path._description()) from e
+        raise
+
+
+def _rm_pathlib_path(path: pathlib.Path, *, recursive: bool = False) -> None:
     if recursive:
         shutil.rmtree(path)
         return
