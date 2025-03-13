@@ -37,6 +37,11 @@ branch = true
 
 [tool.coverage.report]
 show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if typing.TYPE_CHECKING:",
+    "@typing.overload",
+]
 
 # Linting tools configuration
 [tool.ruff]
