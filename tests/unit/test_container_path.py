@@ -24,7 +24,7 @@ import ops
 import pytest
 from ops import pebble
 
-import mocks
+import utils
 from charmlibs.pathops import ContainerPath, LocalPath, RelativePathError, _fileinfo
 
 if typing.TYPE_CHECKING:
@@ -318,8 +318,8 @@ class TestReadCommon:
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (
-            (mocks.raises_connection_error, pebble.ConnectionError),
-            (mocks.raises_unknown_path_error, pebble.PathError),
+            (utils.raises_connection_error, pebble.ConnectionError),
+            (utils.raises_unknown_path_error, pebble.PathError),
         ),
     )
     def test_unhandled_pebble_errors(
@@ -340,7 +340,7 @@ class TestReadCommon:
 class TestExists:
     def test_unhandled_os_error(self, monkeypatch: pytest.MonkeyPatch, container: ops.Container):
         with monkeypatch.context() as m:
-            m.setattr(_fileinfo, 'from_container_path', mocks.raises_unknown_os_error)
+            m.setattr(_fileinfo, 'from_container_path', utils.raises_unknown_os_error)
             with pytest.raises(OSError):
                 ContainerPath('/', container=container).exists()
 
@@ -349,8 +349,8 @@ class TestWriteBytes:
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (
-            (mocks.raises_connection_error, pebble.ConnectionError),
-            (mocks.raises_unknown_path_error, pebble.PathError),
+            (utils.raises_connection_error, pebble.ConnectionError),
+            (utils.raises_unknown_path_error, pebble.PathError),
         ),
     )
     def test_unhandled_pebble_errors(
@@ -370,8 +370,8 @@ class TestMkDir:
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (
-            (mocks.raises_connection_error, pebble.ConnectionError),
-            (mocks.raises_unknown_path_error, pebble.PathError),
+            (utils.raises_connection_error, pebble.ConnectionError),
+            (utils.raises_unknown_path_error, pebble.PathError),
         ),
     )
     def test_unhandled_pebble_errors(

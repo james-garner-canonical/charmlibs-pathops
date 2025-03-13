@@ -22,7 +22,7 @@ import ops
 import pytest
 from ops import pebble
 
-import mocks
+import utils
 from charmlibs.pathops import ContainerPath
 from charmlibs.pathops._functions import get_fileinfo
 
@@ -34,8 +34,8 @@ class TestGetFileInfo:
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (
-            (mocks.raises_connection_error, pebble.ConnectionError),
-            (mocks.raises_unknown_api_error, pebble.APIError),
+            (utils.raises_connection_error, pebble.ConnectionError),
+            (utils.raises_unknown_api_error, pebble.APIError),
         ),
     )
     def test_unhandled_pebble_errors(
