@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import os
 import typing
 
 import pytest
@@ -25,16 +26,6 @@ if typing.TYPE_CHECKING:
     from typing import Iterator
 
     import ops
-
-
-@pytest.fixture(scope='session')
-def container() -> ops.Container:
-    return utils.make_container('test1')
-
-
-@pytest.fixture(scope='session')
-def another_container() -> ops.Container:
-    return utils.make_container('test2')
 
 
 @pytest.fixture(scope='session')
@@ -59,3 +50,35 @@ def class_tmp_dirs(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib
     two.mkdir()
     with utils.populate_interesting_dir(one), utils.populate_interesting_dir(two):
         yield tmp_path
+
+
+@pytest.fixture(scope='session')
+def container() -> ops.Container:
+    return _make_container('test1')
+
+
+@pytest.fixture(scope='session')
+def another_container() -> ops.Container:
+    return _make_container('test2')
+
+
+def _make_container(name: str) -> ops.Container:
+    class dummy_backend:  # noqa: N801 (CapWords convention)
+        class _juju_context:  # noqa: N801 (CapWords convention)
+            version = '9000'
+
+    return ops.Container(
+        name=name,
+        backend=dummy_backend,  # pyright: ignore[reportArgumentType]
+        pebble_client=ops.pebble.Client(socket_path=_get_socket_path()),
+    )
+
+
+def _get_socket_path() -> str:
+    socket_path = os.getenv('PEBBLE_SOCKET')
+    pebble_path = os.getenv('PEBBLE')
+    if not socket_path and pebble_path:
+        assert isinstance(pebble_path, str)
+        socket_path = os.path.join(pebble_path, '.pebble.socket')
+    assert socket_path, 'PEBBLE or PEBBLE_SOCKET must be set if RUN_REAL_PEBBLE_TESTS set'
+    return socket_path

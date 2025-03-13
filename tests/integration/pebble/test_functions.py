@@ -35,7 +35,6 @@ class TestGetFileInfo:
         except OSError as e:
             with pytest.raises(type(e)):
                 get_fileinfo(path)
-            return
         else:
             synthetic_result = get_fileinfo(path)
             assert _fileinfo.to_dict(synthetic_result) == _fileinfo.to_dict(pebble_result)

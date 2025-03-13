@@ -17,14 +17,11 @@
 from __future__ import annotations
 
 import contextlib
-import os
 import pathlib
 import socket
 import string
 import tempfile
 import typing
-
-import ops
 
 if typing.TYPE_CHECKING:
     from typing import Iterator, Mapping
@@ -97,28 +94,6 @@ def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:
         for s in sockets:
             s.shutdown(socket.SHUT_RDWR)
             s.close()
-
-
-def make_container(name: str) -> ops.Container:
-    class dummy_backend:  # noqa: N801 (CapWords convention)
-        class _juju_context:  # noqa: N801 (CapWords convention)
-            version = '9000'
-
-    return ops.Container(
-        name=name,
-        backend=dummy_backend,  # pyright: ignore[reportArgumentType]
-        pebble_client=ops.pebble.Client(socket_path=_get_socket_path()),
-    )
-
-
-def _get_socket_path() -> str:
-    socket_path = os.getenv('PEBBLE_SOCKET')
-    pebble_path = os.getenv('PEBBLE')
-    if not socket_path and pebble_path:
-        assert isinstance(pebble_path, str)
-        socket_path = os.path.join(pebble_path, '.pebble.socket')
-    assert socket_path, 'PEBBLE or PEBBLE_SOCKET must be set if RUN_REAL_PEBBLE_TESTS set'
-    return socket_path
 
 
 with tempfile.TemporaryDirectory() as _dirname:
