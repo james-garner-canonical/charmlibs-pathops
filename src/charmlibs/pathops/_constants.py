@@ -14,5 +14,18 @@
 
 """Magic numbers."""
 
-DEFAULT_MKDIR_MODE = 0o755  # pebble default (493) -- pathlib default is 0o777 (511)
-DEFAULT_WRITE_MODE = 0o644  # pebble default (420) -- pathlib default is 0o666 (438)
+import stat
+
+DEFAULT_MKDIR_MODE = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH
+"""Pebble's default of 0o755 (493) 'drwxr-xr-x'.
+
+Pathlib's default value is 0o777 (511) 'drwxrwxrwx'.
+"""
+assert DEFAULT_MKDIR_MODE == 0o755
+
+DEFAULT_WRITE_MODE = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
+"""Pebble's default of 0o644 (420) '-rw-rw-r--'.
+
+Pathlib's default value is 0o666 (438) '-rw-rw-rw-'.
+"""
+assert DEFAULT_WRITE_MODE == 0o644
