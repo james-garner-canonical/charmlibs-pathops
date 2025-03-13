@@ -14,12 +14,8 @@
 
 from __future__ import annotations
 
-import typing
-
+import ops
 import pytest
-
-if typing.TYPE_CHECKING:
-    import ops
 
 
 @pytest.fixture(scope='session')

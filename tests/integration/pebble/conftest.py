@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import typing
 
+import ops
 import pytest
 
 import utils
@@ -24,8 +25,6 @@ import utils
 if typing.TYPE_CHECKING:
     import pathlib
     from typing import Iterator
-
-    import ops
 
 
 @pytest.fixture(scope='session')
