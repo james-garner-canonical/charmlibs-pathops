@@ -18,14 +18,18 @@ from __future__ import annotations
 
 from ops import pebble
 
+
 def raises_unknown_api_error(*args: object, **kwargs: object):
     raise pebble.APIError(body={}, code=9000, status='', message='')
+
 
 def raises_connection_error(*args: object, **kwargs: object):
     raise pebble.ConnectionError()
 
+
 def raises_unknown_path_error(*args: object, **kwargs: object):
     raise pebble.PathError(kind='unknown-kind', message='unknown-message')
+
 
 def raises_unknown_os_error(*args: object, **kwargs: object):
     raise OSError(9000, 'unknown-kind', 'unknown-message')
