@@ -110,18 +110,40 @@ class ContainerPath:
         return self.with_segments(self._path, key)
 
     def is_absolute(self) -> bool:
+        """Whether the path is absolute. Will always be True, as relative paths error on init."""
         return self._path.is_absolute()
 
     def match(self, path_pattern: str) -> bool:
+        """Whether the patch matches the given pattern.
+
+        If the pattern is relative, matching is done from the right, otherwise the
+        entire path is matched. The recursive wildcard '**' is not supported.
+        """
         return self._path.match(path_pattern)
 
     def with_name(self, name: str) -> Self:
+        """Return a new ContainerPath with the same container and the filename changed."""
         return self.with_segments(self._path.with_name(name))
 
     def with_suffix(self, suffix: str) -> Self:
+        """Return a new ContainerPath with the same container and the suffix changed.
+
+        If the original path had no suffix, the new suffix is added.
+        The new suffix must start with '.', unless the new suffix is an empty string,
+        in which case the original suffix (if there was one) is removed ('.' included).
+        """
         return self.with_segments(self._path.with_suffix(suffix))
 
     def joinpath(self, *other: StrPathLike) -> Self:
+        """Return a new ContainerPath with the same container and the new args joined to its path.
+
+        Args:
+            other: Any number of path-like objects or strs. Note -- ContainerPath is not path-like.
+                If zero are provided, an effective copy of this ContainerPath object is returned.
+                *other is joined to this object's path as with os.path.join. This means that if
+                any member of other is an absolute path, all the previous components, including
+                this object's path, are dropped entirely.
+        """
         return self.with_segments(self._path, *other)
 
     @property
