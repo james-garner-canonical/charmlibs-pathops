@@ -61,6 +61,10 @@ class ContainerPath:
     def __hash__(self) -> int:
         return hash((self._container.name, self._path))
 
+    def __repr__(self) -> str:
+        # TODO: eval'able representation -- requires a way to go from container name to container
+        return f'{type(self).__name__}({self._path}, container={self._container})'
+
     def __str__(self) -> str:
         return self._path.__str__()
 
