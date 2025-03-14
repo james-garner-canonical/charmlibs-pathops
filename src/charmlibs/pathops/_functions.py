@@ -63,7 +63,7 @@ def ensure_contents(
         info = None
     write_required = (
         info is None
-        or (mode is not None and info.permissions != mode)
+        or (info.permissions != mode)
         or (isinstance(user, str) and info.user != user)
         or (isinstance(group, str) and info.group != group)
     )

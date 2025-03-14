@@ -134,7 +134,7 @@ class TestWriteChmod:
         tmp_path: pathlib.Path,
         method: str,
         data: str | bytes,
-        mode_str: str,
+        mode_str: str | None,
     ):
         mode = int(mode_str, base=8) if mode_str is not None else None
         path = tmp_path / 'path'

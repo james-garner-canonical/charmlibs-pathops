@@ -72,24 +72,27 @@ class ContainerPath:
         return self._path.__str__()
 
     def __lt__(self, other: Self) -> bool:
-        if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
+        if not self._can_compare(other):
             return NotImplemented
         return self._path < other._path
 
     def __le__(self, other: Self) -> bool:
-        if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
+        if not self._can_compare(other):
             return NotImplemented
         return self._path <= other._path
 
     def __gt__(self, other: Self) -> bool:
-        if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
+        if not self._can_compare(other):
             return NotImplemented
         return self._path > other._path
 
     def __ge__(self, other: Self) -> bool:
-        if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
+        if not self._can_compare(other):
             return NotImplemented
         return self._path >= other._path
+
+    def _can_compare(self, other: object) -> bool:
+        return isinstance(other, ContainerPath) and other._container.name == self._container.name
 
     def __eq__(self, other: object, /) -> bool:
         if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
