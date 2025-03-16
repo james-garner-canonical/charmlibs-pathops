@@ -194,7 +194,7 @@ class ContainerPath:
     ) -> str:
         text = self._pull(text=True)
         if newline is None:
-            return re.sub('\r\n|\r|\n', '\n', text)
+            return re.sub('\r\n|\r', '\n', text)
         return text
 
     def read_bytes(self) -> bytes:
