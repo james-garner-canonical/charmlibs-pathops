@@ -209,8 +209,10 @@ class ContainerPath:
             with self._container.pull(self._path, encoding=encoding) as f:
                 return f.read()
         except pebble.PathError as e:
-            _errors.raise_if_matches_file_not_found(e, msg=self._description())
-            for error in (_errors.IsADirectory, _errors.Permission):
+            description = self._description()
+            _errors.raise_if_matches_file_not_found(e, msg=description)
+            _errors.raise_if_matches_is_a_directory(e, msg=description)
+            for error in (_errors.Permission,):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
