@@ -42,7 +42,6 @@ def ensure_contents(
     path: StrPathLike | ContainerPath,
     source: bytes | str | BinaryIO | TextIO,
     *,
-    parents: bool = True,
     mode: int = _constants.DEFAULT_WRITE_MODE,
     user: str | None = None,
     group: str | None = None,
@@ -51,33 +50,26 @@ def ensure_contents(
 
     Ensure that path exists, and contains source, and has the correct permissions,
     and has the correct file ownership.
-    Return True if any changes were made, including chown or chmod, otherwise
-    return False.
+
+    Returns:
+        True if any changes were made, including chown or chmod, otherwise False.
     """
     if not isinstance(path, ContainerPath):  # most likely str or pathlib.Path
         path = LocalPath(path)
-    # check if file already exists and has the correct metadata
+    source = _as_bytes(source)
     try:
         info = get_fileinfo(path)
     except FileNotFoundError:
-        info = None
-    write_required = (
-        info is None
-        or (info.permissions != mode)
-        or (isinstance(user, str) and info.user != user)
-        or (isinstance(group, str) and info.group != group)
-    )
-    source = _as_bytes(source)
-    if not write_required:
-        # check if file already has the correct contents (since it exists and has correct metadata)
-        contents = path.read_bytes()
-        if source != contents:
-            write_required = True
-    if not write_required:
-        return False
-    # actually write contents to target
-    if parents:
-        path.parent.mkdir(parents=True, exist_ok=True)
+        pass  # file doesn't exist, so writing is required
+    else:  # check if metadata and contents already match
+        if (
+            (info.permissions == mode)
+            and (user is None or info.user == user)
+            and (group is None or info.group == group)
+            and (path.read_bytes() == source)
+        ):
+            return False  # everything matches, so writing is not required
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(source, mode=mode, user=user, group=group)
     return True
 
@@ -86,7 +78,7 @@ def _as_bytes(source: bytes | str | BinaryIO | TextIO) -> bytes:
     if isinstance(source, bytes):
         return source
     if isinstance(source, str):
-        return bytes(source, encoding='utf-8')
+        return source.encode()
     return _as_bytes(source.read())
 
 
