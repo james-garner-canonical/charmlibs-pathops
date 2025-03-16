@@ -83,14 +83,9 @@ def raise_not_a_directory(msg: str, from_: BaseException | None = None) -> NoRet
     raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), msg) from from_
 
 
-class Permission:
-    @staticmethod
-    def matches(error: pebble.Error) -> bool:
-        return isinstance(error, pebble.PathError) and error.kind == 'permission-denied'
-
-    @staticmethod
-    def exception(msg: str) -> PermissionError:
-        return PermissionError(errno.EPERM, os.strerror(errno.EPERM), msg)
+def raise_if_matches_permission(error: pebble.Error, msg: str) -> None:
+    if isinstance(error, pebble.PathError) and error.kind == 'permission-denied':
+        raise PermissionError(errno.EPERM, os.strerror(errno.EPERM), msg) from error
 
 
 class TooManyLevelsOfSymbolicLinks:

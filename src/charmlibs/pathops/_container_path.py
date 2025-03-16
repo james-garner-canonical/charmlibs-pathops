@@ -212,9 +212,7 @@ class ContainerPath:
             description = self._description()
             _errors.raise_if_matches_file_not_found(e, msg=description)
             _errors.raise_if_matches_is_a_directory(e, msg=description)
-            for error in (_errors.Permission,):
-                if error.matches(e):
-                    raise error.exception(self._description()) from e
+            _errors.raise_if_matches_permission(e, msg=description)
             raise
 
     def iterdir(self) -> typing.Generator[Self]:
@@ -319,10 +317,9 @@ class ContainerPath:
             )
         except pebble.PathError as e:
             _errors.raise_if_matches_lookup(e, msg=e.message)
-            _errors.raise_if_matches_file_not_found(e, msg=self._description())
-            for error in (_errors.Permission,):
-                if error.matches(e):
-                    raise error.exception(self._description()) from e
+            description = self._description()
+            _errors.raise_if_matches_file_not_found(e, msg=description)
+            _errors.raise_if_matches_permission(e, msg=description)
             raise
         return len(data)
 
@@ -384,9 +381,7 @@ class ContainerPath:
                 _errors.raise_file_exists(self._description(), from_=e)
             _errors.raise_if_matches_file_exists(e, msg=description)
             _errors.raise_if_matches_file_not_found(e, msg=description)
-            for error in (_errors.Permission,):
-                if error.matches(e):
-                    raise error.exception(self._description()) from e
+            _errors.raise_if_matches_permission(e, msg=description)
             raise
 
     #############################
