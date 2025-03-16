@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import errno
 import pathlib
 import re
 import typing
@@ -283,8 +284,8 @@ class ContainerPath:
         except FileNotFoundError:
             return False
         except OSError as e:
-            if _errors.TooManyLevelsOfSymbolicLinks.matches_exception(e):
-                return False
+            if e.errno == errno.ELOOP:
+                return False  # too many levels of symbolic links
             raise
         if filetype is None:  # we only care if the file exists
             return True

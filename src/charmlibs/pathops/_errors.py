@@ -88,19 +88,10 @@ def raise_if_matches_permission(error: pebble.Error, msg: str) -> None:
         raise PermissionError(errno.EPERM, os.strerror(errno.EPERM), msg) from error
 
 
-class TooManyLevelsOfSymbolicLinks:
-    @staticmethod
-    def matches(error: pebble.Error) -> bool:
-        return (
-            isinstance(error, pebble.APIError)
-            and error.code == 400
-            and 'too many levels of symbolic links' in error.message
-        )
-
-    @classmethod
-    def exception(cls, msg: str) -> OSError:
-        return OSError(errno.ELOOP, os.strerror(errno.ELOOP), msg)
-
-    @staticmethod
-    def matches_exception(exception: Exception) -> bool:
-        return isinstance(exception, OSError) and exception.errno == errno.ELOOP
+def raise_if_matches_too_many_levels_of_symlinks(error: pebble.Error, msg: str) -> None:
+    if (
+        isinstance(error, pebble.APIError)
+        and error.code == 400
+        and 'too many levels of symbolic links' in error.message
+    ):
+        raise OSError(errno.ELOOP, os.strerror(errno.ELOOP), msg) from error

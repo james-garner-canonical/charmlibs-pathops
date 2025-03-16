@@ -46,10 +46,9 @@ def from_container_path(path: ContainerPath) -> pebble.FileInfo:
     try:
         [info] = path._container.list_files(path._path, itself=True)
     except pebble.APIError as e:
-        _errors.raise_if_matches_file_not_found(e, msg=path._description())
-        for error in (_errors.TooManyLevelsOfSymbolicLinks,):
-            if error.matches(e):
-                raise error.exception(path._description()) from e
+        description = path._description()
+        _errors.raise_if_matches_file_not_found(e, msg=description)
+        _errors.raise_if_matches_too_many_levels_of_symlinks(e, msg=description)
         raise
     return info
 
