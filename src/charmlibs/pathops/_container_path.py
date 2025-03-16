@@ -222,7 +222,7 @@ class ContainerPath:
         # for future proofing we will check on call
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         if info.type != pebble.FileType.DIRECTORY:
-            raise _errors.NotADirectory.exception(self._description())
+            _errors.raise_not_a_directory(self._description())
         file_infos = self._container.list_files(self._path)
         for f in file_infos:
             yield self.with_segments(f.path)
@@ -377,10 +377,10 @@ class ContainerPath:
         except pebble.PathError as e:
             _errors.raise_if_matches_lookup(e, msg=e.message)
             description = self._description()
-            if _errors.NotADirectory.matches(e):
+            if _errors.matches_not_a_directory(e):
                 # target exists and isn't a directory, or parent isn't a directory
                 if not self.parent.is_dir():
-                    raise _errors.NotADirectory.exception(self._description()) from e
+                    _errors.raise_not_a_directory(msg=description, from_=e)
                 _errors.raise_file_exists(self._description(), from_=e)
             _errors.raise_if_matches_file_exists(e, msg=description)
             _errors.raise_if_matches_file_not_found(e, msg=description)

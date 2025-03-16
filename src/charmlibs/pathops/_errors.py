@@ -71,18 +71,16 @@ def raise_if_matches_lookup(error: pebble.Error, msg: str) -> None:
         raise LookupError(msg) from error
 
 
-class NotADirectory:
-    @staticmethod
-    def matches(error: pebble.Error) -> bool:
-        return (
-            isinstance(error, pebble.PathError)
-            and error.kind == 'generic-file-error'
-            and 'not a directory' in error.message
-        )
+def matches_not_a_directory(error: pebble.Error) -> bool:
+    return (
+        isinstance(error, pebble.PathError)
+        and error.kind == 'generic-file-error'
+        and 'not a directory' in error.message
+    )
 
-    @staticmethod
-    def exception(msg: str) -> NotADirectoryError:
-        return NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), msg)
+
+def raise_not_a_directory(msg: str, from_: BaseException | None = None) -> NoReturn:
+    raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), msg) from from_
 
 
 class Permission:
