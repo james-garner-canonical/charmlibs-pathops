@@ -25,7 +25,7 @@ import pytest
 
 import utils
 from charmlibs.pathops import ContainerPath, LocalPath, _constants, ensure_contents
-from charmlibs.pathops._functions import get_fileinfo
+from charmlibs.pathops._functions import _get_fileinfo
 
 if typing.TYPE_CHECKING:
     from typing import Literal
@@ -77,7 +77,7 @@ class TestEnsureContents:
         else:
             assert write_required
         assert path.read_bytes() == contents
-        info = get_fileinfo(path)
+        info = _get_fileinfo(path)
         assert info.permissions == mode
 
 
@@ -86,10 +86,10 @@ class TestGetFileInfo:
     def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
         path = session_dir / filename
         try:
-            pebble_result = get_fileinfo(ContainerPath(path, container=container))
+            pebble_result = _get_fileinfo(ContainerPath(path, container=container))
         except OSError as e:
             with pytest.raises(type(e)):
-                get_fileinfo(path)
+                _get_fileinfo(path)
         else:
-            synthetic_result = get_fileinfo(path)
+            synthetic_result = _get_fileinfo(path)
             assert utils.info_to_dict(synthetic_result) == utils.info_to_dict(pebble_result)

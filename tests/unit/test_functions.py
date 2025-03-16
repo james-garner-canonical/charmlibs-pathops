@@ -24,7 +24,7 @@ from ops import pebble
 
 import utils
 from charmlibs.pathops import ContainerPath
-from charmlibs.pathops._functions import get_fileinfo
+from charmlibs.pathops._functions import _get_fileinfo
 
 if typing.TYPE_CHECKING:
     from typing import Any, Callable
@@ -48,4 +48,4 @@ class TestGetFileInfo:
         with monkeypatch.context() as m:
             m.setattr(container, 'list_files', mock)
             with pytest.raises(error):
-                get_fileinfo(ContainerPath('/', container=container))
+                _get_fileinfo(ContainerPath('/', container=container))

@@ -26,7 +26,7 @@ import pytest
 
 import utils
 from charmlibs.pathops import ContainerPath, LocalPath, _constants
-from charmlibs.pathops._functions import get_fileinfo
+from charmlibs.pathops._functions import _get_fileinfo
 
 os.umask(0o000)  # Pebble seems to operate with umask=0; this makes it easy to compare permissions
 
@@ -148,7 +148,7 @@ class TestWriteChmod:
         else:
             container_path_method(data)
         assert path.exists()
-        container_info = get_fileinfo(container_path)
+        container_info = _get_fileinfo(container_path)
         # cleanup
         _unlink(path)
         # local
@@ -160,7 +160,7 @@ class TestWriteChmod:
         else:
             local_path_method(data)
         assert path.exists()
-        local_info = get_fileinfo(local_path)
+        local_info = _get_fileinfo(local_path)
         # cleanup
         _unlink(path)
         exclude = 'last_modified'
@@ -183,7 +183,7 @@ class TestMkdirChmod:
             container_path.mkdir()
         assert path.exists()
         assert path.is_dir()
-        container_info = get_fileinfo(container_path)
+        container_info = _get_fileinfo(container_path)
         # cleanup
         _rmdirs(path)
         # local
@@ -195,7 +195,7 @@ class TestMkdirChmod:
             local_path.mkdir()
         assert path.exists()
         assert path.is_dir()
-        local_info = get_fileinfo(local_path)
+        local_info = _get_fileinfo(local_path)
         # cleanup -- pytest is bad at cleaning up when permissions are funky
         _rmdirs(path)
         # comparison
@@ -224,8 +224,8 @@ class TestMkdirChmod:
         assert parent.is_dir()
         assert path.exists()
         assert path.is_dir()
-        container_parent_info = get_fileinfo(container_path.parent)
-        container_info = get_fileinfo(container_path)
+        container_parent_info = _get_fileinfo(container_path.parent)
+        container_info = _get_fileinfo(container_path)
         # cleanup
         _rmdirs(path, parent)
         # local
@@ -240,8 +240,8 @@ class TestMkdirChmod:
         assert parent.is_dir()
         assert path.exists()
         assert path.is_dir()
-        local_parent_info = get_fileinfo(local_path.parent)
-        local_info = get_fileinfo(local_path)
+        local_parent_info = _get_fileinfo(local_path.parent)
+        local_info = _get_fileinfo(local_path)
         # cleanup -- pytest is bad at cleaning up when permissions are funky
         _rmdirs(path, parent)
         # comparison
@@ -281,7 +281,7 @@ class TestMkdirChmod:
         with pytest.raises(PermissionError):  # TODO: resolve this difference in behaviour
             container_path.mkdir(parents=True, mode=mode)
         assert parent.exists()
-        container_parent_info = get_fileinfo(container_path.parent)
+        container_parent_info = _get_fileinfo(container_path.parent)
         assert _oct(container_parent_info.permissions) == mode_str
         os.chmod(parent, 0o755)  # so that we can check if path exists!
         assert not path.exists()
@@ -293,10 +293,10 @@ class TestMkdirChmod:
         assert not parent.exists()
         local_path.mkdir(parents=True, mode=mode)
         assert parent.exists()
-        local_parent_info = get_fileinfo(local_path.parent)
+        local_parent_info = _get_fileinfo(local_path.parent)
         assert _oct(local_parent_info.permissions) == _oct(_constants.DEFAULT_MKDIR_MODE)
         assert path.exists()
-        local_info = get_fileinfo(local_path)
+        local_info = _get_fileinfo(local_path)
         assert _oct(local_info.permissions) == mode_str
         # cleanup -- pytest is bad at cleaning up when permissions are funky
         _rmdirs(path, parent)
@@ -327,8 +327,8 @@ class TestMkdirChmod:
             pass
         assert parent.exists()
         assert path.exists()
-        container_parent_info = get_fileinfo(container_path.parent)
-        container_info = get_fileinfo(container_path)
+        container_parent_info = _get_fileinfo(container_path.parent)
+        container_info = _get_fileinfo(container_path)
         # cleanup
         _rmdirs(path, parent)
         # local
@@ -338,8 +338,8 @@ class TestMkdirChmod:
         local_path.mkdir(parents=True, mode=mode)
         assert parent.exists()
         assert path.exists()
-        local_parent_info = get_fileinfo(local_path.parent)
-        local_info = get_fileinfo(local_path)
+        local_parent_info = _get_fileinfo(local_path.parent)
+        local_info = _get_fileinfo(local_path)
         # cleanup -- pytest is bad at cleaning up when permissions are funky
         _rmdirs(path, parent)
         # comparison

@@ -31,12 +31,6 @@ if typing.TYPE_CHECKING:
     from ._types import StrPathLike
 
 
-def get_fileinfo(path: StrPathLike | ContainerPath) -> pebble.FileInfo:
-    if isinstance(path, ContainerPath):
-        return _fileinfo.from_container_path(path)
-    return _fileinfo.from_pathlib_path(pathlib.Path(path))
-
-
 def ensure_contents(
     path: StrPathLike | ContainerPath,
     source: bytes | str | BinaryIO | TextIO,
@@ -57,7 +51,7 @@ def ensure_contents(
         path = LocalPath(path)
     source = _as_bytes(source)
     try:
-        info = get_fileinfo(path)
+        info = _get_fileinfo(path)
     except FileNotFoundError:
         pass  # file doesn't exist, so writing is required
     else:  # check if metadata and contents already match
@@ -71,6 +65,12 @@ def ensure_contents(
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(source, mode=mode, user=user, group=group)
     return True
+
+
+def _get_fileinfo(path: StrPathLike | ContainerPath) -> pebble.FileInfo:
+    if isinstance(path, ContainerPath):
+        return _fileinfo.from_container_path(path)
+    return _fileinfo.from_pathlib_path(pathlib.Path(path))
 
 
 def _as_bytes(source: bytes | str | BinaryIO | TextIO) -> bytes:
