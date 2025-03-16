@@ -22,20 +22,6 @@ import os
 from ops import pebble
 
 
-class DirectoryNotEmpty:
-    @staticmethod
-    def matches(error: pebble.Error) -> bool:
-        return (
-            isinstance(error, pebble.PathError)
-            and error.kind == 'generic-file-error'
-            and 'directory not empty' in error.message
-        )
-
-    @staticmethod
-    def exception(msg: str) -> OSError:
-        return OSError(errno.ENOTEMPTY, os.strerror(errno.ENOTEMPTY), msg)
-
-
 class FileExists:
     @staticmethod
     def matches(error: pebble.Error) -> bool:
