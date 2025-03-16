@@ -18,22 +18,22 @@ from __future__ import annotations
 
 import errno
 import os
+from typing import NoReturn
 
 from ops import pebble
 
 
-class FileExists:
-    @staticmethod
-    def matches(error: pebble.Error) -> bool:
-        return (
-            isinstance(error, pebble.PathError)
-            and error.kind == 'generic-file-error'
-            and 'file exists' in error.message
-        )
+def raise_file_exists(msg: str, from_: Exception | None = None) -> NoReturn:
+    raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), msg) from from_
 
-    @staticmethod
-    def exception(msg: str) -> FileExistsError:
-        return FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), msg)
+
+def raise_if_matches_file_exists(error: pebble.Error, msg: str) -> None:
+    if (
+        isinstance(error, pebble.PathError)
+        and error.kind == 'generic-file-error'
+        and 'file exists' in error.message
+    ):
+        raise_file_exists(msg, from_=error)
 
 
 class FileNotFound:

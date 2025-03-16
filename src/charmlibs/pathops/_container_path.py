@@ -360,7 +360,7 @@ class ContainerPath:
         # only make an extra pebble call if parents xor exist_ok
         # if both are true or both are false we can just let pebble's make_parents handle it
         if parents and not exist_ok and self.exists():
-            raise _errors.FileExists.exception(self._description())
+            raise _errors.raise_file_exists(self._description())
         elif exist_ok and not parents and not self.parent.exists():
             raise _errors.FileNotFound.exception(self.parent._description())
         try:
@@ -378,8 +378,9 @@ class ContainerPath:
                 # target exists and isn't a directory, or parent isn't a directory
                 if not self.parent.is_dir():
                     raise _errors.NotADirectory.exception(self._description()) from e
-                raise _errors.FileExists.exception(self._description()) from e
-            for error in (_errors.FileExists, _errors.FileNotFound, _errors.Permission):
+                _errors.raise_file_exists(self._description(), from_=e)
+            _errors.raise_if_matches_file_exists(e, msg=self._description())
+            for error in (_errors.FileNotFound, _errors.Permission):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
