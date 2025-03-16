@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path as _Path  # for __version__
-
 from ops.pebble import ConnectionError as PebbleConnectionError
 
 from ._container_path import ContainerPath, RelativePathError
@@ -33,5 +31,4 @@ __all__ = (
     'RelativePathError',
     'ensure_contents',
 )
-
-__version__ = (_Path(__file__).parent / '_version.txt').read_text()
+__version__ = '0.0.0-dev0'
