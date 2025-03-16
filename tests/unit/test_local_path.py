@@ -95,5 +95,5 @@ class TestChown:
         if (user, group) == (None, None):
             assert not mock_chown.calls
         else:
-            [call] = mock_chown.calls
+            (call,) = mock_chown.calls
             assert call == (path, user, group)

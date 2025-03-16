@@ -44,7 +44,7 @@ _FT_MAP: dict[int, pebble.FileType] = {
 
 def from_container_path(path: ContainerPath) -> pebble.FileInfo:
     try:
-        [info] = path._container.list_files(path._path, itself=True)
+        (info,) = path._container.list_files(path._path, itself=True)
     except pebble.APIError as e:
         description = path._description()
         _errors.raise_if_matches_file_not_found(e, msg=description)
