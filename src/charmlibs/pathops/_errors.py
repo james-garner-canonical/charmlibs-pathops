@@ -62,18 +62,13 @@ def raise_if_matches_is_a_directory(error: pebble.Error, msg: str) -> None:
         raise IsADirectoryError(errno.EISDIR, os.strerror(errno.EISDIR), msg) from error
 
 
-class Lookup:
-    @staticmethod
-    def matches(error: pebble.Error) -> bool:
-        return (
-            isinstance(error, pebble.PathError)
-            and error.kind == 'generic-file-error'
-            and 'cannot look up user and group' in error.message
-        )
-
-    @staticmethod
-    def exception(msg: str) -> LookupError:
-        return LookupError(msg)
+def raise_if_matches_lookup(error: pebble.Error, msg: str) -> None:
+    if (
+        isinstance(error, pebble.PathError)
+        and error.kind == 'generic-file-error'
+        and 'cannot look up user and group' in error.message
+    ):
+        raise LookupError(msg) from error
 
 
 class NotADirectory:

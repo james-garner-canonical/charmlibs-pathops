@@ -318,8 +318,7 @@ class ContainerPath:
                 group=group if isinstance(group, str) else None,
             )
         except pebble.PathError as e:
-            if _errors.Lookup.matches(e):
-                raise _errors.Lookup.exception(e.message) from e
+            _errors.raise_if_matches_lookup(e, msg=e.message)
             _errors.raise_if_matches_file_not_found(e, msg=self._description())
             for error in (_errors.Permission,):
                 if error.matches(e):
@@ -376,8 +375,7 @@ class ContainerPath:
                 group=group if isinstance(group, str) else None,
             )
         except pebble.PathError as e:
-            if _errors.Lookup.matches(e):
-                raise _errors.Lookup.exception(e.message) from e
+            _errors.raise_if_matches_lookup(e, msg=e.message)
             description = self._description()
             if _errors.NotADirectory.matches(e):
                 # target exists and isn't a directory, or parent isn't a directory
