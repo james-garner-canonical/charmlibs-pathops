@@ -40,7 +40,7 @@ class LocalPath(pathlib.PosixPath):
     ) -> int:
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_bytes(data)
-        _chown(self, user=user, group=group)
+        _chown_if_needed(self, user=user, group=group)
         self.chmod(mode)
         return bytes_written
 
@@ -57,7 +57,7 @@ class LocalPath(pathlib.PosixPath):
     ) -> int:
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
-        _chown(self, user=user, group=group)
+        _chown_if_needed(self, user=user, group=group)
         self.chmod(mode)
         return bytes_written
 
@@ -73,7 +73,7 @@ class LocalPath(pathlib.PosixPath):
     ) -> None:
         _validate_user_and_group(user=user, group=group)
         super().mkdir(mode=mode, parents=parents, exist_ok=exist_ok)
-        _chown(self, user=user, group=group)
+        _chown_if_needed(self, user=user, group=group)
 
 
 def _validate_user_and_group(user: str | None, group: str | None):
@@ -83,7 +83,7 @@ def _validate_user_and_group(user: str | None, group: str | None):
         grp.getgrnam(group)
 
 
-def _chown(path: pathlib.Path, user: str | int | None, group: str | int | None) -> None:
+def _chown_if_needed(path: pathlib.Path, user: str | int | None, group: str | int | None) -> None:
     # shutil.chown is happy as long as either user or group is not None
     # but the type checker doesn't like that, so we have to be more explicit
     if user is not None and group is not None:
