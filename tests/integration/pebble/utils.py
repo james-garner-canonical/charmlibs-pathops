@@ -98,10 +98,14 @@ def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:
             s.close()
 
 
-with tempfile.TemporaryDirectory() as _dirname:
-    _tempdir = pathlib.Path(_dirname)
-    with populate_interesting_dir(_tempdir):
-        FILENAMES = tuple(path.name for path in _tempdir.iterdir())
+def get_interesting_dir_filenames() -> tuple[str, ...]:
+    with tempfile.TemporaryDirectory() as _dirname:
+        _tempdir = pathlib.Path(_dirname)
+        with populate_interesting_dir(_tempdir):
+            return tuple(path.name for path in _tempdir.iterdir())
+
+
+FILENAMES = get_interesting_dir_filenames()
 FILENAMES_PLUS = (*FILENAMES, MISSING_FILE_NAME)
 
 
