@@ -24,7 +24,7 @@ import ops
 import pytest
 
 import utils
-from charmlibs.pathops import ContainerPath, LocalPath, _constants, _fileinfo, ensure_contents
+from charmlibs.pathops import ContainerPath, LocalPath, _constants, ensure_contents
 from charmlibs.pathops._functions import get_fileinfo
 
 if typing.TYPE_CHECKING:
@@ -92,4 +92,4 @@ class TestGetFileInfo:
                 get_fileinfo(path)
         else:
             synthetic_result = get_fileinfo(path)
-            assert _fileinfo.to_dict(synthetic_result) == _fileinfo.to_dict(pebble_result)
+            assert utils.info_to_dict(synthetic_result) == utils.info_to_dict(pebble_result)

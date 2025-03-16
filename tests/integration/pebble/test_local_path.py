@@ -24,7 +24,8 @@ import pwd
 import ops
 import pytest
 
-from charmlibs.pathops import ContainerPath, LocalPath, _constants, _fileinfo
+import utils
+from charmlibs.pathops import ContainerPath, LocalPath, _constants
 from charmlibs.pathops._functions import get_fileinfo
 
 os.umask(0o000)  # Pebble seems to operate with umask=0; this makes it easy to compare permissions
@@ -163,8 +164,8 @@ class TestWriteChmod:
         # cleanup
         _unlink(path)
         exclude = 'last_modified'
-        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
-        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        container_dict = utils.info_to_dict(container_info, exclude=exclude)
+        local_dict = utils.info_to_dict(local_info, exclude=exclude)
         assert local_dict == container_dict
 
 
@@ -199,8 +200,8 @@ class TestMkdirChmod:
         _rmdirs(path)
         # comparison
         exclude = ('last_modified', 'permissions')
-        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
-        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        container_dict = utils.info_to_dict(container_info, exclude=exclude)
+        local_dict = utils.info_to_dict(local_info, exclude=exclude)
         assert local_dict == container_dict
         assert _oct(local_info.permissions) == _oct(container_info.permissions)
 
@@ -245,12 +246,12 @@ class TestMkdirChmod:
         _rmdirs(path, parent)
         # comparison
         exclude = ('last_modified', 'permissions')
-        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
-        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        container_dict = utils.info_to_dict(container_info, exclude=exclude)
+        local_dict = utils.info_to_dict(local_info, exclude=exclude)
         assert local_dict == container_dict
         assert _oct(local_info.permissions) == _oct(container_info.permissions)
-        container_parent_dict = _fileinfo.to_dict(container_parent_info, exclude=exclude)
-        local_parent_dict = _fileinfo.to_dict(local_parent_info, exclude=exclude)
+        container_parent_dict = utils.info_to_dict(container_parent_info, exclude=exclude)
+        local_parent_dict = utils.info_to_dict(local_parent_info, exclude=exclude)
         assert local_parent_dict == container_parent_dict
         try:
             assert _oct(local_parent_info.permissions) == _oct(container_parent_info.permissions)
@@ -343,12 +344,12 @@ class TestMkdirChmod:
         _rmdirs(path, parent)
         # comparison
         exclude = 'last_modified'
-        container_dict = _fileinfo.to_dict(container_info, exclude=exclude)
-        local_dict = _fileinfo.to_dict(local_info, exclude=exclude)
+        container_dict = utils.info_to_dict(container_info, exclude=exclude)
+        local_dict = utils.info_to_dict(local_info, exclude=exclude)
         assert local_dict == container_dict
         exclude = ('last_modified', 'permissions')
-        container_parent_dict = _fileinfo.to_dict(container_parent_info, exclude=exclude)
-        local_parent_dict = _fileinfo.to_dict(local_parent_info, exclude=exclude)
+        container_parent_dict = utils.info_to_dict(container_parent_info, exclude=exclude)
+        local_parent_dict = utils.info_to_dict(local_parent_info, exclude=exclude)
         assert local_parent_dict == container_parent_dict
         assert _oct(container_parent_info.permissions) == mode_str
         assert _oct(local_parent_info.permissions) == _oct(_constants.DEFAULT_MKDIR_MODE)

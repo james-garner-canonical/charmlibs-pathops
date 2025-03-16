@@ -23,8 +23,10 @@ import string
 import tempfile
 import typing
 
+from ops import pebble
+
 if typing.TYPE_CHECKING:
-    from typing import Iterator, Mapping
+    from typing import Iterator, Mapping, Sequence
 
 
 BINARY_FILE_NAME = 'binary_file.bin'
@@ -101,3 +103,19 @@ with tempfile.TemporaryDirectory() as _dirname:
     with populate_interesting_dir(_tempdir):
         FILENAMES = tuple(path.name for path in _tempdir.iterdir())
 FILENAMES_PLUS = (*FILENAMES, MISSING_FILE_NAME)
+
+
+def info_to_dict(info: pebble.FileInfo, *, exclude: Sequence[str] | str = ()) -> dict[str, object]:
+    if isinstance(exclude, str):
+        exclude = (exclude,)
+    names = dir(info)
+    bad_excludes = tuple(name for name in exclude if name not in names)
+    if bad_excludes:
+        raise ValueError(
+            f'exclude={exclude!r} but these are not FileInfo attributes: {bad_excludes!r}'
+        )
+    return {
+        name: getattr(info, name)
+        for name in names
+        if (not name.startswith('_')) and (name != 'from_dict') and (name not in exclude)
+    }
