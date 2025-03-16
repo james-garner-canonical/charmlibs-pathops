@@ -17,12 +17,11 @@
 from __future__ import annotations
 
 import pathlib
-import shutil
 import typing
 
 from ops import pebble
 
-from . import _constants, _errors, _fileinfo
+from . import _constants, _fileinfo
 from ._container_path import ContainerPath
 from ._local_path import LocalPath
 
@@ -80,32 +79,3 @@ def _as_bytes(source: bytes | str | BinaryIO | TextIO) -> bytes:
     if isinstance(source, str):
         return source.encode()
     return _as_bytes(source.read())
-
-
-def rm(path: pathlib.Path | ContainerPath, *, recursive: bool = False) -> None:
-    if isinstance(path, ContainerPath):
-        _rm_container_path(path)
-    else:
-        _rm_pathlib_path(path)
-
-
-def _rm_container_path(path: ContainerPath, *, recursive: bool = False) -> None:
-    try:
-        path._container.remove_path(path._path, recursive=recursive)
-    except pebble.PathError as e:
-        if _errors.DirectoryNotEmpty.matches(e):
-            assert not recursive
-            raise _errors.DirectoryNotEmpty.exception(path._description()) from e
-        raise
-
-
-def _rm_pathlib_path(path: pathlib.Path, *, recursive: bool = False) -> None:
-    if recursive:
-        shutil.rmtree(path)
-        return
-    # non-recursive case
-    if path.is_symlink() or not path.is_dir():
-        path.unlink()
-    else:  # not a symlink, is a directory
-        path.rmdir()  # error if not empty
-    return

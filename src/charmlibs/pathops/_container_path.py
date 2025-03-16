@@ -214,43 +214,6 @@ class ContainerPath:
                     raise error.exception(self._description()) from e
             raise
 
-    # def rmdir(self) -> None:
-    #     info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
-    #     if info.type != pebble.FileType.DIRECTORY:
-    #         raise _errors.NotADirectory.exception(self._description())
-    #     try:
-    #         self._container.remove_path(self._path, recursive=False)
-    #     except pebble.PathError as e:
-    #         for error in (_errors.Permission, _errors.DirectoryNotEmpty):
-    #             if error.matches(e):
-    #                 raise error.exception(self._description()) from e
-    #         raise
-
-    # def unlink(self, missing_ok: bool = False) -> None:
-    #     sentinel = None
-    #     if self.is_dir():
-    #         sentinel_path = self / '.sentinel'
-    #         if not sentinel_path.exists():
-    #             sentinel_path.write_text('')
-    #             sentinel = sentinel_path
-    #     try:
-    #         self._container.remove_path(self._path, recursive=False)
-    #     except pebble.PathError as e:
-    #         if _errors.DirectoryNotEmpty.matches(e):
-    #             if sentinel is not None:
-    #                 sentinel.unlink()
-    #             raise _errors.IsADirectory.exception(self._description()) from e
-    #         if _errors.FileNotFound.matches(e):
-    #             if missing_ok:
-    #                 return
-    #             raise _errors.FileNotFound.exception(self._description()) from e
-    #         for error in (_errors.Permission,):
-    #             if error.matches(e):
-    #                 raise error.exception(self._description()) from e
-    #         raise
-    #     if sentinel is not None:  # we removed a symlink to a directory
-    #         sentinel.unlink()  # fails because the symlink is gone
-
     def iterdir(self) -> typing.Generator[Self]:
         # python < 3.13 defers NotADirectoryError to iteration time, but python 3.13 raises on call
         # for future proofing we will check on call
