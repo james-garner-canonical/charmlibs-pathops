@@ -23,7 +23,7 @@ from typing import NoReturn
 from ops import pebble
 
 
-def raise_file_exists(msg: str, from_: Exception | None = None) -> NoReturn:
+def raise_file_exists(msg: str, from_: BaseException | None = None) -> NoReturn:
     raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), msg) from from_
 
 
@@ -36,22 +36,21 @@ def raise_if_matches_file_exists(error: pebble.Error, msg: str) -> None:
         raise_file_exists(msg, from_=error)
 
 
-class FileNotFound:
-    @staticmethod
-    def matches(error: pebble.Error) -> bool:
-        return (isinstance(error, pebble.APIError) and error.code == 404) or (
-            isinstance(error, pebble.PathError) and error.kind == 'not-found'
-        )
+def raise_file_not_found(msg: str, from_: BaseException | None = None) -> NoReturn:
+    # pebble will return this error when trying to read_{text,bytes} a socket
+    # pathlib raises OSError(errno.ENXIO, os.strerror(errno.ENXIO), path) in this case
+    # displaying as "OSError: [Errno 6] No such device or address: '/path'"
+    # since FileNotFoundError is a subtype of OSError, and this case should be rare
+    # it seems sensible to just raise FileNotFoundError here, without checking
+    # if the file in question is a socket
+    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), msg) from from_
 
-    @staticmethod
-    def exception(msg: str) -> FileNotFoundError:
-        # pebble will return this error when trying to read_{text,bytes} a socket
-        # pathlib raises OSError(errno.ENXIO, os.strerror(errno.ENXIO), path) in this case
-        # displaying as "OSError: [Errno 6] No such device or address: '/path'"
-        # since FileNotFoundError is a subtype of OSError, and this case should be rare
-        # it seems sensible to just raise FileNotFoundError here, without checking
-        # if the file in question is a socket
-        return FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), msg)
+
+def raise_if_matches_file_not_found(error: pebble.Error, msg: str) -> None:
+    if (isinstance(error, pebble.APIError) and error.code == 404) or (
+        isinstance(error, pebble.PathError) and error.kind == 'not-found'
+    ):
+        raise_file_not_found(msg, from_=error)
 
 
 class IsADirectory:

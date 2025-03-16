@@ -209,7 +209,8 @@ class ContainerPath:
             with self._container.pull(self._path, encoding=encoding) as f:
                 return f.read()
         except pebble.PathError as e:
-            for error in (_errors.IsADirectory, _errors.FileNotFound, _errors.Permission):
+            _errors.raise_if_matches_file_not_found(e, msg=self._description())
+            for error in (_errors.IsADirectory, _errors.Permission):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
@@ -317,7 +318,8 @@ class ContainerPath:
         except pebble.PathError as e:
             if _errors.Lookup.matches(e):
                 raise _errors.Lookup.exception(e.message) from e
-            for error in (_errors.FileNotFound, _errors.Permission):
+            _errors.raise_if_matches_file_not_found(e, msg=self._description())
+            for error in (_errors.Permission,):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
@@ -362,7 +364,7 @@ class ContainerPath:
         if parents and not exist_ok and self.exists():
             raise _errors.raise_file_exists(self._description())
         elif exist_ok and not parents and not self.parent.exists():
-            raise _errors.FileNotFound.exception(self.parent._description())
+            _errors.raise_file_not_found(self.parent._description())
         try:
             self._container.make_dir(
                 path=self._path,
@@ -374,13 +376,15 @@ class ContainerPath:
         except pebble.PathError as e:
             if _errors.Lookup.matches(e):
                 raise _errors.Lookup.exception(e.message) from e
+            description = self._description()
             if _errors.NotADirectory.matches(e):
                 # target exists and isn't a directory, or parent isn't a directory
                 if not self.parent.is_dir():
                     raise _errors.NotADirectory.exception(self._description()) from e
                 _errors.raise_file_exists(self._description(), from_=e)
-            _errors.raise_if_matches_file_exists(e, msg=self._description())
-            for error in (_errors.FileNotFound, _errors.Permission):
+            _errors.raise_if_matches_file_exists(e, msg=description)
+            _errors.raise_if_matches_file_not_found(e, msg=description)
+            for error in (_errors.Permission,):
                 if error.matches(e):
                     raise error.exception(self._description()) from e
             raise
