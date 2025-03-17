@@ -21,6 +21,7 @@ import pathlib
 import re
 import typing
 
+import ops
 from ops import pebble
 
 from . import _constants, _errors, _fileinfo
@@ -28,7 +29,6 @@ from . import _constants, _errors, _fileinfo
 if typing.TYPE_CHECKING:
     from typing import Generator, Literal
 
-    import ops
     from typing_extensions import Self
 
     from ._types import Bytes, StrPathLike

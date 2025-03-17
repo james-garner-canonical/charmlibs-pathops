@@ -16,12 +16,12 @@
 
 from __future__ import annotations
 
+import os
 import typing
 
 from . import _constants
 
 if typing.TYPE_CHECKING:
-    import os
     from typing import Generator, Sequence
 
     from typing_extensions import Self, TypeAlias
