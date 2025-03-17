@@ -34,8 +34,8 @@ class TestGetFileInfo:
     @pytest.mark.parametrize(
         ('mock', 'error'),
         (
-            (utils.raises_connection_error, pebble.ConnectionError),
-            (utils.raises_unknown_api_error, pebble.APIError),
+            (utils.raise_connection_error, pebble.ConnectionError),
+            (utils.raise_unknown_api_error, pebble.APIError),
         ),
     )
     def test_unhandled_pebble_errors(
