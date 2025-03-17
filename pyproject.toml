@@ -29,7 +29,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {attr = "charmlibs.pathops__version__"}
+version = {file = ["src/charmlibs/pathops/_version.txt"]}
 
 [tool.coverage.run]
 dynamic_context = "test_function"
