@@ -73,15 +73,14 @@ class TestChown:
         user: str | None,
         group: str | None,
     ):
+        monkeypatch.setattr(shutil, 'chown', mock_chown)
+        monkeypatch.setattr(pwd, 'getpwnam', mock_pass)
+        monkeypatch.setattr(grp, 'getgrnam', mock_pass)
         args = [content] if content is not None else ()
         path = LocalPath(tmp_path, 'subdirectory')
         assert not path.exists()
         path_method = getattr(path, method)
-        with monkeypatch.context() as m:
-            m.setattr(shutil, 'chown', mock_chown)
-            m.setattr(pwd, 'getpwnam', mock_pass)
-            m.setattr(grp, 'getgrnam', mock_pass)
-            path_method(*args, user=user, group=group)
+        path_method(*args, user=user, group=group)
         assert path.exists()
         if method == 'read_bytes':
             assert isinstance(content, bytes)

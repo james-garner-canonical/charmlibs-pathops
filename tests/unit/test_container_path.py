@@ -330,19 +330,17 @@ class TestReadCommon:
         error: type[Exception],
         method: str,
     ):
+        monkeypatch.setattr(container, 'pull', mock)
         containerpath_method = getattr(ContainerPath, method)
-        with monkeypatch.context() as m:
-            m.setattr(container, 'pull', mock)
-            with pytest.raises(error):
-                containerpath_method(ContainerPath('/', container=container))
+        with pytest.raises(error):
+            containerpath_method(ContainerPath('/', container=container))
 
 
 class TestExists:
     def test_unhandled_os_error(self, monkeypatch: pytest.MonkeyPatch, container: ops.Container):
-        with monkeypatch.context() as m:
-            m.setattr(_fileinfo, 'from_container_path', utils.raise_unknown_os_error)
-            with pytest.raises(OSError):
-                ContainerPath('/', container=container).exists()
+        monkeypatch.setattr(_fileinfo, 'from_container_path', utils.raise_unknown_os_error)
+        with pytest.raises(OSError):
+            ContainerPath('/', container=container).exists()
 
 
 class TestWriteBytes:
@@ -360,10 +358,9 @@ class TestWriteBytes:
         mock: Callable[[Any], None],
         error: type[Exception],
     ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'push', mock)
-            with pytest.raises(error):
-                ContainerPath('/', container=container).write_bytes(b'')
+        monkeypatch.setattr(container, 'push', mock)
+        with pytest.raises(error):
+            ContainerPath('/', container=container).write_bytes(b'')
 
 
 class TestMkDir:
@@ -381,10 +378,9 @@ class TestMkDir:
         mock: Callable[[Any], None],
         error: type[Exception],
     ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'make_dir', mock)
-            with pytest.raises(error):
-                ContainerPath('/', container=container).mkdir()
+        monkeypatch.setattr(container, 'make_dir', mock)
+        with pytest.raises(error):
+            ContainerPath('/', container=container).mkdir()
 
 
 @pytest.mark.parametrize(

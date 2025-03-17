@@ -45,7 +45,6 @@ class TestGetFileInfo:
         mock: Callable[[Any], None],
         error: type[Exception],
     ):
-        with monkeypatch.context() as m:
-            m.setattr(container, 'list_files', mock)
-            with pytest.raises(error):
-                _get_fileinfo(ContainerPath('/', container=container))
+        monkeypatch.setattr(container, 'list_files', mock)
+        with pytest.raises(error):
+            _get_fileinfo(ContainerPath('/', container=container))
