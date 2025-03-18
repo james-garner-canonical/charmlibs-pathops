@@ -182,22 +182,42 @@ class ContainerPath:
     # protocol Path methods #
     #########################
 
-    def read_text(
-        self,
-        *,
-        newline: str | None = None,  # 3.13+
-        # None -> treat \n \r \r\n as newlines, convert to \n
-        # ''   -> treat \n \r \r\n as newlines, return unmodified
-        # (\n, \r, \r\n) -> only treat that option as a newline, return unmodified
-        # since this method doesn't readlines or anything, the only difference is the return value
-        # i.e. None -> convert to \n; any other value -> return unmodified
-    ) -> str:
+    def read_text(self, *, newline: str | None = None) -> str:
+        """Read a remote file as text and return the contents as a string.
+
+        Args:
+            newline: if None (default), all newlines ('\r\n', '\r', '\n') are replaced with '\n'.
+                Otherwise the file contents are returned unmodified.
+
+        Returns:
+            The contents of the the path as a string.
+
+        Raises:
+            FileNotFoundError: if the parent directory does not exist.
+            IsADirectoryError: if the target is a directory.
+            PermissionError: if the Pebble user does not have permissions for the operation.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
+
+        Compared to pathlib.Path.read_text, this method drops the encoding and errors arguments.
+        The encoding is assumed to be 'utf-8', and any errors encountered will be raised.
+        """
         text = self._pull(text=True)
         if newline is None:
             return re.sub('\r\n|\r', '\n', text)
         return text
 
     def read_bytes(self) -> bytes:
+        """Read a remote file as bytes and return the contents.
+
+        Returns:
+            The contents of the the path as byes.
+
+        Raises:
+            FileNotFoundError: if the parent directory does not exist.
+            IsADirectoryError: if the target is a directory.
+            PermissionError: if the Pebble user does not have permissions for the operation.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
+        """
         return self._pull(text=False)
 
     @typing.overload
@@ -226,13 +246,7 @@ class ContainerPath:
         for f in file_infos:
             yield self.with_segments(f.path)
 
-    def glob(
-        self,
-        pattern: StrPathLike,  # support for _StrPath added in 3.13 (was str only before)
-        # *,
-        # case_sensitive: bool = False,  # added in 3.12
-        # recurse_symlinks: bool = False,  # added in 3.13
-    ) -> Generator[Self]:
+    def glob(self, pattern: StrPathLike) -> Generator[Self]:
         return self._glob(pattern)
 
     def _glob(self, pattern: StrPathLike, skip_is_dir: bool = False) -> Generator[Self]:
@@ -333,8 +347,8 @@ class ContainerPath:
         Returns: The number of bytes written.
 
         Raises:
-            LookupError: if the user or group is unknown.
             FileNotFoundError: if the parent directory does not exist.
+            LookupError: if the user or group is unknown.
             PermissionError: if the Pebble user does not have permissions for the operation.
             PebbleConnectionError: if the remote Pebble client cannot be reached.
 
