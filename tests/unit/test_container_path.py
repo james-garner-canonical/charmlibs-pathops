@@ -310,7 +310,16 @@ def test_exists_reraises_unhandled_os_error(
         ContainerPath('/', container=container).exists()
 
 
-@pytest.mark.parametrize('method', ('read_bytes', 'read_text'))
+@pytest.mark.parametrize(
+    ('path_method', 'container_method', 'args'),
+    (
+        ('read_bytes', 'pull', ()),
+        ('read_text', 'pull', ()),
+        ('write_bytes', 'push', (b'',)),
+        ('write_text', 'push', ('',)),
+        ('mkdir', 'make_dir', ()),
+    ),
+)
 @pytest.mark.parametrize(
     ('mock', 'error'),
     (
@@ -323,48 +332,14 @@ def test_methods_reraise_unhandled_pebble_errors(
     container: ops.Container,
     mock: Callable[[Any], None],
     error: type[Exception],
-    method: str,
+    path_method: str,
+    container_method: str,
+    args: tuple[object],
 ):
-    monkeypatch.setattr(container, 'pull', mock)
-    containerpath_method = getattr(ContainerPath, method)
+    monkeypatch.setattr(container, container_method, mock)
+    containerpath_method = getattr(ContainerPath, path_method)
     with pytest.raises(error):
-        containerpath_method(ContainerPath('/', container=container))
-
-
-@pytest.mark.parametrize(
-    ('mock', 'error'),
-    (
-        (utils.raise_connection_error, pebble.ConnectionError),
-        (utils.raise_unknown_path_error, pebble.PathError),
-    ),
-)
-def test_write_bytes_reraises_unhandled_pebble_errors(
-    monkeypatch: pytest.MonkeyPatch,
-    container: ops.Container,
-    mock: Callable[[Any], None],
-    error: type[Exception],
-):
-    monkeypatch.setattr(container, 'push', mock)
-    with pytest.raises(error):
-        ContainerPath('/', container=container).write_bytes(b'')
-
-
-@pytest.mark.parametrize(
-    ('mock', 'error'),
-    (
-        (utils.raise_connection_error, pebble.ConnectionError),
-        (utils.raise_unknown_path_error, pebble.PathError),
-    ),
-)
-def test_mkdir_reraises_unhandled_pebble_errors(
-    monkeypatch: pytest.MonkeyPatch,
-    container: ops.Container,
-    mock: Callable[[Any], None],
-    error: type[Exception],
-):
-    monkeypatch.setattr(container, 'make_dir', mock)
-    with pytest.raises(error):
-        ContainerPath('/', container=container).mkdir()
+        containerpath_method(ContainerPath('/', container=container), *args)
 
 
 @pytest.mark.parametrize(
