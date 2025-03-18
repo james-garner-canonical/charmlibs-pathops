@@ -304,12 +304,31 @@ class ContainerPath:
     def write_bytes(
         self,
         data: Bytes,
-        # extended with chmod + chown args
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
+        """Write the provided data to the corresponding path in the remote container.
+
+        Args:
+            data: The bytes to write. If data is a bytearray or memoryview, it will be converted
+                to bytes in memory first.
+            mode: The permissions to set on the file.
+            user: The name of the user to set for the file.
+            group: The name of the group to set for the file.
+
+        Returns: The number of bytes written.
+
+        Raises:
+            LookupError: if the user or group is unknown.
+            FileNotFoundError: if the parent directory does not exist.
+            PermissionError: if the Pebble user does not have permissions for the operation.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
+
+        Compared to pathlib.Path.write_bytes, this method adds mode, user and group arguments.
+        These are forwarded to Pebble, which sets these on file creation.
+        """
         if isinstance(data, (bytearray, memoryview)):
             # TODO: update ops to correctly test for bytearray and memoryview in push
             data = bytes(data)
@@ -333,25 +352,33 @@ class ContainerPath:
     def write_text(
         self,
         data: str,
-        # encoding: str | None = None,
-        # errors: typing.Literal['strict', 'ignore'] | None = None,
-        # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.10+
-        # extended with chmod + chown args
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
-        # if encoding is None:
-        #     encoding = 'utf-8'
-        # if errors is None:
-        #     errors = 'strict'
-        # if newline in ('\r', '\r\n'):
-        #     data = re.sub('\n', newline, data)
-        # # else newline in (None, '', '\n') and we do nothing, assuming os.linesep == '\n'
-        encoding = 'utf-8'
-        errors = 'strict'
-        encoded_data = bytes(data, encoding=encoding, errors=errors)
+        """Write the provided string to the corresponding path in the remote container.
+
+        Args:
+            data: The string to write. Will be encoded as utf-8, raising any errors.
+                Newlines are not modified on writing.
+            mode: The permissions to set on the file.
+            user: The name of the user to set for the file.
+            group: The name of the group to set for the file.
+
+        Returns: The number of bytes written.
+
+        Raises:
+            LookupError: if the user or group is unknown.
+            FileNotFoundError: if the parent directory does not exist.
+            PermissionError: if the Pebble user does not have permissions for the operation.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
+
+        Compared to pathlib.Path.write_text, this method drops the encoding and errors arguments
+        to keep the API simple. The Python 3.10+ newline argument is not implemented. The arguments
+        mode, user, and group are forwarded to Pebble, which sets these on file creation.
+        """
+        encoded_data = data.encode()
         return self.write_bytes(encoded_data, mode=mode, user=user, group=group)
 
     def mkdir(
@@ -359,7 +386,6 @@ class ContainerPath:
         mode: int = _constants.DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
-        # extended with chown args
         *,
         user: str | None = None,
         group: str | None = None,
