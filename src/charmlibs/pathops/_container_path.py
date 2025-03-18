@@ -279,17 +279,23 @@ class ContainerPath:
         return self._exists_and_matches(pebble.FileType.SOCKET)
 
     def _exists_and_matches(self, filetype: pebble.FileType | None) -> bool:
-        try:
-            info = _fileinfo.from_container_path(self)
-        except FileNotFoundError:
+        info = self._try_get_fileinfo()
+        if info is None:
             return False
-        except OSError as e:
-            if e.errno == errno.ELOOP:
-                return False  # too many levels of symbolic links
-            raise
         if filetype is None:  # we only care if the file exists
             return True
         return info.type is filetype
+
+    def _try_get_fileinfo(self) -> pebble.FileInfo | None:
+        try:
+            return _fileinfo.from_container_path(self)
+        except FileNotFoundError:
+            pass
+        except OSError as e:
+            if e.errno != errno.ELOOP:
+                raise
+            # else: too many levels of symbolic links
+        return None
 
     ##################################################
     # protocol Path methods with extended signatures #
@@ -358,16 +364,21 @@ class ContainerPath:
         user: str | None = None,
         group: str | None = None,
     ) -> None:
-        # only make an extra pebble call if parents xor exist_ok
-        # if both are true or both are false we can just let pebble's make_parents handle it
         if parents and not exist_ok and self.exists():
             raise _errors.raise_file_exists(self._description())
-        elif exist_ok and not parents and not self.parent.exists():
+        elif not parents and exist_ok and not self.parent.exists():
             _errors.raise_file_not_found(self.parent._description())
+        if parents:
+            # create parents with default permissions, following pathlib
+            self._container.make_dir(
+                path=self._path.parent,
+                make_parents=True,
+                permissions=_constants.DEFAULT_MKDIR_MODE,
+            )
         try:
             self._container.make_dir(
                 path=self._path,
-                make_parents=parents or exist_ok,  # see validation above
+                make_parents=exist_ok,  # parents created separately above
                 permissions=mode,
                 user=user if isinstance(user, str) else None,
                 group=group if isinstance(group, str) else None,
