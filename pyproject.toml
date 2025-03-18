@@ -41,6 +41,7 @@ exclude_also = [
     "if typing.TYPE_CHECKING:",
     "@typing.overload",
     "class .*\\(typing.Protocol\\):",
+    "\"\"\"",
 ]
 
 # Linting tools configuration
