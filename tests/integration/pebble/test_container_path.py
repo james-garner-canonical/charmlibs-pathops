@@ -26,32 +26,30 @@ import utils
 from charmlibs.pathops import ContainerPath
 
 
+@pytest.mark.parametrize(
+    ('file', 'error'),
+    (
+        (utils.EMPTY_DIR_NAME, IsADirectoryError),
+        (utils.BROKEN_SYMLINK_NAME, FileNotFoundError),
+        (utils.MISSING_FILE_NAME, FileNotFoundError),
+        (utils.SOCKET_NAME, OSError),  # ContainerPath will raise FileNotFoundError
+    ),
+)
 @pytest.mark.parametrize('method', ('read_bytes', 'read_text'))
-class TestReadCommon:
-    @pytest.mark.parametrize(
-        ('file', 'error'),
-        (
-            (utils.EMPTY_DIR_NAME, IsADirectoryError),
-            (utils.BROKEN_SYMLINK_NAME, FileNotFoundError),
-            (utils.MISSING_FILE_NAME, FileNotFoundError),
-            (utils.SOCKET_NAME, OSError),  # ContainerPath will raise FileNotFoundError
-        ),
-    )
-    def test_filetype_errors(
-        self,
-        container: ops.Container,
-        session_dir: pathlib.Path,
-        method: str,
-        file: str,
-        error: type[Exception],
-    ):
-        pathlib_method = getattr(pathlib.Path, method)
-        with pytest.raises(error):
-            pathlib_method(session_dir / file)
-        containerpath_method = getattr(ContainerPath, method)
-        container_path = ContainerPath(session_dir, file, container=container)
-        with pytest.raises(error):
-            containerpath_method(container_path)
+def test_read_method_filetype_errors(
+    container: ops.Container,
+    session_dir: pathlib.Path,
+    method: str,
+    file: str,
+    error: type[Exception],
+):
+    pathlib_method = getattr(pathlib.Path, method)
+    with pytest.raises(error):
+        pathlib_method(session_dir / file)
+    containerpath_method = getattr(ContainerPath, method)
+    container_path = ContainerPath(session_dir, file, container=container)
+    with pytest.raises(error):
+        containerpath_method(container_path)
 
 
 class TestReadText:
@@ -76,7 +74,7 @@ class TestReadText:
         assert container_result == pathlib_result
 
     @pytest.mark.parametrize('filename', [next(iter(utils.UTF16_BINARY_FILES))])
-    def test_when_file_is_not_utf8_then_raises_unicode_error(
+    def test_unicode_errors(
         self,
         container: ops.Container,
         session_dir: pathlib.Path,
@@ -90,7 +88,7 @@ class TestReadText:
             container_path.read_text()
 
     @pytest.mark.parametrize(('filename', 'contents'), tuple(utils.TEXT_FILES.items()))
-    def test_when_newline_provided_then_reads_raw_content(
+    def test_newline_arg(
         self,
         container: ops.Container,
         tmp_path: pathlib.Path,
@@ -105,18 +103,12 @@ class TestReadText:
         assert container_path.read_text(newline='') == contents
 
 
-class TestReadBytes:
-    @pytest.mark.parametrize('filename', [*utils.TEXT_FILES, *utils.BINARY_FILES])
-    def test_ok(
-        self,
-        container: ops.Container,
-        session_dir: pathlib.Path,
-        filename: str,
-    ):
-        path = session_dir / filename
-        pathlib_result = path.read_bytes()
-        container_result = ContainerPath(path, container=container).read_bytes()
-        assert container_result == pathlib_result
+@pytest.mark.parametrize('filename', [*utils.TEXT_FILES, *utils.BINARY_FILES])
+def test_read_bytes(container: ops.Container, session_dir: pathlib.Path, filename: str):
+    path = session_dir / filename
+    pathlib_result = path.read_bytes()
+    container_result = ContainerPath(path, container=container).read_bytes()
+    assert container_result == pathlib_result
 
 
 class TestIterDir:
@@ -174,7 +166,7 @@ class TestGlob:
         assert container_result == pathlib_result
 
     @pytest.mark.parametrize('pattern', [f'{utils.NESTED_DIR_NAME}/**/*.txt', '**/*.txt'])
-    def test_when_recursive_glob_then_raises_not_implemented_error(
+    def test_recursive_glob_not_implemented(
         self, container: ops.Container, session_dir: pathlib.Path, pattern: str
     ):
         list(session_dir.glob(pattern))  # pattern is fine
@@ -183,9 +175,7 @@ class TestGlob:
             list(container_path.glob(pattern))
 
     @pytest.mark.parametrize('pattern', ['**.txt', '***/*.txt'])
-    def test_when_bad_pattern_then_raises_not_implemented_error(
-        self, container: ops.Container, session_dir: pathlib.Path, pattern: str
-    ):
+    def test_bad_battern(self, container: ops.Container, session_dir: pathlib.Path, pattern: str):
         try:
             list(session_dir.glob(pattern))
         except ValueError:
@@ -197,74 +187,68 @@ class TestGlob:
             list(container_path.glob(pattern))
 
 
+@pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
 @pytest.mark.parametrize('method', ['owner', 'group'])
-class TestOwnerAndGroup:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(
-        self, container: ops.Container, session_dir: pathlib.Path, method: str, filename: str
-    ):
-        path = session_dir / filename
-        pathlib_method = getattr(path, method)
-        container_path = ContainerPath(path, container=container)
-        container_method = getattr(container_path, method)
-        try:
-            pathlib_result = pathlib_method()
-        except Exception as e:
-            with pytest.raises(type(e)):
-                container_result = container_method()
-        else:
+def test_owner_and_group(
+    container: ops.Container, session_dir: pathlib.Path, method: str, filename: str
+):
+    path = session_dir / filename
+    pathlib_method = getattr(path, method)
+    container_path = ContainerPath(path, container=container)
+    container_method = getattr(container_path, method)
+    try:
+        pathlib_result = pathlib_method()
+    except Exception as e:
+        with pytest.raises(type(e)):
             container_result = container_method()
-            assert container_result == pathlib_result
-
-
-class TestExists:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
-        pathlib_path = session_dir / filename
-        container_path = ContainerPath(session_dir, filename, container=container)
-        pathlib_result = pathlib_path.exists()
-        container_result = container_path.exists()
+    else:
+        container_result = container_method()
         assert container_result == pathlib_result
 
 
-class TestIsDir:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
-        pathlib_path = session_dir / filename
-        container_path = ContainerPath(session_dir, filename, container=container)
-        pathlib_result = pathlib_path.is_dir()
-        container_result = container_path.is_dir()
-        assert container_result == pathlib_result
+@pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+def test_exists(container: ops.Container, session_dir: pathlib.Path, filename: str):
+    pathlib_path = session_dir / filename
+    container_path = ContainerPath(session_dir, filename, container=container)
+    pathlib_result = pathlib_path.exists()
+    container_result = container_path.exists()
+    assert container_result == pathlib_result
 
 
-class TestIsFile:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
-        pathlib_path = session_dir / filename
-        container_path = ContainerPath(session_dir, filename, container=container)
-        pathlib_result = pathlib_path.is_file()
-        container_result = container_path.is_file()
-        assert container_result == pathlib_result
+@pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+def test_is_dir(container: ops.Container, session_dir: pathlib.Path, filename: str):
+    pathlib_path = session_dir / filename
+    container_path = ContainerPath(session_dir, filename, container=container)
+    pathlib_result = pathlib_path.is_dir()
+    container_result = container_path.is_dir()
+    assert container_result == pathlib_result
 
 
-class TestIsFifo:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
-        pathlib_path = session_dir / filename
-        container_path = ContainerPath(session_dir, filename, container=container)
-        pathlib_result = pathlib_path.is_fifo()
-        container_result = container_path.is_fifo()
-        assert container_result == pathlib_result
+@pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+def test_is_file(container: ops.Container, session_dir: pathlib.Path, filename: str):
+    pathlib_path = session_dir / filename
+    container_path = ContainerPath(session_dir, filename, container=container)
+    pathlib_result = pathlib_path.is_file()
+    container_result = container_path.is_file()
+    assert container_result == pathlib_result
 
 
-class TestIsSocket:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
-        pathlib_path = session_dir / filename
-        container_path = ContainerPath(session_dir, filename, container=container)
-        pathlib_result = pathlib_path.is_socket()
-        container_result = container_path.is_socket()
-        assert container_result == pathlib_result
+@pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+def test_is_fifo(container: ops.Container, session_dir: pathlib.Path, filename: str):
+    pathlib_path = session_dir / filename
+    container_path = ContainerPath(session_dir, filename, container=container)
+    pathlib_result = pathlib_path.is_fifo()
+    container_result = container_path.is_fifo()
+    assert container_result == pathlib_result
+
+
+@pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+def test_is_socket(container: ops.Container, session_dir: pathlib.Path, filename: str):
+    pathlib_path = session_dir / filename
+    container_path = ContainerPath(session_dir, filename, container=container)
+    pathlib_result = pathlib_path.is_socket()
+    container_result = container_path.is_socket()
+    assert container_result == pathlib_result
 
 
 class TestWriteBytes:
@@ -278,9 +262,7 @@ class TestWriteBytes:
         ContainerPath(path, container=container).write_bytes(contents)
         assert path.read_bytes() == contents
 
-    def test_when_parent_dir_doesnt_exist_then_raises_file_not_found_error(
-        self, container: ops.Container, tmp_path: pathlib.Path
-    ):
+    def test_parent_dir_doesnt_exist(self, container: ops.Container, tmp_path: pathlib.Path):
         parent = tmp_path / 'dirname'
         assert not parent.exists()
         path = parent / 'filename'
@@ -291,16 +273,15 @@ class TestWriteBytes:
             ContainerPath(path, container=container).write_bytes(b'')
 
 
-class TestWriteText:
-    @pytest.mark.parametrize(('filename', 'contents'), tuple(utils.TEXT_FILES.items()))
-    def test_ok(
-        self, container: ops.Container, tmp_path: pathlib.Path, filename: str, contents: str
-    ):
-        path = tmp_path / filename
-        container_path = ContainerPath(path, container=container)
-        container_path.write_text(contents)
-        with path.open(newline='') as f:
-            assert f.read() == contents
+@pytest.mark.parametrize(('filename', 'contents'), tuple(utils.TEXT_FILES.items()))
+def test_write_text(
+    container: ops.Container, tmp_path: pathlib.Path, filename: str, contents: str
+):
+    path = tmp_path / filename
+    container_path = ContainerPath(path, container=container)
+    container_path.write_text(contents)
+    with path.open(newline='') as f:
+        assert f.read() == contents
 
 
 class TestMkDir:
@@ -314,7 +295,7 @@ class TestMkDir:
 
     @pytest.mark.parametrize('parents', (False, True))
     @pytest.mark.parametrize('filename', utils.FILENAMES)
-    def test_when_file_already_exists_then_raises_file_exists_error(
+    def test_file_exists_error(
         self, container: ops.Container, session_dir: pathlib.Path, filename: str, parents: bool
     ):
         path = session_dir / filename
@@ -326,7 +307,7 @@ class TestMkDir:
             container_path.mkdir(parents=parents)
 
     @pytest.mark.parametrize('exist_ok', (False, True))
-    def test_when_parent_doesnt_exist_then_raises_file_not_found_error(
+    def test_file_not_found_error(
         self, container: ops.Container, tmp_path: pathlib.Path, exist_ok: bool
     ):
         parent = tmp_path / 'dirname'
@@ -340,7 +321,7 @@ class TestMkDir:
             container_path.mkdir(exist_ok=exist_ok)
 
     @pytest.mark.parametrize('exist_ok', (False, True))
-    def test_when_parent_isnt_a_directory_then_raises_not_a_directory_error(
+    def test_not_a_directory_error(
         self, container: ops.Container, tmp_path: pathlib.Path, exist_ok: bool
     ):
         parent = tmp_path / 'dirname'
