@@ -136,50 +136,48 @@ class TestChown:
 
 
 @pytest.mark.parametrize(('method', 'data'), [('write_bytes', b'bytes'), ('write_text', 'text')])
-class TestWriteChmod:
-    @pytest.mark.parametrize('mode_str', [None, *ALL_MODES])
-    def test_ok(
-        self,
-        container: ops.Container,
-        tmp_path: pathlib.Path,
-        method: str,
-        data: str | bytes,
-        mode_str: str | None,
-    ):
-        mode = int(mode_str, base=8) if mode_str is not None else None
-        path = tmp_path / 'path'
-        # container
-        container_path = ContainerPath(path, container=container)
-        container_path_method = getattr(container_path, method)
-        assert not path.exists()
-        if mode is not None:
-            container_path_method(data, mode=mode)
-        else:
-            container_path_method(data)
-        assert path.exists()
-        container_info = _get_fileinfo(container_path)
-        # cleanup
-        _unlink(path)
-        # local
-        local_path = LocalPath(path)
-        local_path_method = getattr(local_path, method)
-        assert not path.exists()
-        if mode is not None:
-            local_path_method(data, mode=mode)
-        else:
-            local_path_method(data)
-        assert path.exists()
-        local_info = _get_fileinfo(local_path)
-        # cleanup
-        _unlink(path)
-        exclude = 'last_modified'
-        container_dict = utils.info_to_dict(container_info, exclude=exclude)
-        local_dict = utils.info_to_dict(local_info, exclude=exclude)
-        assert local_dict == container_dict
+@pytest.mark.parametrize('mode_str', [None, *ALL_MODES])
+def test_write_methods_chmod(
+    container: ops.Container,
+    tmp_path: pathlib.Path,
+    method: str,
+    data: str | bytes,
+    mode_str: str | None,
+):
+    mode = int(mode_str, base=8) if mode_str is not None else None
+    path = tmp_path / 'path'
+    # container
+    container_path = ContainerPath(path, container=container)
+    container_path_method = getattr(container_path, method)
+    assert not path.exists()
+    if mode is not None:
+        container_path_method(data, mode=mode)
+    else:
+        container_path_method(data)
+    assert path.exists()
+    container_info = _get_fileinfo(container_path)
+    # cleanup
+    _unlink(path)
+    # local
+    local_path = LocalPath(path)
+    local_path_method = getattr(local_path, method)
+    assert not path.exists()
+    if mode is not None:
+        local_path_method(data, mode=mode)
+    else:
+        local_path_method(data)
+    assert path.exists()
+    local_info = _get_fileinfo(local_path)
+    # cleanup
+    _unlink(path)
+    exclude = 'last_modified'
+    container_dict = utils.info_to_dict(container_info, exclude=exclude)
+    local_dict = utils.info_to_dict(local_info, exclude=exclude)
+    assert local_dict == container_dict
 
 
+@pytest.mark.parametrize('mode_str', [*ALL_MODES, None])
 class TestMkdirChmod:
-    @pytest.mark.parametrize('mode_str', [*ALL_MODES, None])
     def test_ok(self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str | None):
         mode = int(mode_str, base=8) if mode_str is not None else None
         path = tmp_path / 'directory'
@@ -215,9 +213,12 @@ class TestMkdirChmod:
         assert _oct(local_info.permissions) == _oct(container_info.permissions)
 
     @pytest.mark.parametrize('subdir_path', ['1/2', '1/2/3'])
-    @pytest.mark.parametrize('mode_str', [*ALL_MODES, None])
-    def test_when_parent_missing_and_parents_flag_then_ok(
-        self, container: ops.Container, tmp_path: pathlib.Path, mode_str: str | None, subdir_path: str
+    def test_parents(
+        self,
+        container: ops.Container,
+        tmp_path: pathlib.Path,
+        mode_str: str | None,
+        subdir_path: str,
     ):
         mode = int(mode_str, base=8) if mode_str is not None else None
         path = tmp_path / subdir_path
