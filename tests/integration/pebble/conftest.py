@@ -34,23 +34,6 @@ def session_dir(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib.Pa
         yield tmp_path
 
 
-@pytest.fixture(scope='function')
-def tmp_dir(tmp_path: pathlib.Path) -> Iterator[pathlib.Path]:
-    with utils.populate_interesting_dir(tmp_path):
-        yield tmp_path
-
-
-@pytest.fixture(scope='class')
-def class_tmp_dirs(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib.Path]:
-    tmp_path = tmp_path_factory.mktemp('class_tmp_dirs')
-    one = tmp_path / '1'
-    two = tmp_path / '2'
-    one.mkdir()
-    two.mkdir()
-    with utils.populate_interesting_dir(one), utils.populate_interesting_dir(two):
-        yield tmp_path
-
-
 @pytest.fixture(scope='session')
 def container() -> ops.Container:
     return _make_container('test1')
