@@ -183,7 +183,7 @@ class ContainerPath:
     #########################
 
     def read_text(self, *, newline: str | None = None) -> str:
-        """Read a remote file as text and return the contents as a string.
+        r"""Read a remote file as text and return the contents as a string.
 
         Args:
             newline: if None (default), all newlines ('\r\n', '\r', '\n') are replaced with '\n'.
