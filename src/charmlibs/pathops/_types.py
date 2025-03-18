@@ -101,6 +101,7 @@ class PathProtocol(typing.Protocol):
     def read_text(
         self,
         # # we drop encoding and errors for a simpler API
+        # # TODO: move this information to the docstring
         # encoding: str | None = None,
         # errors: typing.Literal['strict', 'ignore'] | None = None,
         # # newline is not part of the protocol since we support Python 3.8+
@@ -116,6 +117,7 @@ class PathProtocol(typing.Protocol):
         self,
         pattern: str,  # support for _StrPath added in 3.13
         # *,
+        # # TODO: move this information to the docstring
         # case_sensitive: bool = False,  # added in 3.12
         # recurse_symlinks: bool = False,  # added in 3.13
     ) -> Generator[Self]: ...
@@ -142,7 +144,6 @@ class PathProtocol(typing.Protocol):
     def write_bytes(
         self,
         data: bytes,
-        # extended with chmod + chown args:
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
@@ -153,11 +154,11 @@ class PathProtocol(typing.Protocol):
         self,
         data: str,
         # # we drop encoding and errors for a simpler API
+        # # TODO: move this information to the docstring
         # encoding: str | None = None,
         # errors: typing.Literal['strict', 'ignore'] | None = None,
         # # newline is not part of the protocol since we support Python 3.8+
         # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.10+
-        # extended with chmod + chown args:
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
@@ -170,7 +171,6 @@ class PathProtocol(typing.Protocol):
         mode: int = _constants.DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
-        # extended with chown args:
         *,
         user: str | None = None,
         group: str | None = None,
@@ -181,6 +181,8 @@ class PathProtocol(typing.Protocol):
 # pathlib methods not included in the protocol #
 ################################################
 
+# TODO: clean up these comments structurally and informationally
+
 #############################
 # protocol PurePath methods #
 #############################
@@ -189,7 +191,7 @@ class PathProtocol(typing.Protocol):
 # ContainerPath constructor will differ from pathlib.Path constructor
 # not part of the protocol
 # def __new__(cls, *args: _StrPath, **kwargs: object) -> Self: ...
-# NOTE: __new__ signature is version dependent
+#  __new__ signature is version dependent
 # def __init__(self, *args): ...
 
 # def __reduce__(self): ...
