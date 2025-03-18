@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import pathlib
 import socket
 import string
@@ -26,8 +25,11 @@ import typing
 from ops import pebble
 
 if typing.TYPE_CHECKING:
-    from typing import Iterator, Mapping, Sequence
+    from typing import Callable, Mapping, Sequence
 
+########################
+# session_dir contents #
+########################
 
 BINARY_FILE_NAME = 'binary_file.bin'
 BROKEN_SYMLINK_NAME = 'symlink_broken'
@@ -64,8 +66,7 @@ BINARY_FILES: Mapping[str, bytes | bytearray] = {
 }
 
 
-@contextlib.contextmanager
-def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:
+def _populate_interesting_dir(main_dir: pathlib.Path) -> Callable[[], None]:
     nested_dir = main_dir / NESTED_DIR_NAME
     nested_dir.mkdir()
     doubly_nested_dir = nested_dir / NESTED_DIR_NAME
@@ -90,29 +91,44 @@ def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:
         sock.bind(str(directory / SOCKET_NAME))
         sockets.append(sock)
         (directory / SOCKET_SYMLINK_NAME).symlink_to(directory / SOCKET_NAME)
-    # TODO: make block device?
-    try:
-        assert not (main_dir / MISSING_FILE_NAME).exists()
-        assert not (nested_dir / MISSING_FILE_NAME).exists()
-        assert not (doubly_nested_dir / MISSING_FILE_NAME).exists()
-        yield
-    finally:
+        # TODO: make block device?
+    assert not (main_dir / MISSING_FILE_NAME).exists()
+    assert not (nested_dir / MISSING_FILE_NAME).exists()
+    assert not (doubly_nested_dir / MISSING_FILE_NAME).exists()
+
+    def cleanup() -> None:
         for s in sockets:
             s.shutdown(socket.SHUT_RDWR)
             s.close()
 
-
-def get_interesting_dir_filenames() -> tuple[str, ...]:
-    with tempfile.TemporaryDirectory() as _dirname:
-        _tempdir = pathlib.Path(_dirname)
-        with populate_interesting_dir(_tempdir):
-            return tuple(path.name for path in _tempdir.iterdir())
+    return cleanup
 
 
-# these names are used to parametrize tests, so they need to be available at test collection time
-# this means we need to generate this list *before* fixtures are created
-FILENAMES = get_interesting_dir_filenames()
+def _make_session_dir() -> tuple[pathlib.Path, Callable[[], None]]:
+    context_manager = tempfile.TemporaryDirectory()
+    dirname = context_manager.__enter__()
+    tempdir = pathlib.Path(dirname)
+    cleanup = _populate_interesting_dir(tempdir)
+
+    def teardown() -> None:
+        cleanup()
+        context_manager.__exit__(None, None, None)
+
+    return tempdir, teardown
+
+
+# The filenames are used to parametrize tests, so they need to be ready at test collection time.
+# This means we need to generate the list *before* pytest does fixture creation.
+# To avoid redundantly creating a second directory just to scrape the names from,
+# we create the temporary directory here at import time, along with its teardown function.
+# The session_dir fixture defined in conftest.py yields the path and calls the teardown function.
+_SESSION_DIR_PATH, _TEARDOWN_SESSION_DIR = _make_session_dir()
+FILENAMES = tuple(path.name for path in _SESSION_DIR_PATH.iterdir())
 FILENAMES_PLUS = (*FILENAMES, MISSING_FILE_NAME)
+
+#########
+# utils #
+#########
 
 
 def info_to_dict(info: pebble.FileInfo, *, exclude: Sequence[str] | str = ()) -> dict[str, object]:

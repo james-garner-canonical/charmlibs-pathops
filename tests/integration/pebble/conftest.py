@@ -28,10 +28,11 @@ if typing.TYPE_CHECKING:
 
 
 @pytest.fixture(scope='session')
-def session_dir(tmp_path_factory: pytest.TempPathFactory) -> Iterator[pathlib.Path]:
-    tmp_path = tmp_path_factory.mktemp('session_dir')
-    with utils.populate_interesting_dir(tmp_path):
-        yield tmp_path
+def session_dir() -> Iterator[pathlib.Path]:
+    try:
+        yield utils._SESSION_DIR_PATH
+    finally:
+        utils._TEARDOWN_SESSION_DIR()
 
 
 @pytest.fixture(scope='session')
