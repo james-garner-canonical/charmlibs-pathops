@@ -94,13 +94,11 @@ class TestChown:
         local_path = LocalPath(path)
         container_path_method = getattr(container_path, method)
         local_path_method = getattr(local_path, method)
-        with pytest.raises(LookupError) as ctx:
+        with pytest.raises(LookupError):
             container_path_method(*args, user=unknown_user)
-        print(ctx.value)
         assert not path.exists()
-        with pytest.raises(LookupError) as ctx:
+        with pytest.raises(LookupError):
             local_path_method(*args, user=unknown_user)
-        print(ctx.value)
         assert not path.exists()
 
     def test_unknown_group_raises_before_other_errors(
@@ -122,13 +120,11 @@ class TestChown:
         local_path = LocalPath(path)
         container_path_method = getattr(container_path, method)
         local_path_method = getattr(local_path, method)
-        with pytest.raises(LookupError) as ctx:
+        with pytest.raises(LookupError):
             container_path_method(*args, group=unknown_group)
-        print(ctx.value)
         assert not path.exists()
-        with pytest.raises(LookupError) as ctx:
+        with pytest.raises(LookupError):
             local_path_method(*args, group=unknown_group)
-        print(ctx.value)
         assert not path.exists()
 
 
