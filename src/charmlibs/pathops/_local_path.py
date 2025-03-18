@@ -32,12 +32,29 @@ class LocalPath(pathlib.PosixPath):
     def write_bytes(
         self,
         data: Buffer,
-        # extended with chmod + chown args
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
+        """Write the provided data to the corresponding local filesystem path.
+
+        Args:
+            data: The bytes to write, typically a bytes object, or a bytearray or memoryview.
+            mode: The permissions to set on the file using pathlib.PosixPath.chmod.
+            user: The name of the user to set for the file using shutil.chown.
+            group: The name of the group to set for the file using shutil.chown.
+
+        Returns: The number of bytes written.
+
+        Raises:
+            FileNotFoundError: if the parent directory does not exist.
+            LookupError: if the user or group is unknown.
+            PermissionError: if the user does not have permissions for the operation.
+
+        Compared to pathlib.Path.write_bytes, this method adds mode, user and group arguments.
+        These are used to set the permissions and ownership of the file.
+        """
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_bytes(data)
         _chown_if_needed(self, user=user, group=group)
@@ -49,12 +66,34 @@ class LocalPath(pathlib.PosixPath):
         data: str,
         encoding: str | None = None,
         errors: str | None = None,
-        # extended with chmod + chown args
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
+        r"""Write the provided string to the corresponding local filesystem path.
+
+        Args:
+            data: The string to write. Newlines are not modified on writing.
+            encoding: The encoding to use when writing the data, defaults to 'utf-8'.
+            errors: 'strict' to raise any encoding errors, 'ignore' to ignore them.
+                Defaults to 'strict'.
+            mode: The permissions to set on the file. Set after user and group.
+            user: The name of the user to set for the file. Validated before writing.
+            group: The name of the group to set for the file. Validated before writing.
+
+        Returns: The number of bytes written.
+
+        Raises:
+            LookupError: if the user or group is unknown.
+            FileNotFoundError: if the parent directory does not exist.
+            PermissionError: if the user does not have permissions for the operation.
+
+        Note also that ContainerPath and PathProtocol do not support the `encoding` and `errors`
+        arguments. For ContainerPath compatible code, do not use these arguments. They are provided
+        to allow LocalPath to be used as a drop-in replacement for pathlib.Path if needed.
+        The Python 3.10+ newline argument is not implemented on LocalPath.
+        """
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
         _chown_if_needed(self, user=user, group=group)
@@ -66,7 +105,6 @@ class LocalPath(pathlib.PosixPath):
         mode: int = _constants.DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
-        # extended with chown args
         *,
         user: str | None = None,
         group: str | None = None,
