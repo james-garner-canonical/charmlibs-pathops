@@ -31,65 +31,62 @@ if typing.TYPE_CHECKING:
     from typing import Literal
 
 
-class TestEnsureContents:
-    @pytest.mark.parametrize('exists', [True, False])
-    @pytest.mark.parametrize('mode', [_constants.DEFAULT_WRITE_MODE, 0o600])
-    @pytest.mark.parametrize('input_type', ['bytes', 'str', 'bytes_io', 'str_io'])
-    @pytest.mark.parametrize('path_type', [str, pathlib.Path, LocalPath, ContainerPath])
-    @pytest.mark.parametrize('contents', [b'hel\rl\r\no\n'])
-    def test_ok(
-        self,
-        tmp_path: pathlib.Path,
-        container: ops.Container,
-        path_type: type[str] | type[pathlib.Path] | type[ContainerPath],
-        contents: bytes,
-        input_type: Literal['bytes', 'str', 'bytes_io', 'str_io'],
-        mode: int,
-        exists: bool,
-    ):
-        parent = tmp_path / 'parent'
-        path = parent / 'path'
-        if exists:
-            parent.mkdir()
-            path.write_bytes(contents)
-            path.chmod(_constants.DEFAULT_WRITE_MODE)
-        # target
-        if issubclass(path_type, ContainerPath):
-            target = ContainerPath(path, container=container)
-        else:
-            target = path_type(path)
-        # source
-        if input_type == 'bytes':
-            source = contents
-        elif input_type == 'str':
-            source = contents.decode()
-        elif input_type == 'bytes_io':
-            source = io.BytesIO(contents)
-        elif input_type == 'str_io':
-            source = io.StringIO(contents.decode())
-        else:
-            raise ValueError(f'Unknown input type: {input_type!r}')
-        # ensure_contents
-        write_required = ensure_contents(path=target, source=source, mode=mode)
-        # asserts
-        if exists and mode == _constants.DEFAULT_WRITE_MODE:
-            assert not write_required
-        else:
-            assert write_required
-        assert path.read_bytes() == contents
-        info = _get_fileinfo(path)
-        assert info.permissions == mode
+@pytest.mark.parametrize('exists', [True, False])
+@pytest.mark.parametrize('mode', [_constants.DEFAULT_WRITE_MODE, 0o600])
+@pytest.mark.parametrize('input_type', ['bytes', 'str', 'bytes_io', 'str_io'])
+@pytest.mark.parametrize('path_type', [str, pathlib.Path, LocalPath, ContainerPath])
+@pytest.mark.parametrize('contents', [b'hel\rl\r\no\n'])
+def test_ensure_contents(
+    tmp_path: pathlib.Path,
+    container: ops.Container,
+    path_type: type[str] | type[pathlib.Path] | type[ContainerPath],
+    contents: bytes,
+    input_type: Literal['bytes', 'str', 'bytes_io', 'str_io'],
+    mode: int,
+    exists: bool,
+):
+    parent = tmp_path / 'parent'
+    path = parent / 'path'
+    if exists:
+        parent.mkdir()
+        path.write_bytes(contents)
+        path.chmod(_constants.DEFAULT_WRITE_MODE)
+    # target
+    if issubclass(path_type, ContainerPath):
+        target = ContainerPath(path, container=container)
+    else:
+        target = path_type(path)
+    # source
+    if input_type == 'bytes':
+        source = contents
+    elif input_type == 'str':
+        source = contents.decode()
+    elif input_type == 'bytes_io':
+        source = io.BytesIO(contents)
+    elif input_type == 'str_io':
+        source = io.StringIO(contents.decode())
+    else:
+        raise ValueError(f'Unknown input type: {input_type!r}')
+    # ensure_contents
+    write_required = ensure_contents(path=target, source=source, mode=mode)
+    # asserts
+    if exists and mode == _constants.DEFAULT_WRITE_MODE:
+        assert not write_required
+    else:
+        assert write_required
+    assert path.read_bytes() == contents
+    info = _get_fileinfo(path)
+    assert info.permissions == mode
 
 
-class TestGetFileInfo:
-    @pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
-    def test_ok(self, container: ops.Container, session_dir: pathlib.Path, filename: str):
-        path = session_dir / filename
-        try:
-            pebble_result = _get_fileinfo(ContainerPath(path, container=container))
-        except OSError as e:
-            with pytest.raises(type(e)):
-                _get_fileinfo(path)
-        else:
-            synthetic_result = _get_fileinfo(path)
-            assert utils.info_to_dict(synthetic_result) == utils.info_to_dict(pebble_result)
+@pytest.mark.parametrize('filename', utils.FILENAMES_PLUS)
+def test_get_fileinfo(container: ops.Container, session_dir: pathlib.Path, filename: str):
+    path = session_dir / filename
+    try:
+        pebble_result = _get_fileinfo(ContainerPath(path, container=container))
+    except OSError as e:
+        with pytest.raises(type(e)):
+            _get_fileinfo(path)
+    else:
+        synthetic_result = _get_fileinfo(path)
+        assert utils.info_to_dict(synthetic_result) == utils.info_to_dict(pebble_result)
