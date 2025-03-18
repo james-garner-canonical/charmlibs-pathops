@@ -333,9 +333,10 @@ def test_exists_reraises_unhandled_os_error(
     (
         (utils.raise_connection_error, pebble.ConnectionError),
         (utils.raise_unknown_path_error, pebble.PathError),
+        (utils.raise_permission_denied, PermissionError),
     ),
 )
-def test_methods_reraise_unhandled_pebble_errors(
+def test_methods_handle_or_reraise_pebble_errors(
     monkeypatch: pytest.MonkeyPatch,
     container: ops.Container,
     mock: Callable[[Any], None],

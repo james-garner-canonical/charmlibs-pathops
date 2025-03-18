@@ -27,6 +27,10 @@ def raise_connection_error(*args: object, **kwargs: object):
     raise pebble.ConnectionError()
 
 
+def raise_permission_denied(*args: object, **kwargs: object):
+    raise pebble.PathError(kind='permission-denied', message='')
+
+
 def raise_unknown_path_error(*args: object, **kwargs: object):
     raise pebble.PathError(kind='unknown-kind', message='unknown-message')
 
