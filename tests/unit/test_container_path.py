@@ -57,22 +57,20 @@ class TestInit:
 #####################
 
 
-class TestHash:
-    def test_ok(self, container: ops.Container):
-        paths = ('/foo', '/foo/bar', '/foo/bar/byte')
-        di = {ContainerPath(path, container=container): path for path in paths}
-        for path in paths:
-            assert di[ContainerPath(path, container=container)] == path
+def test_hash(container: ops.Container):
+    paths = ('/foo', '/foo/bar', '/foo/bar/byte')
+    di = {ContainerPath(path, container=container): path for path in paths}
+    for path in paths:
+        assert di[ContainerPath(path, container=container)] == path
 
 
-class TestStr:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.Path('/foo/bar')
-        container_path = ContainerPath(path, container=container)
-        assert pathlib.Path(str(container_path)) == path
-        assert pathlib.Path(container_path.as_posix()) == path
-        assert str(container_path) == str(path)
-        assert container_path.as_posix() == path.as_posix()
+def test_str(container: ops.Container):
+    path = pathlib.Path('/foo/bar')
+    container_path = ContainerPath(path, container=container)
+    assert pathlib.Path(str(container_path)) == path
+    assert pathlib.Path(container_path.as_posix()) == path
+    assert str(container_path) == str(path)
+    assert container_path.as_posix() == path.as_posix()
 
 
 class TestComparison:
@@ -167,13 +165,12 @@ class TestTrueDiv:
             container_path / container_path  # type: ignore
 
 
-class TestIsAbsolute:
-    def test_ok(self, container: ops.Container):
-        assert ContainerPath('/', container=container).is_absolute()
-        # no further tests needed unless the case below fails
-        # which will mean we've added relative path support
-        with pytest.raises(RelativePathError):
-            ContainerPath('.', container=container)
+def test_is_absolute(container: ops.Container):
+    assert ContainerPath('/', container=container).is_absolute()
+    # no further tests needed unless the case below fails
+    # which will mean we've added relative path support
+    with pytest.raises(RelativePathError):
+        ContainerPath('.', container=container)
 
 
 class TestMatch:
@@ -196,14 +193,13 @@ class TestMatch:
             container_path.match(container_path)  # type: ignore
 
 
-class TestWithName:
-    def test_ok(self, container: ops.Container):
-        name = 'baz'
-        path = pathlib.PurePath('/foo/bar.txt')
-        container_path = ContainerPath(path, container=container)
-        pathlib_result = path.with_name(name)
-        container_result = container_path.with_name(name)
-        assert str(container_result) == str(pathlib_result)
+def test_with_name(container: ops.Container):
+    name = 'baz'
+    path = pathlib.PurePath('/foo/bar.txt')
+    container_path = ContainerPath(path, container=container)
+    pathlib_result = path.with_name(name)
+    container_result = container_path.with_name(name)
+    assert str(container_result) == str(pathlib_result)
 
 
 class TestWithSuffix:
@@ -245,67 +241,60 @@ class TestJoinPath:
             container_path.joinpath(container_path)  # type: ignore
 
 
-class TestParents:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.PurePath('/foo/bar/baz')
-        pathlib_result = tuple(str(p) for p in path.parents)
-        container_path = ContainerPath(path, container=container)
-        container_result = tuple(str(p) for p in container_path.parents)
-        assert container_result == pathlib_result
+def test_parents(container: ops.Container):
+    path = pathlib.PurePath('/foo/bar/baz')
+    pathlib_result = tuple(str(p) for p in path.parents)
+    container_path = ContainerPath(path, container=container)
+    container_result = tuple(str(p) for p in container_path.parents)
+    assert container_result == pathlib_result
 
 
-class TestParent:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.PurePath('/foo/bar/baz')
-        pathlib_result = str(path.parent)
-        container_path = ContainerPath(path, container=container)
-        container_result = str(container_path.parent)
-        assert container_result == pathlib_result
+def test_parent(container: ops.Container):
+    path = pathlib.PurePath('/foo/bar/baz')
+    pathlib_result = str(path.parent)
+    container_path = ContainerPath(path, container=container)
+    container_result = str(container_path.parent)
+    assert container_result == pathlib_result
 
 
-class TestParts:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.PurePath('/foo/bar/baz.txt')
-        pathlib_result = path.parts
-        container_path = ContainerPath(path, container=container)
-        container_result = container_path.parts
-        assert container_result == pathlib_result
+def test_parts(container: ops.Container):
+    path = pathlib.PurePath('/foo/bar/baz.txt')
+    pathlib_result = path.parts
+    container_path = ContainerPath(path, container=container)
+    container_result = container_path.parts
+    assert container_result == pathlib_result
 
 
-class TestName:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.PurePath('/foo.txt')
-        pathlib_result = path.name
-        container_path = ContainerPath(path, container=container)
-        container_result = container_path.name
-        assert container_result == pathlib_result
+def test_name(container: ops.Container):
+    path = pathlib.PurePath('/foo.txt')
+    pathlib_result = path.name
+    container_path = ContainerPath(path, container=container)
+    container_result = container_path.name
+    assert container_result == pathlib_result
 
 
-class TestSuffix:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.PurePath('/foo.txt.zip')
-        pathlib_result = path.suffix
-        container_path = ContainerPath(path, container=container)
-        container_result = container_path.suffix
-        assert container_result == pathlib_result
+def test_suffix(container: ops.Container):
+    path = pathlib.PurePath('/foo.txt.zip')
+    pathlib_result = path.suffix
+    container_path = ContainerPath(path, container=container)
+    container_result = container_path.suffix
+    assert container_result == pathlib_result
 
 
-class TestSuffixes:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.PurePath('/foo.txt.zip')
-        pathlib_result = path.suffixes
-        container_path = ContainerPath(path, container=container)
-        container_result = container_path.suffixes
-        assert container_result == pathlib_result
+def test_suffixes(container: ops.Container):
+    path = pathlib.PurePath('/foo.txt.zip')
+    pathlib_result = path.suffixes
+    container_path = ContainerPath(path, container=container)
+    container_result = container_path.suffixes
+    assert container_result == pathlib_result
 
 
-class TestStem:
-    def test_ok(self, container: ops.Container):
-        path = pathlib.PurePath('/foo.txt.zip')
-        pathlib_result = path.stem
-        container_path = ContainerPath(path, container=container)
-        container_result = container_path.stem
-        assert container_result == pathlib_result
+def test_stem(container: ops.Container):
+    path = pathlib.PurePath('/foo.txt.zip')
+    pathlib_result = path.stem
+    container_path = ContainerPath(path, container=container)
+    container_result = container_path.stem
+    assert container_result == pathlib_result
 
 
 #########################
@@ -313,74 +302,69 @@ class TestStem:
 #########################
 
 
+def test_exists_reraises_unhandled_os_error(
+    monkeypatch: pytest.MonkeyPatch, container: ops.Container
+):
+    monkeypatch.setattr(_fileinfo, 'from_container_path', utils.raise_unknown_os_error)
+    with pytest.raises(OSError):
+        ContainerPath('/', container=container).exists()
+
+
 @pytest.mark.parametrize('method', ('read_bytes', 'read_text'))
-class TestReadCommon:
-    @pytest.mark.parametrize(
-        ('mock', 'error'),
-        (
-            (utils.raise_connection_error, pebble.ConnectionError),
-            (utils.raise_unknown_path_error, pebble.PathError),
-        ),
-    )
-    def test_unhandled_pebble_errors(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        container: ops.Container,
-        mock: Callable[[Any], None],
-        error: type[Exception],
-        method: str,
-    ):
-        monkeypatch.setattr(container, 'pull', mock)
-        containerpath_method = getattr(ContainerPath, method)
-        with pytest.raises(error):
-            containerpath_method(ContainerPath('/', container=container))
+@pytest.mark.parametrize(
+    ('mock', 'error'),
+    (
+        (utils.raise_connection_error, pebble.ConnectionError),
+        (utils.raise_unknown_path_error, pebble.PathError),
+    ),
+)
+def test_methods_reraise_unhandled_pebble_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    container: ops.Container,
+    mock: Callable[[Any], None],
+    error: type[Exception],
+    method: str,
+):
+    monkeypatch.setattr(container, 'pull', mock)
+    containerpath_method = getattr(ContainerPath, method)
+    with pytest.raises(error):
+        containerpath_method(ContainerPath('/', container=container))
 
 
-class TestExists:
-    def test_unhandled_os_error(self, monkeypatch: pytest.MonkeyPatch, container: ops.Container):
-        monkeypatch.setattr(_fileinfo, 'from_container_path', utils.raise_unknown_os_error)
-        with pytest.raises(OSError):
-            ContainerPath('/', container=container).exists()
+@pytest.mark.parametrize(
+    ('mock', 'error'),
+    (
+        (utils.raise_connection_error, pebble.ConnectionError),
+        (utils.raise_unknown_path_error, pebble.PathError),
+    ),
+)
+def test_write_bytes_reraises_unhandled_pebble_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    container: ops.Container,
+    mock: Callable[[Any], None],
+    error: type[Exception],
+):
+    monkeypatch.setattr(container, 'push', mock)
+    with pytest.raises(error):
+        ContainerPath('/', container=container).write_bytes(b'')
 
 
-class TestWriteBytes:
-    @pytest.mark.parametrize(
-        ('mock', 'error'),
-        (
-            (utils.raise_connection_error, pebble.ConnectionError),
-            (utils.raise_unknown_path_error, pebble.PathError),
-        ),
-    )
-    def test_unhandled_pebble_errors(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        container: ops.Container,
-        mock: Callable[[Any], None],
-        error: type[Exception],
-    ):
-        monkeypatch.setattr(container, 'push', mock)
-        with pytest.raises(error):
-            ContainerPath('/', container=container).write_bytes(b'')
-
-
-class TestMkDir:
-    @pytest.mark.parametrize(
-        ('mock', 'error'),
-        (
-            (utils.raise_connection_error, pebble.ConnectionError),
-            (utils.raise_unknown_path_error, pebble.PathError),
-        ),
-    )
-    def test_unhandled_pebble_errors(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        container: ops.Container,
-        mock: Callable[[Any], None],
-        error: type[Exception],
-    ):
-        monkeypatch.setattr(container, 'make_dir', mock)
-        with pytest.raises(error):
-            ContainerPath('/', container=container).mkdir()
+@pytest.mark.parametrize(
+    ('mock', 'error'),
+    (
+        (utils.raise_connection_error, pebble.ConnectionError),
+        (utils.raise_unknown_path_error, pebble.PathError),
+    ),
+)
+def test_mkdir_reraises_unhandled_pebble_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    container: ops.Container,
+    mock: Callable[[Any], None],
+    error: type[Exception],
+):
+    monkeypatch.setattr(container, 'make_dir', mock)
+    with pytest.raises(error):
+        ContainerPath('/', container=container).mkdir()
 
 
 @pytest.mark.parametrize(
