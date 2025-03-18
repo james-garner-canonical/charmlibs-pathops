@@ -37,6 +37,8 @@ EMPTY_FILE_NAME = 'empty_file.bin'
 FILE_SYMLINK_NAME = 'symlink.bin'
 MISSING_FILE_NAME = 'does_not_exist'
 NESTED_DIR_NAME = 'nested_dir'
+NESTED_DIR_PATTERN = 'nested*dir'
+NESTED_MATCH_NOT_A_DIR = 'nested-empty-file-not-a-dir'
 OUROBOROS_SYMLINK_NAME = 'symlink_to_itself'
 RECURSIVE_SYMLINK_NAME = 'symlink_rec'
 SOCKET_NAME = 'socket.socket'
@@ -73,6 +75,8 @@ def populate_interesting_dir(main_dir: pathlib.Path) -> Iterator[None]:
         (directory / EMPTY_DIR_NAME).mkdir()
         empty_file = directory / EMPTY_FILE_NAME
         empty_file.touch()
+        decoy_file = directory / NESTED_MATCH_NOT_A_DIR
+        decoy_file.touch()
         (directory / FILE_SYMLINK_NAME).symlink_to(empty_file)
         (directory / EMPTY_DIR_SYMLINK_NAME).symlink_to(directory / EMPTY_DIR_NAME)
         (directory / RECURSIVE_SYMLINK_NAME).symlink_to(directory)

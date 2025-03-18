@@ -156,6 +156,9 @@ class TestGlob:
             'foo*',
             'ba*.txt',
             f'{utils.NESTED_DIR_NAME}/*.txt',
+            f'{utils.NESTED_DIR_NAME}*/*.txt',
+            f'*{utils.NESTED_DIR_NAME}/*.txt',
+            f'{utils.NESTED_DIR_PATTERN}/*.txt',
             '*/*.txt',
         ),
     )

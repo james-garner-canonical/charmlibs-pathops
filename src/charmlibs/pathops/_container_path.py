@@ -260,8 +260,11 @@ class ContainerPath:
             for container_path in self.iterdir():
                 if container_path.is_dir():
                     yield from container_path._glob(next_pattern, skip_is_dir=True)
+        elif '*' in first:
+            for container_path in self._glob(first):
+                if container_path.is_dir():
+                    yield from container_path._glob(next_pattern, skip_is_dir=True)
         else:
-            assert '*' not in first
             yield from (self / first)._glob(next_pattern)
 
     def owner(self) -> str:
