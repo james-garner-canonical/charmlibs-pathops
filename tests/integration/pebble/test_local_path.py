@@ -28,9 +28,6 @@ import utils
 from charmlibs.pathops import ContainerPath, LocalPath, _constants
 from charmlibs.pathops._functions import _get_fileinfo
 
-os.umask(0o000)  # Pebble seems to operate with umask=0; this makes it easy to compare permissions
-
-
 GOOD_PARENT_DIRECTORY_MODES = (
     '0o777',
     '0o766',
