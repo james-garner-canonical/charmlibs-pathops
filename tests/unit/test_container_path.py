@@ -37,7 +37,7 @@ class TestInit:
         ContainerPath(pathlib.Path('/'), container=container)
         ContainerPath(LocalPath('/'), container=container)
 
-    def test_given_relative_path_then_raises(self, container: ops.Container):
+    def test_paths_must_be_absolute(self, container: ops.Container):
         assert issubclass(RelativePathError, ValueError)
         with pytest.raises(RelativePathError):
             ContainerPath('.', container=container)
@@ -46,7 +46,7 @@ class TestInit:
         with pytest.raises(RelativePathError):
             ContainerPath(LocalPath('.'), container=container)
 
-    def test_given_container_path_then_raises(self, container: ops.Container):
+    def test_paths_cant_be_container_path(self, container: ops.Container):
         container_path = ContainerPath('/', container=container)
         with pytest.raises(TypeError):
             ContainerPath(container_path, container=container)  # pyright: ignore[reportArgumentType]
@@ -106,13 +106,11 @@ class TestComparison:
         pathlib_result = operation(pathlib.PurePosixPath(left), pathlib.PurePosixPath(right))
         assert container_result == pathlib_result
 
-    def test_when_other_isnt_container_path_then_equality_returns_false(
-        self, container: ops.Container
-    ):
+    def test_not_equals_non_container_path(self, container: ops.Container):
         assert ContainerPath('/', container=container) != LocalPath('/')
         assert ContainerPath('/', container=container) != '/'
 
-    def test_when_containers_are_different_then_equality_returns_false(
+    def test_not_equals_different_container(
         self, container: ops.Container, another_container: ops.Container
     ):
         container_path = ContainerPath('/', container=container)
@@ -120,7 +118,7 @@ class TestComparison:
         assert container_path != another_container_path
 
     @pytest.mark.parametrize('operation', (operator.lt, operator.le, operator.gt, operator.ge))
-    def test_when_containers_are_different_then_inequality_raises_type_error(
+    def test_inequality_containers_must_be_same(
         self,
         operation: Callable[[object, object], bool],
         container: ops.Container,
@@ -133,11 +131,13 @@ class TestComparison:
             )
 
     @pytest.mark.parametrize('operation', (operator.lt, operator.le, operator.gt, operator.ge))
-    def test_when_other_isnt_container_path_then_inequality_raises_type_error(
+    def test_inequality_other_cant_be_path_or_str(
         self, operation: Callable[[object, object], bool], container: ops.Container
     ):
         with pytest.raises(TypeError):
             operation(ContainerPath('/', container=container), LocalPath('/'))
+        with pytest.raises(TypeError):
+            operation(ContainerPath('/', container=container), pathlib.Path('/'))
         with pytest.raises(TypeError):
             operation(ContainerPath('/', container=container), '/')
 
@@ -159,9 +159,7 @@ class TestTrueDiv:
         assert str(container_path / pathlib.Path(right)) == str(pathlib_path / pathlib.Path(right))
         assert str(container_path / LocalPath(right)) == str(pathlib_path / LocalPath(right))
 
-    def test_when_container_path_is_right_hand_side_then_truediv_raises_type_error(
-        self, container: ops.Container
-    ):
+    def test_rhs_cant_be_container_path(self, container: ops.Container):
         container_path = ContainerPath('/foo', container=container)
         with pytest.raises(TypeError):
             '/foo' / container_path  # type: ignore
@@ -195,7 +193,7 @@ class TestMatch:
         else:
             assert container_path.match(pattern) == pathlib_result
 
-    def test_when_pattern_is_container_path_then_raises_type_error(self, container: ops.Container):
+    def test_pattern_cant_be_container_path(self, container: ops.Container):
         container_path = ContainerPath('/', container=container)
         with pytest.raises(TypeError):
             container_path.match(container_path)  # type: ignore
@@ -219,10 +217,8 @@ class TestWithSuffix:
         container_result = container_path.with_suffix(suffix)
         assert str(container_result) == str(pathlib_result)
 
-    def test_when_suffix_doesnt_start_with_dot_then_raises_value_error(
-        self, container: ops.Container
-    ):
-        suffix = 'bin'
+    def test_bad_suffix(self, container: ops.Container):
+        suffix = 'bin'  # no leading '.'
         path = pathlib.PurePath('/foo/bar.txt')
         container_path = ContainerPath(path, container=container)
         with pytest.raises(ValueError):
@@ -240,7 +236,7 @@ class TestJoinPath:
         container_result = container_path.joinpath(*other)
         assert str(container_result) == str(pathlib_result)
 
-    def test_when_other_is_container_path_then_raises_type_error(self, container: ops.Container):
+    def test_other_cant_be_container_path(self, container: ops.Container):
         path = pathlib.PurePath('/foo')
         container_path = ContainerPath(path, container=container)
         with pytest.raises(TypeError):
