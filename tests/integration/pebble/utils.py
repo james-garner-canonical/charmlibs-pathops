@@ -109,6 +109,8 @@ def get_interesting_dir_filenames() -> tuple[str, ...]:
             return tuple(path.name for path in _tempdir.iterdir())
 
 
+# these names are used to parametrize tests, so they need to be available at test collection time
+# this means we need to generate this list *before* fixtures are created
 FILENAMES = get_interesting_dir_filenames()
 FILENAMES_PLUS = (*FILENAMES, MISSING_FILE_NAME)
 
