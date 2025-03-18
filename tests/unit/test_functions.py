@@ -30,21 +30,19 @@ if typing.TYPE_CHECKING:
     from typing import Any, Callable
 
 
-class TestGetFileInfo:
-    @pytest.mark.parametrize(
-        ('mock', 'error'),
-        (
-            (utils.raise_connection_error, pebble.ConnectionError),
-            (utils.raise_unknown_api_error, pebble.APIError),
-        ),
-    )
-    def test_unhandled_pebble_errors(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        container: ops.Container,
-        mock: Callable[[Any], None],
-        error: type[Exception],
-    ):
-        monkeypatch.setattr(container, 'list_files', mock)
-        with pytest.raises(error):
-            _get_fileinfo(ContainerPath('/', container=container))
+@pytest.mark.parametrize(
+    ('mock', 'error'),
+    (
+        (utils.raise_connection_error, pebble.ConnectionError),
+        (utils.raise_unknown_api_error, pebble.APIError),
+    ),
+)
+def test_get_fileinfo_reraises_unhandled_pebble_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    container: ops.Container,
+    mock: Callable[[Any], None],
+    error: type[Exception],
+):
+    monkeypatch.setattr(container, 'list_files', mock)
+    with pytest.raises(error):
+        _get_fileinfo(ContainerPath('/', container=container))

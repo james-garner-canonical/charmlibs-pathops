@@ -53,46 +53,44 @@ def mock_chown():
     ('method', 'content'),
     [('write_bytes', b'hell\r\no\r'), ('write_text', 'hell\r\no\r'), ('mkdir', None)],
 )
-class TestChown:
-    @pytest.mark.parametrize(
-        ('user', 'group'),
-        (
-            ('user-name', 'group-name'),
-            ('user-name', None),
-            (None, 'group-name'),
-            (None, None),
-        ),
-    )
-    def test_calls_chown(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: pathlib.Path,
-        mock_chown: MockChown,
-        method: str,
-        content: bytes | str | None,
-        user: str | None,
-        group: str | None,
-    ):
-        monkeypatch.setattr(shutil, 'chown', mock_chown)
-        monkeypatch.setattr(pwd, 'getpwnam', mock_pass)
-        monkeypatch.setattr(grp, 'getgrnam', mock_pass)
-        args = [content] if content is not None else ()
-        path = LocalPath(tmp_path, 'subdirectory')
-        assert not path.exists()
-        path_method = getattr(path, method)
-        path_method(*args, user=user, group=group)
-        assert path.exists()
-        if method == 'read_bytes':
-            assert isinstance(content, bytes)
-            assert path.read_bytes() == content
-        elif method == 'read_text':
-            assert isinstance(content, str)
-            expected_result = re.sub('\r\n|\r', '\n', content)
-            assert path.read_text == expected_result
-        elif method == 'mkdir':
-            assert path.is_dir()
-        if (user, group) == (None, None):
-            assert not mock_chown.calls
-        else:
-            (call,) = mock_chown.calls
-            assert call == (path, user, group)
+@pytest.mark.parametrize(
+    ('user', 'group'),
+    (
+        ('user-name', 'group-name'),
+        ('user-name', None),
+        (None, 'group-name'),
+        (None, None),
+    ),
+)
+def test_file_creation_methods_call_chown(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pathlib.Path,
+    mock_chown: MockChown,
+    method: str,
+    content: bytes | str | None,
+    user: str | None,
+    group: str | None,
+):
+    monkeypatch.setattr(shutil, 'chown', mock_chown)
+    monkeypatch.setattr(pwd, 'getpwnam', mock_pass)
+    monkeypatch.setattr(grp, 'getgrnam', mock_pass)
+    args = [content] if content is not None else ()
+    path = LocalPath(tmp_path, 'subdirectory')
+    assert not path.exists()
+    path_method = getattr(path, method)
+    path_method(*args, user=user, group=group)
+    assert path.exists()
+    if method == 'read_bytes':
+        assert isinstance(content, bytes)
+        assert path.read_bytes() == content
+    elif method == 'read_text':
+        assert isinstance(content, str)
+        expected_result = re.sub('\r\n|\r', '\n', content)
+        assert path.read_text == expected_result
+    elif method == 'mkdir':
+        assert path.is_dir()
+    if (user, group) == (None, None):
+        assert not mock_chown.calls
+    else:
+        (call,) = mock_chown.calls
+        assert call == (path, user, group)
