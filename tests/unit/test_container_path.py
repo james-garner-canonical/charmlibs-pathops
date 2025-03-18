@@ -73,6 +73,14 @@ def test_str(container: ops.Container):
     assert container_path.as_posix() == path.as_posix()
 
 
+def test_repr(container: ops.Container):
+    path = pathlib.Path('/foo/bar')
+    container_path = ContainerPath(path, container=container)
+    result = repr(container_path)
+    assert result.startswith('ContainerPath(')
+    assert result.endswith(')')
+
+
 class TestComparison:
     @pytest.mark.parametrize(
         ('left', 'right'),
