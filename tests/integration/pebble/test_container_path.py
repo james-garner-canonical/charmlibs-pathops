@@ -165,8 +165,28 @@ class TestGlob:
         container_result = sorted(str(p) for p in container_path.glob(pattern))
         assert container_result == pathlib_result
 
+    @pytest.mark.parametrize('pattern', ['*', '*.txt'])
+    def test_non_directory_target(
+        self, container: ops.Container, session_dir: pathlib.Path, pattern: str
+    ):
+        path = session_dir / utils.TEXT_FILE_NAME
+        pathlib_result = list(path.glob(pattern))
+        container_path = ContainerPath(path, container=container)
+        container_result = list(container_path.glob(pattern))
+        assert container_result == pathlib_result
+
+    @pytest.mark.parametrize('pattern', ['/'])
+    def test_not_implemented(
+        self, container: ops.Container, session_dir: pathlib.Path, pattern: str
+    ):
+        with pytest.raises(NotImplementedError):
+            list(session_dir.glob(pattern))
+        container_path = ContainerPath(session_dir, container=container)
+        with pytest.raises(NotImplementedError):
+            list(container_path.glob(pattern))
+
     @pytest.mark.parametrize('pattern', [f'{utils.NESTED_DIR_NAME}/**/*.txt', '**/*.txt'])
-    def test_recursive_glob_not_implemented(
+    def test_rglob_not_implemented_in_container_path(
         self, container: ops.Container, session_dir: pathlib.Path, pattern: str
     ):
         list(session_dir.glob(pattern))  # pattern is fine
@@ -175,13 +195,35 @@ class TestGlob:
             list(container_path.glob(pattern))
 
     @pytest.mark.parametrize('pattern', ['**.txt', '***/*.txt'])
-    def test_bad_battern(self, container: ops.Container, session_dir: pathlib.Path, pattern: str):
+    def test_bad_asterix_pattern(
+        self, container: ops.Container, session_dir: pathlib.Path, pattern: str
+    ):
         try:
             list(session_dir.glob(pattern))
         except ValueError:
             assert sys.version_info < (3, 13)
         else:
             assert sys.version_info >= (3, 13)
+        container_path = ContainerPath(session_dir, container=container)
+        with pytest.raises(ValueError):
+            list(container_path.glob(pattern))
+
+    def test_bad_dot_pattern(self, container: ops.Container, session_dir: pathlib.Path):
+        pattern = '.'
+        try:
+            list(session_dir.glob(pattern))
+        except IndexError:
+            assert sys.version_info < (3, 13)
+        except ValueError:
+            assert sys.version_info >= (3, 13)
+        container_path = ContainerPath(session_dir, container=container)
+        with pytest.raises(ValueError):
+            list(container_path.glob(pattern))
+
+    def test_bad_empty_pattern(self, container: ops.Container, session_dir: pathlib.Path):
+        pattern = ''
+        with pytest.raises(ValueError):
+            list(session_dir.glob(pattern))
         container_path = ContainerPath(session_dir, container=container)
         with pytest.raises(ValueError):
             list(container_path.glob(pattern))

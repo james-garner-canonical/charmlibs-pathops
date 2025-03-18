@@ -233,20 +233,26 @@ class ContainerPath:
         # case_sensitive: bool = False,  # added in 3.12
         # recurse_symlinks: bool = False,  # added in 3.13
     ) -> Generator[Self]:
-        if not isinstance(pattern, str):
-            pattern = str(pattern)
-        *pattern_parents, pattern_itself = pathlib.PurePath(pattern).parts
+        pattern_path = pathlib.PurePosixPath(pattern)
+        if pattern_path.is_absolute():
+            raise NotImplementedError('Non-relative paths are unsupported.')
+        elif pattern_path == pathlib.PurePosixPath('.'):
+            raise ValueError(f'Unacceptable pettern: {pattern!r}')
+        *pattern_parents, pattern_itself = pattern_path.parts
         if '**' in pattern_parents:
             raise NotImplementedError('Recursive glob is not supported.')
-        if '**' in pattern:
+        if '**' in str(pattern):
             raise ValueError("Invalid pattern: '**' can only be an entire path component")
+        if not self.is_dir():
+            yield from ()
+            return
         if not pattern_parents:
             file_infos = self._container.list_files(self._path, pattern=pattern_itself)
             for f in file_infos:
                 yield self.with_segments(f.path)
             return
         first, *rest = pattern_parents
-        next_pattern = pathlib.PurePath(*rest, pattern_itself)
+        next_pattern = pathlib.PurePosixPath(*rest, pattern_itself)
         if first == '*':
             for container_path in self.iterdir():
                 if container_path.is_dir():
