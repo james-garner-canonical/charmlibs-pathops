@@ -39,6 +39,10 @@ class LocalPath(pathlib.PosixPath):
     ) -> int:
         """Write the provided data to the corresponding local filesystem path.
 
+        ..note::
+            Compared to pathlib.Path.write_bytes, this method adds mode, user and group args.
+            These are used to set the permissions and ownership of the file.
+
         Args:
             data: The bytes to write, typically a bytes object, or a bytearray or memoryview.
             mode: The permissions to set on the file using pathlib.PosixPath.chmod.
@@ -51,9 +55,6 @@ class LocalPath(pathlib.PosixPath):
             FileNotFoundError: if the parent directory does not exist.
             LookupError: if the user or group is unknown.
             PermissionError: if the user does not have permissions for the operation.
-
-        Compared to pathlib.Path.write_bytes, this method adds mode, user and group arguments.
-        These are used to set the permissions and ownership of the file.
         """
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_bytes(data)

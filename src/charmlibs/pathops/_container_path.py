@@ -184,6 +184,10 @@ class ContainerPath:
     def read_text(self, *, newline: str | None = None) -> str:
         r"""Read a remote file as text and return the contents as a string.
 
+        ..note::
+            Compared to pathlib.Path.read_text, this method drops the encoding and errors args.
+            The encoding is assumed to be 'utf-8', and any errors encountered will be raised.
+
         Args:
             newline: if None (default), all newlines ('\r\n', '\r', '\n') are replaced with '\n'.
                 Otherwise the file contents are returned unmodified.
@@ -196,9 +200,6 @@ class ContainerPath:
             IsADirectoryError: if the target is a directory.
             PermissionError: if the Pebble user does not have permissions for the operation.
             PebbleConnectionError: if the remote Pebble client cannot be reached.
-
-        Compared to pathlib.Path.read_text, this method drops the encoding and errors arguments.
-        The encoding is assumed to be 'utf-8', and any errors encountered will be raised.
         """
         text = self._pull(text=True)
         if newline is None:
@@ -337,6 +338,10 @@ class ContainerPath:
     ) -> int:
         """Write the provided data to the corresponding path in the remote container.
 
+        ..note::
+            Compared to pathlib.Path.write_bytes, this method adds mode, user and group args.
+            These are forwarded to Pebble, which sets these on file creation.
+
         Args:
             data: The bytes to write. If data is a bytearray or memoryview, it will be converted
                 to bytes in memory first.
@@ -351,9 +356,6 @@ class ContainerPath:
             LookupError: if the user or group is unknown.
             PermissionError: if the Pebble user does not have permissions for the operation.
             PebbleConnectionError: if the remote Pebble client cannot be reached.
-
-        Compared to pathlib.Path.write_bytes, this method adds mode, user and group arguments.
-        These are forwarded to Pebble, which sets these on file creation.
         """
         if isinstance(data, (bytearray, memoryview)):
             # TODO: update ops to correctly test for bytearray and memoryview in push
@@ -385,6 +387,11 @@ class ContainerPath:
     ) -> int:
         """Write the provided string to the corresponding path in the remote container.
 
+        ..note::
+            Compared to pathlib.Path.write_text, this method drops the encoding and errors args
+            to keep the API simple. The Python 3.10+ newline argument is not implemented. The args
+            mode, user, and group are forwarded to Pebble, which sets these on file creation.
+
         Args:
             data: The string to write. Will be encoded as utf-8, raising any errors.
                 Newlines are not modified on writing.
@@ -399,10 +406,6 @@ class ContainerPath:
             FileNotFoundError: if the parent directory does not exist.
             PermissionError: if the Pebble user does not have permissions for the operation.
             PebbleConnectionError: if the remote Pebble client cannot be reached.
-
-        Compared to pathlib.Path.write_text, this method drops the encoding and errors arguments
-        to keep the API simple. The Python 3.10+ newline argument is not implemented. The arguments
-        mode, user, and group are forwarded to Pebble, which sets these on file creation.
         """
         encoded_data = data.encode()
         return self.write_bytes(encoded_data, mode=mode, user=user, group=group)
