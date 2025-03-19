@@ -236,8 +236,9 @@ class ContainerPath:
             raise
 
     def iterdir(self) -> typing.Generator[Self]:
-        # python < 3.13 defers NotADirectoryError to iteration time, but python 3.13 raises on call
-        # for future proofing we will check on call
+        # With Python 3.13+, pathlib will raise NotADirectoryError when iterdir is called.
+        # With Python < 3.13, the NotADirectoryErrro is only raised when the generator is consumed.
+        # For future proofing, we will check if the path is a directory when iterdir is called.
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         if info.type != pebble.FileType.DIRECTORY:
             _errors.raise_not_a_directory(self._description())
