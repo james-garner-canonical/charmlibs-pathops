@@ -250,8 +250,16 @@ extensions = [
     "sphinxcontrib.cairosvgconverter",
     "sphinx_last_updated_by_git",
     "sphinx.ext.autodoc",
+    'sphinx.ext.intersphinx',
     "sphinx.ext.napoleon",
 ]
+
+intersphinx_mapping = {
+    'ops': ('https://ops.readthedocs.io/en/latest', None),
+    'python': ('https://docs.python.org/3', None),
+    'juju': ('https://canonical-juju.readthedocs-hosted.com/en/latest', None),
+    'charmcraft': ('https://canonical-charmcraft.readthedocs-hosted.com/en/latest', None),
+}
 
 # Excludes files or directories from processing
 
