@@ -146,7 +146,8 @@ class ContainerPath:
                 this object's path, are dropped entirely.
 
         Returns:
-            A new :class:`ContainerPath` with the same ops.Container object and its path updated with \*other.
+            A new :class:`ContainerPath` with the same ops.Container object and its path updated
+            with \*other.
 
         """
         return self.with_segments(self._path, *other)
