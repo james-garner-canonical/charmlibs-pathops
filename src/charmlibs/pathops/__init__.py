@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""":mod:`Pathlib`-like interface for local and :class:`ops.Container` filesystem paths."""
+""":mod:`pathlib`-like interface for local and :class:`ops.Container` filesystem paths."""
 
 from __future__ import annotations
 
