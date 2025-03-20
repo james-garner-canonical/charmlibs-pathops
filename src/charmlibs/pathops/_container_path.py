@@ -139,7 +139,7 @@ class ContainerPath:
         r"""Return a new ContainerPath with the same container and the new args joined to its path.
 
         Args:
-            \*other: Any number of path-like objects or strs.
+            other: Any number of path-like objects or strs.
                 If zero are provided, an effective copy of this ContainerPath object is returned.
                 \*other is joined to this object's path as with os.path.join. This means that if
                 any member of other is an absolute path, all the previous components, including
