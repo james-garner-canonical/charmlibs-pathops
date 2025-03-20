@@ -29,6 +29,11 @@ if typing.TYPE_CHECKING:
 
 
 class LocalPath(pathlib.PosixPath):
+    """:class:`pathlib.PosixPath` subclass with extended file-creation method arguments.
+
+    The :meth:`write_bytes`, :meth:`write_text`, and :meth:`mkdir` methods are extended with
+    file permission and ownership arguments, for compatibility with :class:`PathProtocol`.
+    """
     def write_bytes(
         self,
         data: Buffer,
@@ -40,14 +45,17 @@ class LocalPath(pathlib.PosixPath):
         """Write the provided data to the corresponding local filesystem path.
 
         ..note::
-            Compared to pathlib.Path.write_bytes, this method adds mode, user and group args.
-            These are used to set the permissions and ownership of the file.
+            Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
+            and ``group`` args. These are used to set the permissions and ownership of the file.
 
         Args:
-            data: The bytes to write, typically a bytes object, or a bytearray or memoryview.
-            mode: The permissions to set on the file using pathlib.PosixPath.chmod.
-            user: The name of the user to set for the file using ``shutil.chown``.
-            group: The name of the group to set for the file using ``shutil.chown``.
+            data: The bytes to write, typically a :class:`bytes` object, but may also be a
+                :class:`bytearray` or :class:`memoryview`.
+            mode: The permissions to set on the file using :meth:`pathlib.PosixPath.chmod`.
+            user: The name of the user to set for the file using :func:`shutil.chown`.
+                Validated to be an existing user before writing.
+            group: The name of the group to set for the file using :func:`shutil.chown`.
+                Validated to be an existing group before writing.
 
         Returns: The number of bytes written.
 
@@ -67,21 +75,35 @@ class LocalPath(pathlib.PosixPath):
         data: str,
         encoding: str | None = None,
         errors: str | None = None,
+        # TODO: support Python 3.10+ newline argument
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
-        r"""Write the provided string to the corresponding local filesystem path.
+        """Write the provided string to the corresponding local filesystem path.
+
+        ..note::
+            Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
+            and ``group`` args. These are used to set the permissions and ownership of the file.
+
+        .. warning::
+            :class:`ContainerPath` and :class:`PathProtocol` do not support the
+            ``encoding`` and ``errors`` arguments of :meth:`pathlib.Path.write_text`.
+            For :class:`ContainerPath` compatible code, do not use these arguments.
+            They are provided to allow :class:`LocalPath` to be used as a drop-in
+            replacement for :class:`pathlib.Path` if needed.
 
         Args:
             data: The string to write. Newlines are not modified on writing.
             encoding: The encoding to use when writing the data, defaults to 'utf-8'.
             errors: 'strict' to raise any encoding errors, 'ignore' to ignore them.
                 Defaults to 'strict'.
-            mode: The permissions to set on the file. Set after user and group.
-            user: The name of the user to set for the file. Validated before writing.
-            group: The name of the group to set for the file. Validated before writing.
+            mode: The permissions to set on the file using :meth:`pathlib.PosixPath.chmod`.
+            user: The name of the user to set for the file using :func:`shutil.chown`.
+                Validated to be an existing user before writing.
+            group: The name of the group to set for the file using :func:`shutil.chown`.
+                Validated to be an existing group before writing.
 
         Returns: The number of bytes written.
 
@@ -89,13 +111,6 @@ class LocalPath(pathlib.PosixPath):
             LookupError: if the user or group is unknown.
             FileNotFoundError: if the parent directory does not exist.
             PermissionError: if the user does not have permissions for the operation.
-
-        .. note::
-            :class:`ContainerPath` and :class:`PathProtocol` do not support the
-            ``encoding`` and ``errors`` arguments. For :class:`ContainerPath` compatible code,
-            do not use these arguments. They are provided to allow LocalPath to be used as a
-            drop-in replacement for :class:`pathlib.Path` if needed. The Python 3.10+
-            ``newline`` argument is not implemented on :class:`LocalPath`.
         """
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
@@ -112,6 +127,26 @@ class LocalPath(pathlib.PosixPath):
         user: str | None = None,
         group: str | None = None,
     ) -> None:
+        """Create a new directory at the corresponding local filesystem path.
+
+        ..note::
+            Compared to :meth:`pathlib.Path.mkdir`, this method adds ``user`` and ``group`` args.
+            These are used to set the ownership of the created directory. Any created parents
+            will not have their ownership set.
+
+        Args:
+            mode: The permissions to set on the created directory. Any parents created will have
+                their permissions set to the default value for this argument.
+            parents: Whether to create any missing parent directories as well. If ``False``
+                (default) and a parent directory does not exist, a :class:`FileNotFound` error will
+                be raised.
+            exist_ok: Whether to error if the directory already exists. If ``False`` (default) and
+                the directory already exists, a :class:`FileExistsError` will be raised.
+            user: The name of the user to set for the directory using :func:`shutil.chown`.
+                Validated to be an existing user before writing.
+            group: The name of the group to set for the directory using :func:`shutil.chown`.
+                Validated to be an existing group before writing.
+        """
         _validate_user_and_group(user=user, group=group)
         super().mkdir(mode=mode, parents=parents, exist_ok=exist_ok)
         _chown_if_needed(self, user=user, group=group)
