@@ -5,6 +5,8 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src/charmlibs'))  # So that sphinx.ext.autodoc can find code.
 
+def setup(app):
+    app.add_css_file('project_specific.css')
 
 # Configuration for the Sphinx documentation builder.
 # All configuration specific to your project should be done in this file.
