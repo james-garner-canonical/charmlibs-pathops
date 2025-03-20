@@ -8,6 +8,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src/charmlibs')) 
 def setup(app):
     app.add_css_file('project_specific.css')
 
+ # not worthwhile because it doesn't replace references in function signatures
+ # open issue: https://github.com/sphinx-doc/sphinx/issues/10785
+ # autodoc_type_aliases = {'StrPathLike': 'str | os.PathLike[str]'}
+
 # Configuration for the Sphinx documentation builder.
 # All configuration specific to your project should be done in this file.
 #
