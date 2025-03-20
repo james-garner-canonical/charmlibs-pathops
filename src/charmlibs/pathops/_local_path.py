@@ -46,8 +46,8 @@ class LocalPath(pathlib.PosixPath):
         Args:
             data: The bytes to write, typically a bytes object, or a bytearray or memoryview.
             mode: The permissions to set on the file using pathlib.PosixPath.chmod.
-            user: The name of the user to set for the file using shutil.chown.
-            group: The name of the group to set for the file using shutil.chown.
+            user: The name of the user to set for the file using ``shutil.chown``.
+            group: The name of the group to set for the file using ``shutil.chown``.
 
         Returns: The number of bytes written.
 

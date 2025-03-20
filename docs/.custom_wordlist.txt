@@ -2,6 +2,7 @@
 args
 CIDR
 config
+pathops
 Pythonic
 stdout
 stderr
