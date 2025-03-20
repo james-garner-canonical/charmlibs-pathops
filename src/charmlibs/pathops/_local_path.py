@@ -90,11 +90,12 @@ class LocalPath(pathlib.PosixPath):
             FileNotFoundError: if the parent directory does not exist.
             PermissionError: if the user does not have permissions for the operation.
 
-        Note also that :class:`ContainerPath` and :class:`PathProtocol` do not support the
-        ``encoding`` and ``errors`` arguments. For :class:`ContainerPath` compatible code,
-        do not use these arguments. They are provided to allow LocalPath to be used as a
-        drop-in replacement for :class:`pathlib.Path` if needed. The Python 3.10+
-        ``newline`` argument is not implemented on :class:`LocalPath`.
+        .. note::
+            :class:`ContainerPath` and :class:`PathProtocol` do not support the
+            ``encoding`` and ``errors`` arguments. For :class:`ContainerPath` compatible code,
+            do not use these arguments. They are provided to allow LocalPath to be used as a
+            drop-in replacement for :class:`pathlib.Path` if needed. The Python 3.10+
+            ``newline`` argument is not implemented on :class:`LocalPath`.
         """
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
