@@ -31,6 +31,9 @@ if typing.TYPE_CHECKING:
 class LocalPath(pathlib.PosixPath):
     """:class:`pathlib.PosixPath` subclass with extended file-creation method arguments.
 
+    Initialise as ``LocalPath(*parts)``, where ``parts`` are :class:`str` or :class:`os.PathLike`
+    objects. For example, ``LocalPath(pathlib.Path('/foo'))`` or ``LocalPath('/', 'foo')``.
+
     The :meth:`write_bytes`, :meth:`write_text`, and :meth:`mkdir` methods are extended with
     file permission and ownership arguments, for compatibility with :class:`PathProtocol`.
     """
@@ -45,7 +48,7 @@ class LocalPath(pathlib.PosixPath):
     ) -> int:
         """Write the provided data to the corresponding local filesystem path.
 
-        ..note::
+        .. note::
             Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
             and ``group`` args. These are used to set the permissions and ownership of the file.
 
@@ -63,7 +66,8 @@ class LocalPath(pathlib.PosixPath):
         Raises:
             FileNotFoundError: if the parent directory does not exist.
             LookupError: if the user or group is unknown.
-            PermissionError: if the user does not have permissions for the operation.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the local user does not have permissions for the operation.
         """
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_bytes(data)
@@ -84,7 +88,7 @@ class LocalPath(pathlib.PosixPath):
     ) -> int:
         """Write the provided string to the corresponding local filesystem path.
 
-        ..note::
+        .. note::
             Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
             and ``group`` args. These are used to set the permissions and ownership of the file.
 
@@ -109,9 +113,10 @@ class LocalPath(pathlib.PosixPath):
         Returns: The number of bytes written.
 
         Raises:
-            LookupError: if the user or group is unknown.
             FileNotFoundError: if the parent directory does not exist.
-            PermissionError: if the user does not have permissions for the operation.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the local user does not have permissions for the operation.
         """
         _validate_user_and_group(user=user, group=group)
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
@@ -130,7 +135,7 @@ class LocalPath(pathlib.PosixPath):
     ) -> None:
         """Create a new directory at the corresponding local filesystem path.
 
-        ..note::
+        .. note::
             Compared to :meth:`pathlib.Path.mkdir`, this method adds ``user`` and ``group`` args.
             These are used to set the ownership of the created directory. Any created parents
             will not have their ownership set.
@@ -147,6 +152,13 @@ class LocalPath(pathlib.PosixPath):
                 Validated to be an existing user before writing.
             group: The name of the group to set for the directory using :func:`shutil.chown`.
                 Validated to be an existing group before writing.
+
+        Raises:
+            FileExistsError: if the directory already exists and ``exist_ok`` is ``False``.
+            FileNotFoundError: if the parent directory does not exist and ``parents`` is ``False``.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the local user does not have permissions for the operation.
         """
         _validate_user_and_group(user=user, group=group)
         super().mkdir(mode=mode, parents=parents, exist_ok=exist_ok)
