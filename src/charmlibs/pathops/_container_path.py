@@ -52,9 +52,6 @@ class ContainerPath:
                 f'ContainerPath arguments resolve to relative path: {self._path}'
             )
 
-    def _description(self) -> str:
-        return f"'{self._path}' in ops.Container {self._container.name!r}"
-
     #############################
     # protocol PurePath methods #
     #############################
@@ -63,7 +60,8 @@ class ContainerPath:
         return hash((self._container.name, self._path))
 
     def __repr__(self) -> str:
-        return f'{type(self).__name__}({self._path}, container={self._container!r})'
+        container_repr = f'<ops.Container {self._container.name!r}>'
+        return f"{type(self).__name__}('{self._path}', container={container_repr})"
 
     def __str__(self) -> str:
         return self._path.__str__()
@@ -230,10 +228,10 @@ class ContainerPath:
             with self._container.pull(self._path, encoding=encoding) as f:
                 return f.read()
         except pebble.PathError as e:
-            description = self._description()
-            _errors.raise_if_matches_file_not_found(e, msg=description)
-            _errors.raise_if_matches_is_a_directory(e, msg=description)
-            _errors.raise_if_matches_permission(e, msg=description)
+            msg = repr(self)
+            _errors.raise_if_matches_file_not_found(e, msg=msg)
+            _errors.raise_if_matches_is_a_directory(e, msg=msg)
+            _errors.raise_if_matches_permission(e, msg=msg)
             raise
 
     def iterdir(self) -> typing.Generator[Self]:
@@ -242,7 +240,7 @@ class ContainerPath:
         # For future proofing, we will check if the path is a directory when iterdir is called.
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         if info.type != pebble.FileType.DIRECTORY:
-            _errors.raise_not_a_directory(self._description())
+            _errors.raise_not_a_directory(repr(self))
         file_infos = self._container.list_files(self._path)
         for f in file_infos:
             yield self.with_segments(f.path)
@@ -371,9 +369,9 @@ class ContainerPath:
             )
         except pebble.PathError as e:
             _errors.raise_if_matches_lookup(e, msg=e.message)
-            description = self._description()
-            _errors.raise_if_matches_file_not_found(e, msg=description)
-            _errors.raise_if_matches_permission(e, msg=description)
+            msg = repr(self)
+            _errors.raise_if_matches_file_not_found(e, msg=msg)
+            _errors.raise_if_matches_permission(e, msg=msg)
             raise
         return len(data)
 
@@ -420,9 +418,9 @@ class ContainerPath:
         group: str | None = None,
     ) -> None:
         if parents and not exist_ok and self.exists():
-            raise _errors.raise_file_exists(self._description())
+            raise _errors.raise_file_exists(repr(self))
         elif not parents and exist_ok and not self.parent.exists():
-            _errors.raise_file_not_found(self.parent._description())
+            _errors.raise_file_not_found(repr(self.parent))
         if parents:
             # create parents with default permissions, following pathlib
             self._container.make_dir(
@@ -440,15 +438,15 @@ class ContainerPath:
             )
         except pebble.PathError as e:
             _errors.raise_if_matches_lookup(e, msg=e.message)
-            description = self._description()
+            msg = repr(self)
             if _errors.matches_not_a_directory(e):
                 # target exists and isn't a directory, or parent isn't a directory
                 if not self.parent.is_dir():
-                    _errors.raise_not_a_directory(msg=description, from_=e)
-                _errors.raise_file_exists(self._description(), from_=e)
-            _errors.raise_if_matches_file_exists(e, msg=description)
-            _errors.raise_if_matches_file_not_found(e, msg=description)
-            _errors.raise_if_matches_permission(e, msg=description)
+                    _errors.raise_not_a_directory(msg=msg, from_=e)
+                _errors.raise_file_exists(repr(self), from_=e)
+            _errors.raise_if_matches_file_exists(e, msg=msg)
+            _errors.raise_if_matches_file_not_found(e, msg=msg)
+            _errors.raise_if_matches_permission(e, msg=msg)
             raise
 
     #############################

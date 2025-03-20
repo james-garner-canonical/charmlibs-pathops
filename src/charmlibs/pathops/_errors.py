@@ -24,7 +24,9 @@ from ops import pebble
 
 
 def raise_file_exists(msg: str, from_: BaseException | None = None) -> NoReturn:
-    raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), msg) from from_
+    e = FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), msg)
+    print(e)
+    raise e from from_
 
 
 def raise_if_matches_file_exists(error: pebble.Error, msg: str) -> None:
