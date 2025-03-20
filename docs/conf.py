@@ -261,6 +261,8 @@ intersphinx_mapping = {
     'charmcraft': ('https://canonical-charmcraft.readthedocs-hosted.com/en/latest', None),
 }
 
+python_maximum_signature_line_length = 88
+
 # Excludes files or directories from processing
 
 exclude_patterns = [
