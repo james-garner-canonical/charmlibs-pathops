@@ -136,14 +136,19 @@ class ContainerPath:
         return self.with_segments(self._path.with_suffix(suffix))
 
     def joinpath(self, *other: StrPathLike) -> Self:
-        """Return a new ContainerPath with the same container and the new args joined to its path.
+        r"""Return a new ContainerPath with the same container and the new args joined to its path.
 
         Args:
-            other: Any number of path-like objects or strs. Note -- ContainerPath is not path-like.
+            other: Any number of path-like objects or strs.
                 If zero are provided, an effective copy of this ContainerPath object is returned.
-                *other is joined to this object's path as with os.path.join. This means that if
+                \*other is joined to this object's path as with os.path.join. This means that if
                 any member of other is an absolute path, all the previous components, including
                 this object's path, are dropped entirely.
+
+        Returns:
+            A new :class:`ContainerPath` with the same ops.Container object and its path updated
+            with \*other.
+
         """
         return self.with_segments(self._path, *other)
 
