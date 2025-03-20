@@ -18,12 +18,15 @@ from __future__ import annotations
 
 import pathlib
 import sys
+import typing
 
-import ops
 import pytest
 
 import utils
 from charmlibs.pathops import ContainerPath
+
+if typing.TYPE_CHECKING:
+    import ops
 
 
 @pytest.mark.parametrize(

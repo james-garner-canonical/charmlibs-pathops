@@ -85,6 +85,8 @@ select = [
     "S",
     # flake8-simplify
     "SIM",
+    # flake8-type-checking
+    "TC",
     # pyupgrade
     "UP",
     # Pycodestyle (warning)

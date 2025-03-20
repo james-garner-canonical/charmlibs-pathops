@@ -19,14 +19,14 @@ from __future__ import annotations
 import pathlib
 import typing
 
-from ops import pebble
-
 from . import _constants, _fileinfo
 from ._container_path import ContainerPath
 from ._local_path import LocalPath
 
 if typing.TYPE_CHECKING:
     from typing import BinaryIO, TextIO
+
+    from ops import pebble
 
     from ._types import StrPathLike
 

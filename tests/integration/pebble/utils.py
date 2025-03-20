@@ -22,10 +22,10 @@ import string
 import tempfile
 import typing
 
-from ops import pebble
-
 if typing.TYPE_CHECKING:
     from typing import Callable, Mapping, Sequence
+
+    from ops import pebble
 
 ########################
 # session_dir contents #

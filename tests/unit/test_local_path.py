@@ -17,14 +17,17 @@
 from __future__ import annotations
 
 import grp
-import pathlib
 import pwd
 import re
 import shutil
+import typing
 
 import pytest
 
 from charmlibs.pathops import LocalPath
+
+if typing.TYPE_CHECKING:
+    import pathlib
 
 
 class MockChown:
@@ -85,7 +88,7 @@ def test_file_creation_methods_call_chown(
         assert path.read_bytes() == content
     elif method == 'read_text':
         assert isinstance(content, str)
-        expected_result = re.sub('\r\n|\r', '\n', content)
+        expected_result = re.sub(r'\r\n|\r', '\n', content)
         assert path.read_text == expected_result
     elif method == 'mkdir':
         assert path.is_dir()

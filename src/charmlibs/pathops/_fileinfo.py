@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import datetime
 import grp
-import pathlib
 import pwd
 import stat
 import typing
@@ -28,6 +27,8 @@ from ops import pebble
 from . import _errors
 
 if typing.TYPE_CHECKING:
+    import pathlib
+
     from ._container_path import ContainerPath
 
 

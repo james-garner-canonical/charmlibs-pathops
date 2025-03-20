@@ -20,7 +20,6 @@ import io
 import pathlib
 import typing
 
-import ops
 import pytest
 
 import utils
@@ -29,6 +28,8 @@ from charmlibs.pathops._functions import _get_fileinfo
 
 if typing.TYPE_CHECKING:
     from typing import Literal
+
+    import ops
 
 
 @pytest.mark.parametrize('exists', [True, False])

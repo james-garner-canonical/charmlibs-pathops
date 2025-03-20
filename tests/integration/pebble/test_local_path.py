@@ -18,15 +18,19 @@ from __future__ import annotations
 
 import grp
 import os
-import pathlib
 import pwd
+import typing
 
-import ops
 import pytest
 
 import utils
 from charmlibs.pathops import ContainerPath, LocalPath, _constants
 from charmlibs.pathops._functions import _get_fileinfo
+
+if typing.TYPE_CHECKING:
+    import pathlib
+
+    import ops
 
 GOOD_PARENT_DIRECTORY_MODES = (
     '0o777',
