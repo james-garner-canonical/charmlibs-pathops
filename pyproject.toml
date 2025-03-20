@@ -48,7 +48,7 @@ exclude_also = [
 [tool.ruff]
 line-length = 99
 target-version = "py38"
-extend-exclude = ["__pycache__", "*.egg_info", "htmlcov"]
+extend-exclude = ["__pycache__", "*.egg_info", "htmlcov", "docs/"]
 src = ["src", "tests/unit", "tests/integration/pebble"]  # correctly sort local imports in tests
 
 # Ruff formatter configuration
@@ -153,6 +153,7 @@ skip = [
     ".ruff_cache",
     ".vscode",
     "build",
+    "docs",
     "htmlcov",
     "htmlcov-*",
     "venv",
