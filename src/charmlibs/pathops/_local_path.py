@@ -34,6 +34,7 @@ class LocalPath(pathlib.PosixPath):
     The :meth:`write_bytes`, :meth:`write_text`, and :meth:`mkdir` methods are extended with
     file permission and ownership arguments, for compatibility with :class:`PathProtocol`.
     """
+
     def write_bytes(
         self,
         data: Buffer,
