@@ -39,8 +39,11 @@ class PathProtocol(typing.Protocol):
     .. tip::
         Use this class in type annotations where either :class:`ContainerPath` or
         :class:`LocalPath` is acceptable. This will result in both correct type checking
-        and useful autocompletions. Using a union type instead will give correct type checking
-        results, but will autocomplete methods that only *either* of the unions members have.
+        and useful autocompletions.
+
+        Using a union type instead will also give correct type checking
+        results, but will autocomplete methods and attributes that *any* of the union members have,
+        rather than only those that *all* of the union members have.
     """
 
     #############################
