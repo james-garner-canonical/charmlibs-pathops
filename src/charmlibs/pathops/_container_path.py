@@ -341,9 +341,9 @@ class ContainerPath:
     ) -> int:
         """Write the provided data to the corresponding path in the remote container.
 
-        ..note::
-            Compared to pathlib.Path.write_bytes, this method adds mode, user and group args.
-            These are forwarded to Pebble, which sets these on file creation.
+        .. note::
+            Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
+            and ``group`` args. These are forwarded to Pebble, which sets these on file creation.
 
         Args:
             data: The bytes to write. If data is a bytearray or memoryview, it will be converted
@@ -390,10 +390,11 @@ class ContainerPath:
     ) -> int:
         """Write the provided string to the corresponding path in the remote container.
 
-        ..note::
-            Compared to pathlib.Path.write_text, this method drops the encoding and errors args
-            to keep the API simple. The Python 3.10+ newline argument is not implemented. The args
-            mode, user, and group are forwarded to Pebble, which sets these on file creation.
+        .. note::
+            Compared to :meth:`pathlib.Path.write_text`, this method drops the ``encoding`` and
+            ``errors`` args to simplify the API. The Python 3.10+ ``newline`` argument is not
+            implemented. The args ``mode``, ``user`` and ``group`` are added, and are forwarded
+            to Pebble, which sets these on file creation.
 
         Args:
             data: The string to write. Will be encoded as utf-8, raising any errors.
