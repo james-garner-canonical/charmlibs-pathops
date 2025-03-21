@@ -39,7 +39,6 @@ This library also provides the following functions:
   or :class:`os.PathLike` object, and ensures that the requested contents are available at that
   path, writing and setting ownership and permissions as needed.
 
-
 .. note::
     ``StrPathLike`` is a type alias for :class:`str` | :class:`os.PathLike`\[:class:`str`].
     This allows path arguments to be specified as strings or as path-like objects, such as

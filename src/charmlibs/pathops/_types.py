@@ -304,25 +304,70 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
-    def owner(self) -> str: ...
+    def owner(self) -> str:
+        """Return the user name of the file owner."""
+        ...
 
-    def group(self) -> str: ...
+    def group(self) -> str:
+        """Return the group name of the file."""
+        ...
 
-    def exists(self) -> bool: ...  # follow_symlinks=True added in 3.12
+    def exists(self) -> bool:
+        """Whether this path exists.
 
-    def is_dir(self) -> bool: ...  # follow_symlinks=True added in 3.13
+        Will follow symlinks to determine if the symlink target exists. This means that exists
+        will return False for a broken symlink.
 
-    def is_file(self) -> bool: ...  # follow_symlinks=True added in 3.13
+        .. note::
+            In Python 3.12, :class:`pathlib.Path.exists` added the ``follow_symlinks`` argument,
+            defaulting to ``True``. This is not required by this protocol, and is unsupported by
+            :class:`ContainerPath.exists` due to current Pebble limitations.
+        """
+        ...
 
-    def is_fifo(self) -> bool: ...
+    def is_dir(self) -> bool:
+        """Whether this path exists and is a directory.
 
-    def is_socket(self) -> bool: ...
+        Will follow symlinks to determine if the symlink target exists and is a directory.
+
+        .. note::
+            In Python 3.13, :class:`pathlib.Path.is_dir` added the ``follow_symlinks`` argument,
+            defaulting to ``True``. This is not required by this protocol, and is unsupported by
+            :class:`ContainerPath.is_dir` due to current Pebble limitations.
+        """
+        ...
+
+
+    def is_file(self) -> bool:
+        """Whether this path exists and is a regular file.
+
+        Will follow symlinks to determine if the symlink target exists and is a regular file.
+
+        .. note::
+            In Python 3.13, :class:`pathlib.Path.is_file` added the ``follow_symlinks`` argument,
+            defaulting to ``True``. This is not required by this protocol, and is unsupported by
+            :class:`ContainerPath.is_file` due to current Pebble limitations.
+        """
+        ...
+
+    def is_fifo(self) -> bool:
+        """Whether this path exists and is a named pipe (aka FIFO).
+
+        Will follow symlinks to determine if the symlink target exists and is a named pipe.
+        """
+        ...
+
+    def is_socket(self) -> bool:
+        """Whether this path exists and is a socket.
+
+        Will follow symlinks to determine if the symlink target exists and is a socket.
+        """
+        ...
 
     ##################################################
     # protocol Path methods with extended signatures #
     ##################################################
 
-    # push
     def write_bytes(
         self,
         data: bytes,
