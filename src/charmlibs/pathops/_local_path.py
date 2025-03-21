@@ -40,8 +40,8 @@ class LocalPath(pathlib.PosixPath):
 
     ::
 
-            LocalPath(pathlib.Path('/foo'))
-            LocalPath('/', 'foo')
+        LocalPath(pathlib.Path('/foo'))
+        LocalPath('/', 'foo')
     """
 
     def write_bytes(

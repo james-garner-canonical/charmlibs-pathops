@@ -370,6 +370,7 @@ autodoc_default_options = {
         '__init__,'
         '__module__,'
         '__parameters__,'
+        '__repr__,'
         '__subclasshook__,'
         '__weakref__,'
     ),

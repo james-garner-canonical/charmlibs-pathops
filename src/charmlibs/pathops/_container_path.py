@@ -44,6 +44,21 @@ class RelativePathError(ValueError):
 
 
 class ContainerPath:
+    r"""Implementation of :class:`PathProtocol` for Juju Charm workload containers.
+
+    Args:
+        \*parts: :class:`str` or :class:`os.PathLike`.
+        container: :class:`ops.Container` used to communicate with workload container.
+            Required, keyword only argument.
+
+    Raises:
+        RelativePathError: If instantiated with a relative path.
+
+    ::
+
+        ContainerPath(pathlib.Path('/foo'), container=self.unit.get_container('c'))
+        ContainerPath('/', 'foo', container=self.unit.get_container('c'))
+    """
     def __init__(self, *parts: StrPathLike, container: ops.Container) -> None:
         self._container = container
         self._path = pathlib.PurePosixPath(*parts)
@@ -57,6 +72,7 @@ class ContainerPath:
     #############################
 
     def __hash__(self) -> int:
+        """Return the hash of (container-name, path)."""
         return hash((self._container.name, self._path))
 
     def __repr__(self) -> str:
@@ -64,27 +80,33 @@ class ContainerPath:
         return f"{type(self).__name__}('{self._path}', container={container_repr})"
 
     def __str__(self) -> str:
+        """Return the string representation of the path in the container."""
         return self._path.__str__()
 
     def as_posix(self) -> str:
+        """Return the string representation of the path in the container."""
         return self._path.__str__()
 
     def __lt__(self, other: Self) -> bool:
+        """Compare paths if other is a ContainerPath on the same container."""
         if not self._can_compare(other):
             return NotImplemented
         return self._path < other._path
 
     def __le__(self, other: Self) -> bool:
+        """Compare paths if other is a ContainerPath on the same container."""
         if not self._can_compare(other):
             return NotImplemented
         return self._path <= other._path
 
     def __gt__(self, other: Self) -> bool:
+        """Compare paths if other is a ContainerPath on the same container."""
         if not self._can_compare(other):
             return NotImplemented
         return self._path > other._path
 
     def __ge__(self, other: Self) -> bool:
+        """Compare paths if other is a ContainerPath on the same container."""
         if not self._can_compare(other):
             return NotImplemented
         return self._path >= other._path
@@ -93,6 +115,7 @@ class ContainerPath:
         return isinstance(other, ContainerPath) and other._container.name == self._container.name
 
     def __eq__(self, other: object, /) -> bool:
+        """Compare paths if other is a ContainerPath on the same container, else return False."""
         if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
             return False
         return self._path == other._path
@@ -115,7 +138,7 @@ class ContainerPath:
         return self._path.is_absolute()
 
     def match(self, path_pattern: str) -> bool:
-        """Whether the patch matches the given pattern.
+        """Whether the path matches the given pattern.
 
         If the pattern is relative, matching is done from the right, otherwise the
         entire path is matched. The recursive wildcard '**' is not supported.
@@ -139,16 +162,20 @@ class ContainerPath:
         r"""Return a new ContainerPath with the same container and the new args joined to its path.
 
         Args:
-            other: Any number of path-like objects or strs.
+            other: One or more :class:`str` or :class:`os.PathLike` objects.
                 If zero are provided, an effective copy of this ContainerPath object is returned.
                 \*other is joined to this object's path as with os.path.join. This means that if
                 any member of other is an absolute path, all the previous components, including
                 this object's path, are dropped entirely.
 
         Returns:
-            A new :class:`ContainerPath` with the same ops.Container object and its path updated
-            with \*other.
+            A new :class:`ContainerPath` with the same :class:`ops.Container` object, with its path
+            updated with \*other as follows. For each item in other, if it is a relative path, it is
+            appended to the current path. If it is an absolute path, it replaces the current path.
 
+        .. warning::
+            :class:`ContainerPath` is not :class:`os.PathLike`. A :class:`ContainerPath` instance
+            is not a valid value for ``other``, and will result in an error.
         """
         return self.with_segments(self._path, *other)
 
