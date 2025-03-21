@@ -45,7 +45,7 @@ def ensure_contents(
     and has the correct file ownership (``user`` and ``group``).
 
     Args:
-        path: An :class:`os.PathLike` object or ``str`` local filesystem path, or a
+        path: A :class:`str` or :class:`os.PathLike` local filesystem path, or a
             :class:`ContainerPath` remote filesystem path.
         source: The desired contents in ``str`` or ``bytes`` form, or an object with a ``.read()``
             method returning a ``str`` or ``bytes`` object.
@@ -55,6 +55,12 @@ def ensure_contents(
 
     Returns:
         ``True`` if any changes were made, including permissions or ownership, otherwise ``False``.
+
+    Raises:
+        LookupError: if the user or group is unknown.
+        NotADirectoryError: if the parent exists as a non-directory file.
+        PermissionError: if the user does not have permissions for the operation.
+        ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
     """
     if not isinstance(path, ContainerPath):  # most likely str or pathlib.Path
         path = LocalPath(path)
