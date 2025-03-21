@@ -376,8 +376,8 @@ class ContainerPath:
         except pebble.PathError as e:
             _errors.raise_if_matches_lookup(e, msg=e.message)
             msg = repr(self)
-            _errors.raise_if_matches_not_a_directory(e, msg=msg)
             _errors.raise_if_matches_file_not_found(e, msg=msg)
+            _errors.raise_if_matches_not_a_directory(e, msg=msg)
             _errors.raise_if_matches_permission(e, msg=msg)
             raise
         return len(data)
