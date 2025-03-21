@@ -340,7 +340,6 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
-
     def is_file(self) -> bool:
         """Whether this path exists and is a regular file.
 
