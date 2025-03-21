@@ -34,93 +34,275 @@ StrPathLike: TypeAlias = 'str | os.PathLike[str]'
 # based on typeshed.stdlib.pathlib.PurePath
 # https://github.com/python/typeshed/blob/main/stdlib/pathlib.pyi#L29
 class PathProtocol(typing.Protocol):
+    """The protocol implemented by :class:`ContainerPath` and :class:`LocalPath`.
+
+    .. tip::
+        Use this class in type annotations where either :class:`ContainerPath` or
+        :class:`LocalPath` is acceptable. This will result in both correct type checking
+        and useful autocompletions. Using a union type instead will give correct type checking
+        results, but will autocomplete methods that only *either* of the unions members have.
+    """
+
     #############################
     # protocol PurePath methods #
     #############################
 
-    def __hash__(self) -> int: ...
+    def __hash__(self) -> int:
+        """Protocol implementers are hashable."""
+        ...
 
     # comparison methods
-    def __lt__(self, other: Self) -> bool: ...
-    def __le__(self, other: Self) -> bool: ...
-    def __gt__(self, other: Self) -> bool: ...
-    def __ge__(self, other: Self) -> bool: ...
-    def __eq__(self, other: object, /) -> bool: ...
+    def __lt__(self, other: Self) -> bool:
+        """Comparison methods other than equality are only guaranteed for members of the same type.
 
-    # '/' operator
-    def __truediv__(self, key: StrPathLike) -> Self: ...
+        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
+        For sorting, consider using :func:`str` or :func:`repr` as the key.
+        """
+        ...
 
-    # we follow the pathlib convention here and guarantee that str is a representation of
-    # the path in its local filesystem
-    def __str__(self) -> str: ...
+    def __le__(self, other: Self) -> bool:
+        """Comparison methods other than equality are only guaranteed for members of the same type.
 
-    # like __str__
-    def as_posix(self) -> str: ...
+        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
+        For sorting, consider using :func:`str` or :func:`repr` as the key.
+        """
+        ...
 
-    def is_absolute(self) -> bool: ...
+    def __gt__(self, other: Self) -> bool:
+        """Comparison methods other than equality are only guaranteed for members of the same type.
 
-    # signature extended further in 3.12+
-    # def match(self, pattern: str, * case_sensitive: bool = False) -> bool: ...
-    # extended signature is not part of the protocol but may eventually be provided on
-    # ContainerPath to ease compatibility with pathlib.Path on 3.12+
-    def match(self, path_pattern: str) -> bool: ...
+        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
+        For sorting, consider using :func:`str` or :func:`repr` as the key.
+        """
+        ...
 
-    def with_name(self, name: str) -> Self: ...
+    def __ge__(self, other: Self) -> bool:
+        """Comparison methods other than equality are only guaranteed for members of the same type.
 
-    def with_suffix(self, suffix: str) -> Self: ...
+        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
+        For sorting, consider using :func:`str` or :func:`repr` as the key.
+        """
+        ...
 
-    # *other cannot be a ContainerPath
-    def joinpath(self, *other: StrPathLike) -> Self: ...
+    def __eq__(self, other: object, /) -> bool:
+        """Like all objects, equality testing is supported.
+
+        However, :class:`ContainerPath` objects will compare inequal with all local filesystem
+        paths, and even all paths in different containers.
+        """
+        ...
+
+    def __truediv__(self, key: StrPathLike) -> Self:
+        """Return a new instance of the same type, with the other operand appended to its path.
+
+        Used as ``protocol_implementor / str_or_pathlike``.
+
+        .. note::
+            ``__rtruediv__`` is currently not part of this protocol, as
+            :class:`ContainerPath` objects only support absolute paths.
+        """
+        ...
+
+    def __str__(self) -> str:
+        """Return the string representation of the path.
+
+        Exactly like :class:`pathlib.Path` for local paths. Following this convention,
+        remote filesystem paths like :class:`ContainerPath` return the string representation
+        of the path in the remote filesystem. The string representation is suitable for
+        use with system calls (on the correct local or remote system) and Pebble layers.
+        """
+        ...
+
+    def as_posix(self) -> str:
+        """Return the string representation of the path with.
+
+        Identical to :meth:`__str__`, since we only support posix systems.
+        """
+        ...
+
+    def is_absolute(self) -> bool:
+        """Return True if the path is absolute (has a root).
+
+        .. note::
+            Currently always ``True`` for :class:`ContainerPath`.
+        """
+        ...
+
+    def match(self, path_pattern: str) -> bool:
+        """Return true if this path matches the given pattern.
+
+        If the pattern is relative, matching is done from the right; otherwise, the entire
+        path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
+
+        .. warning::
+            Python 3.12's :class:`pathlib.Path` adds the ``case_sensitive`` keyword argument
+            (default False), which is not part of this protocol. The default behaviour is always
+            case-insensitive matching.
+
+        .. note::
+            :class:`ContainerPath` only matches against its path, the container is not considered.
+        """
+        ...
+
+    def with_name(self, name: str) -> Self:
+        """Return a new instance of the same type, with the path name replaced.
+
+        The name is the last component of the path, including any suffixes.
+        """
+        ...
+
+    def with_suffix(self, suffix: str) -> Self:
+        """Return a new instance of the same type, with the path suffix replaced.
+
+        Args:
+            suffix: Must start with a ``'.'``, unless it is an empty string, in which case
+                any existing suffix will be removed entirely.
+
+        Returns:
+            A new instance of the same type, updated as follows. If it contains no ``'.'``,
+            or ends with a ``'.'``, the ``suffix`` argument is appended to its name. Otherwise,
+            the last ``'.'`` and any trailing content is replaced with the ``suffix`` argument.
+        """
+        ...
+
+    def joinpath(self, *other: StrPathLike) -> Self:
+        """Return a new instance of the same type, with its path joined with the arguments.
+
+        Args:
+            other: One or more :class:`str` or :class:`os.PathLike` objects.
+
+        Returns: A new instance of the same type, updated as follows. For each item in other,
+            if it is a relative path, it is appended to the current path. If it is an absolute
+            path, it replaces the current path.
+
+        .. warning::
+            :class:`ContainerPath` is not :class:`os.PathLike`. A :class:`ContainerPath` instance
+            is not a valid value for ``other``, and will result in an error.
+        """
+        ...
 
     @property
-    def parents(self) -> Sequence[Self]: ...
+    def parents(self) -> Sequence[Self]:
+        """A sequence of this path's logical parents. Each parent is an instance of this type."""
+        ...
 
     @property
-    def parent(self) -> Self: ...
+    def parent(self) -> Self:
+        """The logical parent of this path. An instance of this type."""
+        ...
 
     @property
-    def parts(self) -> tuple[str, ...]: ...
+    def parts(self) -> tuple[str, ...]:
+        """A sequence of the components in the filesystem path."""
+        ...
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        """The final path component, or an empty string if this is the root path."""
+        ...
 
     @property
-    def suffix(self) -> str: ...
+    def suffix(self) -> str:
+        """The path name's last suffix (if any) including leading ``'.'``, or an empty string."""
+        ...
 
     @property
-    def suffixes(self) -> list[str]: ...
+    def suffixes(self) -> list[str]:
+        r"""A list of the path name's suffixes (if any), including leading ``'.'``\s."""
+        ...
 
     @property
-    def stem(self) -> str: ...
+    def stem(self) -> str:
+        """The path name, minus its last suffix: name == stem + suffix."""
+        ...
 
     #########################
     # protocol Path methods #
     #########################
 
-    # pull
-    def read_text(
-        self,
-        # # we drop encoding and errors for a simpler API
-        # # TODO: move this information to the docstring
-        # encoding: str | None = None,
-        # errors: typing.Literal['strict', 'ignore'] | None = None,
-        # # newline is not part of the protocol since we support Python 3.8+
-        # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.13+
-    ) -> str: ...
+    def read_text(self) -> str:
+        """Read the corresponding local or remote filesystem path and return the string contents.
 
-    def read_bytes(self) -> bytes: ...
+        .. note::
+            Compared to :meth:`pathlib.Path.write_text`, this method drops the ``encoding`` and
+            ``errors`` args to simplify the API. The Python 3.13+ ``newline`` argument is also not
+            required by this protocol.
 
-    # list_files
-    def iterdir(self) -> typing.Iterable[Self]: ...
+        Returns: The utf-8 decoded contents of the file as a :class:`str`.
 
-    def glob(
-        self,
-        pattern: str,  # support for _StrPath added in 3.13
-        # *,
-        # # TODO: move this information to the docstring
-        # case_sensitive: bool = False,  # added in 3.12
-        # recurse_symlinks: bool = False,  # added in 3.13
-    ) -> Generator[Self]: ...
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            PebbleConnectionError: If the remote container cannot be reached.
+            PermissionError: If the local or remote user does not have read permissions.
+            UnicodeError: If the file's contents are not valid utf-8.
+        """
+        ...
+
+    def read_bytes(self) -> bytes:
+        """Read the corresponding local or remote filesystem path and return the binary contents.
+
+        Returns: The file's raw contents as :class:`bytes`.
+
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            PebbleConnectionError: If the remote container cannot be reached.
+            PermissionError: If the local or remote user does not have read permissions.
+        """
+        ...
+
+    def iterdir(self) -> Generator[Self]:
+        """Yield objects of the same type corresponding to the directory's contents.
+
+        There are no guarantees about the order of the children. The special entries
+        ``'.'`` and ``'..'`` are not included.
+
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            NotADirectoryError: If this path is not a directory.
+            PebbleConnectionError: If the remote container cannot be reached.
+            PermissionError: If the local or remote user does not have appropriate permissions.
+        """
+        ...
+
+    def glob(self, pattern: str) -> Generator[Self]:
+        r"""Iterate over this directory and yield all paths matching the provided pattern.
+
+        For example, ``path.glob('*.txt')``, ``path.glob('*/foo.txt')``.
+
+        .. warning::
+            Recursive matching, using the ``'**'`` pattern, is not supported by
+            :meth:`ContainerPath.glob`.
+
+        Args:
+            pattern: The string pattern to match against. It must be a relative pattern, that is
+                it cannot begin with ``'/'``.
+
+        Returns:
+            A generator yielding objects of the same type as this path, corresponding to those
+            of its children which match the pattern. If this path is not a directory, there will
+            be no matches.
+
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            NotImplementedError: If pattern is an absolute path, or (in the case of
+                :class:`ContainerPath`) if it uses the ``'**'`` pattern.
+            PebbleConnectionError: If the remote container cannot be reached.
+            PermissionError: If the local or remote user does not have appropriate permissions.
+            ValueError: If the pattern is invalid.
+
+        .. note::
+            In Python 3.13, :meth:`pathlib.Path.glob` added support for ``pattern`` to be an
+            :class:`os.PathLike`\[:class:`str`] instead of just a :class:`str`. This is not
+            required by this protocol.
+
+            The ``case_sensitive`` argument, added in Python 3.12, is also not required -- the
+            default behaviour is case-insensitive matching.
+
+            The ``recurse_symlinks`` argument, added in Python 3.13, is also not required,
+            and is not supported by :meth:`ContainerPath.glob`, which does not support recursive
+            matching.
+        """
+        ...
 
     def owner(self) -> str: ...
 
