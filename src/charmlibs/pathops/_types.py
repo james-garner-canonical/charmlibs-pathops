@@ -44,6 +44,14 @@ class PathProtocol(typing.Protocol):
         Using a union type instead will also give correct type checking
         results, but will autocomplete methods and attributes that *any* of the union members have,
         rather than only those that *all* of the union members have.
+
+        Consider using the following pattern if you don't want callers to have to wrap their
+        arguments with :class:`LocalPath`, but want to use PathProtocol internally::
+
+            def fn(arg: str | os.PathLike[str] | ContainerPath):
+                path: PathProtocol = (
+                    arg if isinstance(arg, ContainerPath) else LocalPath(arg)
+                )
     """
 
     #############################
@@ -227,7 +235,7 @@ class PathProtocol(typing.Protocol):
         """Read the corresponding local or remote filesystem path and return the string contents.
 
         .. note::
-            Compared to :meth:`pathlib.Path.write_text`, this method drops the ``encoding`` and
+            Compared to :meth:`pathlib.Path.read_text`, this method drops the ``encoding`` and
             ``errors`` args to simplify the API. The Python 3.13+ ``newline`` argument is also not
             required by this protocol.
 
@@ -235,9 +243,9 @@ class PathProtocol(typing.Protocol):
 
         Raises:
             FileNotFoundError: If this path does not exist.
-            PebbleConnectionError: If the remote container cannot be reached.
             PermissionError: If the local or remote user does not have read permissions.
             UnicodeError: If the file's contents are not valid utf-8.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -248,8 +256,8 @@ class PathProtocol(typing.Protocol):
 
         Raises:
             FileNotFoundError: If this path does not exist.
-            PebbleConnectionError: If the remote container cannot be reached.
             PermissionError: If the local or remote user does not have read permissions.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -262,8 +270,8 @@ class PathProtocol(typing.Protocol):
         Raises:
             FileNotFoundError: If this path does not exist.
             NotADirectoryError: If this path is not a directory.
-            PebbleConnectionError: If the remote container cannot be reached.
             PermissionError: If the local or remote user does not have appropriate permissions.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -289,9 +297,9 @@ class PathProtocol(typing.Protocol):
             FileNotFoundError: If this path does not exist.
             NotImplementedError: If pattern is an absolute path, or (in the case of
                 :class:`ContainerPath`) if it uses the ``'**'`` pattern.
-            PebbleConnectionError: If the remote container cannot be reached.
             PermissionError: If the local or remote user does not have appropriate permissions.
             ValueError: If the pattern is invalid.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
 
         .. note::
             In Python 3.13, :meth:`pathlib.Path.glob` added support for ``pattern`` to be an
@@ -308,11 +316,19 @@ class PathProtocol(typing.Protocol):
         ...
 
     def owner(self) -> str:
-        """Return the user name of the file owner."""
+        """Return the user name of the file owner.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         ...
 
     def group(self) -> str:
-        """Return the group name of the file."""
+        """Return the group name of the file
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         ...
 
     def exists(self) -> bool:
@@ -325,6 +341,9 @@ class PathProtocol(typing.Protocol):
             In Python 3.12, :class:`pathlib.Path.exists` added the ``follow_symlinks`` argument,
             defaulting to ``True``. This is not required by this protocol, and is unsupported by
             :class:`ContainerPath.exists` due to current Pebble limitations.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -337,6 +356,9 @@ class PathProtocol(typing.Protocol):
             In Python 3.13, :class:`pathlib.Path.is_dir` added the ``follow_symlinks`` argument,
             defaulting to ``True``. This is not required by this protocol, and is unsupported by
             :class:`ContainerPath.is_dir` due to current Pebble limitations.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -349,6 +371,9 @@ class PathProtocol(typing.Protocol):
             In Python 3.13, :class:`pathlib.Path.is_file` added the ``follow_symlinks`` argument,
             defaulting to ``True``. This is not required by this protocol, and is unsupported by
             :class:`ContainerPath.is_file` due to current Pebble limitations.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -356,6 +381,9 @@ class PathProtocol(typing.Protocol):
         """Whether this path exists and is a named pipe (aka FIFO).
 
         Will follow symlinks to determine if the symlink target exists and is a named pipe.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -363,6 +391,9 @@ class PathProtocol(typing.Protocol):
         """Whether this path exists and is a socket.
 
         Will follow symlinks to determine if the symlink target exists and is a socket.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -377,24 +408,65 @@ class PathProtocol(typing.Protocol):
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
-    ) -> int: ...
+    ) -> int:
+        """Write the provided data to the corresponding path.
+
+        .. note::
+            Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
+            and ``group`` args, which are set on file creation.
+
+        Args:
+            data: The bytes to write, typically a :class:`bytes` object, but may also be a
+                :class:`bytearray` or :class:`memoryview`.
+            mode: The permissions to set on the file.
+            user: The name of the user to set for the file.
+            group: The name of the group to set for the file.
+
+        Returns: The number of bytes written.
+
+        Raises:
+            FileNotFoundError: if the parent directory does not exist.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the user does not have permissions for the operation.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+        """
+        ...
 
     def write_text(
         self,
         data: str,
-        # # we drop encoding and errors for a simpler API
-        # # TODO: move this information to the docstring
-        # encoding: str | None = None,
-        # errors: typing.Literal['strict', 'ignore'] | None = None,
-        # # newline is not part of the protocol since we support Python 3.8+
-        # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.10+
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
-    ) -> int: ...
+    ) -> int:
+        """Write the provided string to the corresponding path.
 
-    # make_dir
+        .. note::
+            Compared to :meth:`pathlib.Path.write_text`, this method drops the ``encoding`` and
+            ``errors`` args to simplify the API. The Python 3.10+ ``newline`` argument is also not
+            required by this protocol. This method adds ``mode``, ``user`` and ``group`` args,
+            which are set on file creation.
+
+        Args:
+            data: The string to write. Newlines are not modified on writing.
+            mode: The permissions to set on the file.
+            user: The name of the user to set for the file.
+            group: The name of the group to set for the file.
+
+        Returns: The number of bytes written.
+
+        Raises:
+            FileNotFoundError: if the parent directory does not exist.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the user does not have permissions for the operation.
+            UnicodeError: if the provided data is not valid utf-8.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+        """
+        ...
+
     def mkdir(
         self,
         mode: int = _constants.DEFAULT_MKDIR_MODE,
@@ -403,7 +475,34 @@ class PathProtocol(typing.Protocol):
         *,
         user: str | None = None,
         group: str | None = None,
-    ) -> None: ...
+    ) -> None:
+        """Create a new directory at the corresponding path.
+
+        .. note::
+            Compared to :meth:`pathlib.Path.mkdir`, this method adds ``user`` and ``group`` args.
+            These are used to set the ownership of the created directory. Any created parents
+            will not have their ownership set.
+
+        Args:
+            mode: The permissions to set on the created directory. Any parents created will have
+                their permissions set to the default value for this argument.
+            parents: Whether to create any missing parent directories as well. If ``False``
+                (default) and a parent directory does not exist, a :class:`FileNotFound` error will
+                be raised.
+            exist_ok: Whether to error if the directory already exists. If ``False`` (default) and
+                the directory already exists, a :class:`FileExistsError` will be raised.
+            user: The name of the user to set for the directory.
+            group: The name of the group to set for the directory.
+
+        Raises:
+            FileExistsError: if the directory already exists and ``exist_ok`` is ``False``.
+            FileNotFoundError: if the parent directory does not exist and ``parents`` is ``False``.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the local user does not have permissions for the operation.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+        """
+        ...
 
 
 ################################################

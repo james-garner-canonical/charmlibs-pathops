@@ -187,13 +187,13 @@ class ContainerPath:
     def read_text(self, *, newline: str | None = None) -> str:
         r"""Read a remote file as text and return the contents as a string.
 
-        ..note::
+        .. note::
             Compared to pathlib.Path.read_text, this method drops the encoding and errors args.
-            The encoding is assumed to be 'utf-8', and any errors encountered will be raised.
+            The encoding is assumed to be utf-8, and any errors encountered will be raised.
 
         Args:
-            newline: if None (default), all newlines ('\r\n', '\r', '\n') are replaced with '\n'.
-                Otherwise the file contents are returned unmodified.
+            newline: if ``None`` (default), all newlines ``('\r\n', '\r', '\n')`` are replaced
+                with ``'\n'``. Otherwise the file contents are returned unmodified.
 
         Returns:
             The contents of the the path as a string.
@@ -202,7 +202,7 @@ class ContainerPath:
             FileNotFoundError: if the parent directory does not exist.
             IsADirectoryError: if the target is a directory.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            PebbleConnectionError: if the remote Pebble client cannot be reached.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
         """
         text = self._pull(text=True)
         if newline is None:
@@ -219,7 +219,7 @@ class ContainerPath:
             FileNotFoundError: if the parent directory does not exist.
             IsADirectoryError: if the target is a directory.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            PebbleConnectionError: if the remote Pebble client cannot be reached.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
         """
         return self._pull(text=False)
 
@@ -359,7 +359,7 @@ class ContainerPath:
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            PebbleConnectionError: if the remote Pebble client cannot be reached.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
         """
         if isinstance(data, (bytearray, memoryview)):
             # TODO: update ops to correctly test for bytearray and memoryview in push
@@ -412,7 +412,7 @@ class ContainerPath:
             FileNotFoundError: if the parent directory does not exist.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            PebbleConnectionError: if the remote Pebble client cannot be reached.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
         """
         encoded_data = data.encode()
         return self.write_bytes(encoded_data, mode=mode, user=user, group=group)

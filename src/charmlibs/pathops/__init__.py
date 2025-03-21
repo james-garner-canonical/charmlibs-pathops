@@ -22,11 +22,10 @@ and permissions arguments, as Pebble sets these on file creation.
 :class:`LocalPath` is a subclass of ``pathlib.Path`` that provides these extended method
 signatures for local filesystem operations.
 
-When writing substrate-agnostic code, you can use :class:`PathProtocol` in your type annotations.
-Calling code can then supply a :class:`ContainerPath` or :class:`LocalPath` as needed.
-Alternatively, user-facing substrate-agnostic code might accept a union of :class:`ContainerPath`
-and :class:`str` or :class:`os.PathLike` objects, converting these to :class:`LocalPath` objects
-internally if needed.
+.. tip::
+    When writing substrate-agnostic code, use :class:`PathProtocol` in your type annotations,
+    for accurate type checking and useful autocompletions.
+    Calling code can then supply a :class:`ContainerPath` or :class:`LocalPath` as needed.
 
 .. warning::
     :class:`ContainerPath` may raise a :class:`PebbleConnectionError` if the workload container is

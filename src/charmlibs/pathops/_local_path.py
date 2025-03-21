@@ -29,13 +29,19 @@ if typing.TYPE_CHECKING:
 
 
 class LocalPath(pathlib.PosixPath):
-    """:class:`pathlib.PosixPath` subclass with extended file-creation method arguments.
+    r""":class:`pathlib.PosixPath` subclass with extended file-creation method arguments.
 
-    Initialise as ``LocalPath(*parts)``, where ``parts`` are :class:`str` or :class:`os.PathLike`
-    objects. For example, ``LocalPath(pathlib.Path('/foo'))`` or ``LocalPath('/', 'foo')``.
+    .. note::
+        The :meth:`write_bytes`, :meth:`write_text`, and :meth:`mkdir` methods are extended with
+        file permission and ownership arguments, for compatibility with :class:`PathProtocol`.
 
-    The :meth:`write_bytes`, :meth:`write_text`, and :meth:`mkdir` methods are extended with
-    file permission and ownership arguments, for compatibility with :class:`PathProtocol`.
+    Args:
+        \*parts: :class:`str` or :class:`os.PathLike`. ``LocalPath`` takes no keyword arguments.
+
+    ::
+
+            LocalPath(pathlib.Path('/foo'))
+            LocalPath('/', 'foo')
     """
 
     def write_bytes(
