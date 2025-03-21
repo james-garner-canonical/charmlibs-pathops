@@ -59,6 +59,7 @@ class ContainerPath:
         ContainerPath(pathlib.Path('/foo'), container=self.unit.get_container('c'))
         ContainerPath('/', 'foo', container=self.unit.get_container('c'))
     """
+
     def __init__(self, *parts: StrPathLike, container: ops.Container) -> None:
         self._container = container
         self._path = pathlib.PurePosixPath(*parts)
@@ -170,8 +171,9 @@ class ContainerPath:
 
         Returns:
             A new :class:`ContainerPath` with the same :class:`ops.Container` object, with its path
-            updated with \*other as follows. For each item in other, if it is a relative path, it is
-            appended to the current path. If it is an absolute path, it replaces the current path.
+            updated with \*other as follows. For each item in other, if it is a relative path, it
+            is appended to the current path. If it is an absolute path, it replaces the current
+            path.
 
         .. warning::
             :class:`ContainerPath` is not :class:`os.PathLike`. A :class:`ContainerPath` instance

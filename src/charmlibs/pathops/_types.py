@@ -324,7 +324,7 @@ class PathProtocol(typing.Protocol):
         ...
 
     def group(self) -> str:
-        """Return the group name of the file
+        """Return the group name of the file.
 
         Raises:
             ops.pebble.ConnectionError: If the remote container cannot be reached.
