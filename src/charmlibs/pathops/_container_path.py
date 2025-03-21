@@ -357,6 +357,7 @@ class ContainerPath:
         Raises:
             FileNotFoundError: if the parent directory does not exist.
             LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the Pebble user does not have permissions for the operation.
             PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
@@ -375,6 +376,7 @@ class ContainerPath:
         except pebble.PathError as e:
             _errors.raise_if_matches_lookup(e, msg=e.message)
             msg = repr(self)
+            _errors.raise_if_matches_not_a_directory(e, msg=msg)
             _errors.raise_if_matches_file_not_found(e, msg=msg)
             _errors.raise_if_matches_permission(e, msg=msg)
             raise
@@ -408,6 +410,7 @@ class ContainerPath:
         Raises:
             LookupError: if the user or group is unknown.
             FileNotFoundError: if the parent directory does not exist.
+            NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the Pebble user does not have permissions for the operation.
             PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
