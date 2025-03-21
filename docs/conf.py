@@ -116,7 +116,7 @@ html_context = {
     # TODO: If there's no such website,
     #       remove the {{ product_page }} link from the page header template
     #       (usually .sphinx/_templates/header.html; also, see README.rst).
-    "product_page": "juju.is",
+    "product_page": "github.com/canonical/charmlibs-pathops",
     # Product tag image; the orange part of your logo, shown in the page header
     #
     # TODO: [@dwilding DONE] To add a tag image, uncomment and update as needed.
@@ -357,10 +357,22 @@ autoclass_content = 'class'
 # alphabetical (value 'alphabetical'), by member type (value
 # 'groupwise') or by source order (value 'bysource'). The default is
 # alphabetical.
-autodoc_member_order = 'alphabetical'
+#autodoc_member_order = 'alphabetical'
+#autodoc_member_order = 'groupwise'
+autodoc_member_order = 'bysource'
 
 autodoc_default_options = {
     'members': None,  # None here means "yes"
+    'special-members': None,  # meaning all
+    'exclude-members': (
+        '__abstractmethods__,'
+        '__dict__,'
+        '__init__,'
+        '__module__,'
+        '__parameters__,'
+        '__subclasshook__,'
+        '__weakref__,'
+    ),
     'undoc-members': None,
     'show-inheritance': None,
 }
