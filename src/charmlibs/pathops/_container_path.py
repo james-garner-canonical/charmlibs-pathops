@@ -357,7 +357,6 @@ class ContainerPath:
             PermissionError: If the local or remote user does not have appropriate permissions.
             ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
-
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         if info.type != pebble.FileType.DIRECTORY:
             _errors.raise_not_a_directory(repr(self))

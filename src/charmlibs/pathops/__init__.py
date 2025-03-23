@@ -23,7 +23,7 @@ and permissions arguments, as Pebble sets these on file creation.
 signatures for local filesystem operations.
 
 .. tip::
-    When writing substrate-agnostic code, use :class:`PathProtocol` in your type annotations,
+    When writing substrate-agnostic code, use :class:`PathProtocol` in your type annotations
     for accurate type checking and useful autocompletions.
     Calling code can then supply a :class:`ContainerPath` or :class:`LocalPath` as needed.
 
