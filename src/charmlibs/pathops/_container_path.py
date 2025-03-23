@@ -101,7 +101,7 @@ class ContainerPath:
     def __lt__(self, other: Self) -> bool:
         """Compare paths only if other is a ContainerPath on the same container.
 
-        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
+        To sort collections of mixed paths, consider using :class:`str` as the key to sort
         purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
         and thirdly by container name.
         """
@@ -112,7 +112,7 @@ class ContainerPath:
     def __le__(self, other: Self) -> bool:
         """Compare paths only if other is a ContainerPath on the same container.
 
-        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
+        To sort collections of mixed paths, consider using :class:`str` as the key to sort
         purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
         and thirdly by container name.
         """
@@ -123,7 +123,7 @@ class ContainerPath:
     def __gt__(self, other: Self) -> bool:
         """Compare paths only if other is a ContainerPath on the same container.
 
-        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
+        To sort collections of mixed paths, consider using :class:`str` as the key to sort
         purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
         and thirdly by container name.
         """
@@ -148,7 +148,7 @@ class ContainerPath:
     def __eq__(self, other: object, /) -> bool:
         """Compare paths if other is a ContainerPath on the same container, else return False.
 
-        To explicitly compare paths, consider using :func:``str`` to get the canonical path string,
+        To explicitly compare paths, consider using :class:`str` to get the canonical path string,
         or create a :class:`ContainerPath` with the same container using :meth:`with_segments`.
         """
         if not isinstance(other, ContainerPath) or self._container.name != other._container.name:

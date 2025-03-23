@@ -232,7 +232,7 @@ class PathProtocol(typing.Protocol):
     def stem(self) -> str:
         """The path name, minus its last suffix.
 
-        :meth:`name` == :func:`stem` + :func:`suffix`
+        :meth:`name` == :meth:`stem` + :meth:`suffix`
         """
         ...
 
@@ -328,6 +328,7 @@ class PathProtocol(typing.Protocol):
         """Return the user name of the file owner.
 
         Raises:
+            FileNotFoundError: If the path does not exist.
             ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
@@ -336,6 +337,7 @@ class PathProtocol(typing.Protocol):
         """Return the group name of the file.
 
         Raises:
+            FileNotFoundError: If the path does not exist.
             ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...

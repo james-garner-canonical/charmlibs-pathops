@@ -8,6 +8,9 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src/charmlibs')) 
 def setup(app):
     app.add_css_file('project_specific.css')
 
+# don't automatically add parentheses after function and method references
+add_function_parentheses = False
+
  # not worthwhile because it doesn't replace references in function signatures
  # open issue: https://github.com/sphinx-doc/sphinx/issues/10785
  # autodoc_type_aliases = {'StrPathLike': 'str | os.PathLike[str]'}
@@ -357,9 +360,9 @@ autoclass_content = 'class'
 # alphabetical (value 'alphabetical'), by member type (value
 # 'groupwise') or by source order (value 'bysource'). The default is
 # alphabetical.
-autodoc_member_order = 'alphabetical'
+#autodoc_member_order = 'alphabetical'
 #autodoc_member_order = 'groupwise'
-#autodoc_member_order = 'bysource'
+autodoc_member_order = 'bysource'
 
 autodoc_default_options = {
     'members': None,  # None here means "yes"
