@@ -90,7 +90,7 @@ class ContainerPath:
         """Return the string representation of the path in the container.
 
         This is equivalent to the string representation of the :class:`pathlib.PurePath` this
-        :class:`ContainerPath` was instatiated with.
+        :class:`ContainerPath` was instantiated with.
         """
         return self._path.__str__()
 
