@@ -538,8 +538,8 @@ class ContainerPath:
             and ``group`` args. These are forwarded to Pebble, which sets these on file creation.
 
         Args:
-            data: The bytes to write. If data is a bytearray or memoryview, it will be converted
-                to bytes in memory first.
+            data: The bytes to write. If data is a :class:`bytearray` or :class:`memoryview`, it
+                will be converted to :class:`bytes` in memory first.
             mode: The permissions to set on the file.
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
@@ -591,8 +591,8 @@ class ContainerPath:
             to Pebble, which sets these on file creation.
 
         Args:
-            data: The string to write. Will be encoded as utf-8, raising any errors.
-                Newlines are not modified on writing.
+            data: The string to write. Will be encoded to :class:`bytes` in memory as utf-8,
+                raising any errors. Newlines are not modified on writing.
             mode: The permissions to set on the file.
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
