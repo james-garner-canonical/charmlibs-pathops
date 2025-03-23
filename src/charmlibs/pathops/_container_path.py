@@ -56,8 +56,9 @@ class ContainerPath:
 
     ::
 
-        ContainerPath(pathlib.Path('/foo'), container=self.unit.get_container('c'))
-        ContainerPath('/', 'foo', container=self.unit.get_container('c'))
+        container = self.unit.get_container('c')
+        ContainerPath(pathlib.Path('/foo'), container=container)
+        ContainerPath('/', 'foo', container=container)
     """
 
     def __init__(self, *parts: StrPathLike, container: ops.Container) -> None:
@@ -81,7 +82,8 @@ class ContainerPath:
 
         ::
 
-            repr(ContainerPath('/', 'foo', 'bar', container=self.unit.get_container('c')))
+            container = self.unit.get_container('c')
+            repr(ContainerPath('/', 'foo', 'bar', container=container))
             # "ContainerPath('/foo/bar', container=<ops.Container 'c'>)"
         """
         container_repr = f'<ops.Container {self._container.name!r}>'
@@ -195,7 +197,8 @@ class ContainerPath:
 
         ::
 
-            path = ContainerPath('/', 'foo', 'bar.txt', container=self.unit.get_container('c'))
+            container = self.unit.get_container('c')
+            path = ContainerPath('/', 'foo', 'bar.txt', container=container)
             repr(path.with_name('baz.bin'))
             # ContainerPath('/foo/baz.bin', container=<ops.Container 'c'>)"
         """
@@ -210,7 +213,8 @@ class ContainerPath:
 
         ::
 
-            path = ContainerPath('/', 'foo', 'bar.txt.zip', container=self.unit.get_container('c'))
+            container = self.unit.get_container('c')
+            path = ContainerPath('/', 'foo', 'bar.txt.zip', container=container)
             repr(path.with_suffix('.tar.gz'))
             # "ContainerPath('/foo/bar.txt.tar.gz', container=<ops.Container 'c'>)"
             repr(path.with_suffix(''))
