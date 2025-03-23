@@ -80,6 +80,7 @@ class ContainerPath:
         """Return a string representation including the class, path string, and container name.
 
         ::
+
             repr(ContainerPath('/', 'foo', 'bar', container=self.unit.get_container('c')))
             # "ContainerPath('/foo/bar', container=<ops.Container 'c'>)"
         """
@@ -193,6 +194,7 @@ class ContainerPath:
         The name is the last component of the path, including any suffixes.
 
         ::
+
             path = ContainerPath('/', 'foo', 'bar.txt', container=self.unit.get_container('c'))
             repr(path.with_name('baz.bin'))
             # ContainerPath('/foo/baz.bin', container=<ops.Container 'c'>)"
@@ -207,11 +209,12 @@ class ContainerPath:
         in which case the original suffix (if there was one) is removed ('.' included).
 
         ::
+
             path = ContainerPath('/', 'foo', 'bar.txt.zip', container=self.unit.get_container('c'))
             repr(path.with_suffix('.tar.gz'))
-            # ContainerPath('/foo/bar.txt.tar.gz', container=<ops.Container 'c'>)"
+            # "ContainerPath('/foo/bar.txt.tar.gz', container=<ops.Container 'c'>)"
             repr(path.with_suffix(''))
-            # ContainerPath('/foo/bar.txt', container=<ops.Container 'c'>)"
+            # "ContainerPath('/foo/bar.txt', container=<ops.Container 'c'>)"
         """
         return self.with_segments(self._path.with_suffix(suffix))
 
