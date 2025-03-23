@@ -73,15 +73,25 @@ class ContainerPath:
     #############################
 
     def __hash__(self) -> int:
-        """Return the hash of (container-name, path)."""
+        """Hash on (container-name, path) for efficiency."""
         return hash((self._container.name, self._path))
 
     def __repr__(self) -> str:
+        """Return a string representation including the class, path string, and container name.
+
+        ::
+            repr(ContainerPath('/', 'foo', 'bar', container=self.unit.get_container('c')))
+            # "ContainerPath('/foo/bar', container=<ops.Container 'c'>)"
+        """
         container_repr = f'<ops.Container {self._container.name!r}>'
         return f"{type(self).__name__}('{self._path}', container={container_repr})"
 
     def __str__(self) -> str:
-        """Return the string representation of the path in the container."""
+        """Return the string representation of the path in the container.
+
+        This is equivalent to the string representation of the :class:`pathlib.PurePath` this
+        :class:`ContainerPath` was instatiated with.
+        """
         return self._path.__str__()
 
     def as_posix(self) -> str:
@@ -89,25 +99,45 @@ class ContainerPath:
         return self._path.__str__()
 
     def __lt__(self, other: Self) -> bool:
-        """Compare paths if other is a ContainerPath on the same container."""
+        """Compare paths only if other is a ContainerPath on the same container.
+
+        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
+        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
+        and thirdly by container name.
+        """
         if not self._can_compare(other):
             return NotImplemented
         return self._path < other._path
 
     def __le__(self, other: Self) -> bool:
-        """Compare paths if other is a ContainerPath on the same container."""
+        """Compare paths only if other is a ContainerPath on the same container.
+
+        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
+        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
+        and thirdly by container name.
+        """
         if not self._can_compare(other):
             return NotImplemented
         return self._path <= other._path
 
     def __gt__(self, other: Self) -> bool:
-        """Compare paths if other is a ContainerPath on the same container."""
+        """Compare paths only if other is a ContainerPath on the same container.
+
+        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
+        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
+        and thirdly by container name.
+        """
         if not self._can_compare(other):
             return NotImplemented
         return self._path > other._path
 
     def __ge__(self, other: Self) -> bool:
-        """Compare paths if other is a ContainerPath on the same container."""
+        """Compare paths only if other is a ContainerPath on the same container.
+
+        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
+        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
+        and thirdly by container name.
+        """
         if not self._can_compare(other):
             return NotImplemented
         return self._path >= other._path
@@ -116,7 +146,11 @@ class ContainerPath:
         return isinstance(other, ContainerPath) and other._container.name == self._container.name
 
     def __eq__(self, other: object, /) -> bool:
-        """Compare paths if other is a ContainerPath on the same container, else return False."""
+        """Compare paths if other is a ContainerPath on the same container, else return False.
+
+        To explicitly compare paths, consider using :func:``str`` to get the canonical path string,
+        or create a :class:`ContainerPath` with the same container using :meth:`with_segments`.
+        """
         if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
             return False
         return self._path == other._path
@@ -124,30 +158,45 @@ class ContainerPath:
     def __truediv__(self, key: StrPathLike) -> Self:
         """Return a new ContainerPath with the same container and the joined path.
 
-        The joined path is equivalent to str(self) / pathlib.PurePath(key).
+        The joined path is equivalent to ``str(self) / pathlib.PurePath(key)``.
 
-        Note that the right hand operand here cannot be a ContainerPath.
-        This is because ContainerPath objects only support absolute paths currently,
-        so using one as the right hand side is likely to be an error.
-        For the same reason, __rtruediv__ is undefined, meaning a ContainerPath cannot
-        be the right hand side operand for arbitrary string or PathLike objects either.
+        .. warning::
+            ``__rtruediv__`` is not supported, as :class:`ContainerPath` only supports absolute
+            paths. Since an absolute path as the right hand operand will completely replace the
+            left hand path, this is mostly likely to be a user error, so it isn't supported.
         """
         return self.with_segments(self._path, key)
 
     def is_absolute(self) -> bool:
-        """Whether the path is absolute. Will always be True, as relative paths error on init."""
+        """Return True if the path is absolute (has a root), which is always the case.
+
+        .. note::
+            Always ``True``, since initialising a :class:`ContainerPath` with a non-absolute
+            path will result in a :class:`RelativePathError`.
+        """
         return self._path.is_absolute()
 
     def match(self, path_pattern: str) -> bool:
-        """Whether the path matches the given pattern.
+        """Return true if this path matches the given pattern.
 
-        If the pattern is relative, matching is done from the right, otherwise the
-        entire path is matched. The recursive wildcard '**' is not supported.
+        If the pattern is relative, matching is done from the right; otherwise, the entire
+        path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
+
+        .. warning::
+            Only the path is matched against, the container is not considered.
         """
         return self._path.match(path_pattern)
 
     def with_name(self, name: str) -> Self:
-        """Return a new ContainerPath with the same container and the filename changed."""
+        """Return a new ContainerPath, with the same container, but with the path name replaced.
+
+        The name is the last component of the path, including any suffixes.
+
+        ::
+            path = ContainerPath('/', 'foo', 'bar.txt', container=self.unit.get_container('c'))
+            repr(path.with_name('baz.bin'))
+            # ContainerPath('/foo/baz.bin', container=<ops.Container 'c'>)"
+        """
         return self.with_segments(self._path.with_name(name))
 
     def with_suffix(self, suffix: str) -> Self:
@@ -156,6 +205,13 @@ class ContainerPath:
         If the original path had no suffix, the new suffix is added.
         The new suffix must start with '.', unless the new suffix is an empty string,
         in which case the original suffix (if there was one) is removed ('.' included).
+
+        ::
+            path = ContainerPath('/', 'foo', 'bar.txt.zip', container=self.unit.get_container('c'))
+            repr(path.with_suffix('.tar.gz'))
+            # ContainerPath('/foo/bar.txt.tar.gz', container=<ops.Container 'c'>)"
+            repr(path.with_suffix(''))
+            # ContainerPath('/foo/bar.txt', container=<ops.Container 'c'>)"
         """
         return self.with_segments(self._path.with_suffix(suffix))
 
@@ -163,11 +219,11 @@ class ContainerPath:
         r"""Return a new ContainerPath with the same container and the new args joined to its path.
 
         Args:
-            other: One or more :class:`str` or :class:`os.PathLike` objects.
-                If zero are provided, an effective copy of this ContainerPath object is returned.
-                \*other is joined to this object's path as with os.path.join. This means that if
-                any member of other is an absolute path, all the previous components, including
-                this object's path, are dropped entirely.
+            other: Any number of :class:`str` or :class:`os.PathLike` objects.
+                If zero are provided, an effective copy of this :class:`ContainerPath` object is
+                returned. \*other is joined to this object's path as with :func:`os.path.join`.
+                This means that if any member of other is an absolute path, all the previous
+                components, including this object's path, are dropped entirely.
 
         Returns:
             A new :class:`ContainerPath` with the same :class:`ops.Container` object, with its path
@@ -183,30 +239,46 @@ class ContainerPath:
 
     @property
     def parents(self) -> tuple[Self, ...]:
+        """A sequence of this path's logical parents. Each parent is a :class:`ContainerPath`."""
         return tuple(self.with_segments(p) for p in self._path.parents)
 
     @property
     def parent(self) -> Self:
+        """The logical parent of this path, as a :class:`ContainerPath`."""
         return self.with_segments(self._path.parent)
 
     @property
     def parts(self) -> tuple[str, ...]:
+        """A sequence of the components in the filesystem path. The components are strings."""
         return self._path.parts
 
     @property
     def name(self) -> str:
+        """The final path component, or an empty string if this is the root path."""
         return self._path.name
 
     @property
     def suffix(self) -> str:
+        """The path name's last suffix (if it has any) including the leading ``'.'``.
+
+        If the path name doesn't have a suffix, the result is an empty string.
+        """
         return self._path.suffix
 
     @property
     def suffixes(self) -> list[str]:
+        r"""A list of the path name's suffixes, or an empty list if it doesn't have any.
+
+        Each suffix includes the leading ``'.'``.
+        """
         return self._path.suffixes
 
     @property
     def stem(self) -> str:
+        """The path name, minus its last suffix.
+
+        :meth:`name` == :meth:`stem` + :meth:`suffix`
+        """
         return self._path.stem
 
     #########################
@@ -269,9 +341,23 @@ class ContainerPath:
             raise
 
     def iterdir(self) -> typing.Generator[Self]:
-        # With Python 3.13+, pathlib will raise NotADirectoryError when iterdir is called.
-        # With Python < 3.13, the NotADirectoryErrro is only raised when the generator is consumed.
-        # For future proofing, we will check if the path is a directory when iterdir is called.
+        """Yield :class:`ContainerPath` objects corresponding to the directory's contents.
+
+        There are no guarantees about the order of the children. The special entries
+        ``'.'`` and ``'..'`` are not included.
+
+        .. note::
+            :class:`NotADirectoryError` is raised (if appropriate) when ``iterdir()`` is called.
+            This follows the behaviour of :meth:`pathlib.Path.iterdir` in Python 3.13+.
+            Previous versions deferred the error until the generator was consumed.
+
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            NotADirectoryError: If this path is not a directory.
+            PermissionError: If the local or remote user does not have appropriate permissions.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
+
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         if info.type != pebble.FileType.DIRECTORY:
             _errors.raise_not_a_directory(repr(self))
@@ -280,6 +366,29 @@ class ContainerPath:
             yield self.with_segments(f.path)
 
     def glob(self, pattern: StrPathLike) -> Generator[Self]:
+        r"""Iterate over this directory and yield all paths matching the provided pattern.
+
+        For example, ``path.glob('*.txt')``, ``path.glob('*/foo.txt')``.
+
+        .. warning::
+            Recursive matching using the ``'**'`` pattern is not supported.
+
+        Args:
+            pattern: The :class:`str` or :class:`os.PathLike` pattern to match against. It must be
+                a relative pattern, that is it cannot begin with ``'/'``.
+
+        Returns:
+            A generator yielding :class:`ContainerPath` objects, corresponding to those of its
+            children which match the pattern. If this path is not a directory, there will be no
+            matches.
+
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            NotImplementedError: If pattern is an absolute path, or if it uses the ``'**'`` pattern.
+            PermissionError: If the remote user does not have appropriate permissions.
+            ValueError: If the pattern is invalid.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         return self._glob(pattern)
 
     def _glob(self, pattern: StrPathLike, skip_is_dir: bool = False) -> Generator[Self]:
@@ -315,26 +424,74 @@ class ContainerPath:
             yield from (self / first)._glob(next_pattern)
 
     def owner(self) -> str:
+        """Return the user name of the file owner.
+
+        Raises:
+            FileNotFoundError: If the path does not exist.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         return info.user or ''
 
     def group(self) -> str:
+        """Return the group name of the file.
+
+        Raises:
+            FileNotFoundError: If the path does not exist.
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         return info.group or ''
 
     def exists(self) -> bool:
+        """Whether this path exists.
+
+        Will follow symlinks to determine if the symlink target exists. This means that exists
+        will return False for a broken symlink.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         return self._exists_and_matches(filetype=None)
 
     def is_dir(self) -> bool:
+        """Whether this path exists and is a directory.
+
+        Will follow symlinks to determine if the symlink target exists and is a directory.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         return self._exists_and_matches(pebble.FileType.DIRECTORY)
 
     def is_file(self) -> bool:
+        """Whether this path exists and is a regular file.
+
+        Will follow symlinks to determine if the symlink target exists and is a regular file.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         return self._exists_and_matches(pebble.FileType.FILE)
 
     def is_fifo(self) -> bool:
+        """Whether this path exists and is a named pipe (aka FIFO).
+
+        Will follow symlinks to determine if the symlink target exists and is a named pipe.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         return self._exists_and_matches(pebble.FileType.NAMED_PIPE)
 
     def is_socket(self) -> bool:
+        """Whether this path exists and is a socket.
+
+        Will follow symlinks to determine if the symlink target exists and is a socket.
+
+        Raises:
+            ops.pebble.ConnectionError: If the remote container cannot be reached.
+        """
         return self._exists_and_matches(pebble.FileType.SOCKET)
 
     def _exists_and_matches(self, filetype: pebble.FileType | None) -> bool:
@@ -492,4 +649,11 @@ class ContainerPath:
     #############################
 
     def with_segments(self, *pathsegments: StrPathLike) -> Self:
+        """Return a new ContainerPath with the same container, with its entire path replaced.
+
+        All :class:`ContainerPath` methods returning new :class:`ContainerPath` instances do so by
+        calling this method, including :meth:`parent` and :meth:`parents`. Subclasses can therefore
+        customise the behaviour of all these methods by overriding only this method. The same is
+        true of :class:`pathlib.Path` in Python 3.12+.
+        """
         return type(self)(*pathsegments, container=self._container)

@@ -180,7 +180,7 @@ class PathProtocol(typing.Protocol):
         """Return a new instance of the same type, with its path joined with the arguments.
 
         Args:
-            other: One or more :class:`str` or :class:`os.PathLike` objects.
+            other: Any number of :class:`str` or :class:`os.PathLike` objects.
 
         Returns: A new instance of the same type, updated as follows. For each item in other,
             if it is a relative path, it is appended to the current path. If it is an absolute
@@ -214,17 +214,26 @@ class PathProtocol(typing.Protocol):
 
     @property
     def suffix(self) -> str:
-        """The path name's last suffix (if any) including leading ``'.'``, or an empty string."""
+        """The path name's last suffix (if it has any) including the leading ``'.'``.
+
+        If the path name doesn't have a suffix, the result is an empty string.
+        """
         ...
 
     @property
     def suffixes(self) -> list[str]:
-        r"""A list of the path name's suffixes (if any), including leading ``'.'``\s."""
+        r"""A list of the path name's suffixes, or an empty list if it doesn't have any.
+
+        Each suffix includes the leading ``'.'``.
+        """
         ...
 
     @property
     def stem(self) -> str:
-        """The path name, minus its last suffix: name == stem + suffix."""
+        """The path name, minus its last suffix.
+
+        :meth:`name` == :func:`stem` + :func:`suffix`
+        """
         ...
 
     #########################
