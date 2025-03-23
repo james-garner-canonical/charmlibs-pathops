@@ -384,7 +384,7 @@ class ContainerPath:
 
         Raises:
             FileNotFoundError: If this path does not exist.
-            NotImplementedError: If pattern is an absolute path, or if it uses the ``'**'`` pattern.
+            NotImplementedError: If pattern is an absolute path or it uses the ``'**'`` pattern.
             PermissionError: If the remote user does not have appropriate permissions.
             ValueError: If the pattern is invalid.
             ops.pebble.ConnectionError: If the remote container cannot be reached.
