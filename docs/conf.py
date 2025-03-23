@@ -364,6 +364,11 @@ autoclass_content = 'class'
 #autodoc_member_order = 'groupwise'
 autodoc_member_order = 'bysource'
 
+# don't evaluate default values
+# autodoc_preserve_defaults = True
+
+add_module_names = False
+
 autodoc_default_options = {
     'members': None,  # None here means "yes"
     'special-members': None,  # meaning all

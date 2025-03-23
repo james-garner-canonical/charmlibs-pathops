@@ -42,6 +42,12 @@ This library also provides the following functions:
     ``StrPathLike`` is a type alias for :class:`str` | :class:`os.PathLike`\[:class:`str`].
     This allows path arguments to be specified as strings or as path-like objects, such as
     :class:`pathlib.PurePath`. :class:`ContainerPath` is **not** :class:`os.PathLike`.
+
+The constants defining the default file and directory permissions are not exported by this package,
+but are documented here to explain the otherwise opaque numbers appearing as default arguments.
+
+.. autodata:: pathops._constants.DEFAULT_MKDIR_MODE
+.. autodata:: pathops._constants.DEFAULT_WRITE_MODE
 """
 
 from __future__ import annotations

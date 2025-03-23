@@ -24,7 +24,8 @@ import typing
 import ops
 from ops import pebble
 
-from . import _constants, _errors, _fileinfo
+from . import _errors, _fileinfo
+from ._constants import DEFAULT_MKDIR_MODE, DEFAULT_WRITE_MODE
 
 if typing.TYPE_CHECKING:
     from typing import Generator, Literal
@@ -527,7 +528,7 @@ class ContainerPath:
         self,
         data: Bytes,
         *,
-        mode: int = _constants.DEFAULT_WRITE_MODE,
+        mode: int = DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
@@ -540,7 +541,8 @@ class ContainerPath:
         Args:
             data: The bytes to write. If data is a :class:`bytearray` or :class:`memoryview`, it
                 will be converted to :class:`bytes` in memory first.
-            mode: The permissions to set on the file.
+            mode: The permissions to set on the file. Defaults to
+                :data:`_constants.DEFAULT_WRITE_MODE`.
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 
@@ -578,7 +580,7 @@ class ContainerPath:
         self,
         data: str,
         *,
-        mode: int = _constants.DEFAULT_WRITE_MODE,
+        mode: int = DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
@@ -593,7 +595,8 @@ class ContainerPath:
         Args:
             data: The string to write. Will be encoded to :class:`bytes` in memory as utf-8,
                 raising any errors. Newlines are not modified on writing.
-            mode: The permissions to set on the file.
+            mode: The permissions to set on the file. Defaults to
+                :data:`_constants.DEFAULT_WRITE_MODE`.
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 
@@ -611,13 +614,39 @@ class ContainerPath:
 
     def mkdir(
         self,
-        mode: int = _constants.DEFAULT_MKDIR_MODE,
+        mode: int = DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
         *,
         user: str | None = None,
         group: str | None = None,
     ) -> None:
+        """Create a new directory at the corresponding path in the remote container.
+
+        .. note::
+            Compared to :meth:`pathlib.Path.mkdir`, this method adds ``user`` and ``group`` args.
+            These are used to set the ownership of the created directory. Any created parents
+            will not have their ownership set.
+
+        Args:
+            mode: The permissions to set on the created directory. Any parents created will have
+                their permissions set to the default of :data:`_constants.DEFAULT_MKDIR_MODE`.
+            parents: Whether to create any missing parent directories as well. If ``False``
+                (default) and a parent directory does not exist, a :class:`FileNotFound` error will
+                be raised.
+            exist_ok: Whether to error if the directory already exists. If ``False`` (default) and
+                the directory already exists, a :class:`FileExistsError` will be raised.
+            user: The name of the user to set for the directory.
+            group: The name of the group to set for the directory.
+
+        Raises:
+            FileExistsError: if the directory already exists and ``exist_ok`` is ``False``.
+            FileNotFoundError: if the parent directory does not exist and ``parents`` is ``False``.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the remote user does not have permissions for the operation.
+            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+        """
         if parents and not exist_ok and self.exists():
             raise _errors.raise_file_exists(repr(self))
         elif not parents and exist_ok and not self.parent.exists():
@@ -627,7 +656,7 @@ class ContainerPath:
             self._container.make_dir(
                 path=self._path.parent,
                 make_parents=True,
-                permissions=_constants.DEFAULT_MKDIR_MODE,
+                permissions=DEFAULT_MKDIR_MODE,
             )
         try:
             self._container.make_dir(
