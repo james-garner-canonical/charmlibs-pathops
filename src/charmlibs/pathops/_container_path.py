@@ -24,8 +24,7 @@ import typing
 import ops
 from ops import pebble
 
-from . import _errors, _fileinfo
-from ._constants import DEFAULT_MKDIR_MODE, DEFAULT_WRITE_MODE
+from . import _constants, _errors, _fileinfo
 
 if typing.TYPE_CHECKING:
     from typing import Generator, Literal
@@ -528,7 +527,7 @@ class ContainerPath:
         self,
         data: Bytes,
         *,
-        mode: int = DEFAULT_WRITE_MODE,
+        mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
@@ -580,7 +579,7 @@ class ContainerPath:
         self,
         data: str,
         *,
-        mode: int = DEFAULT_WRITE_MODE,
+        mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
@@ -614,7 +613,7 @@ class ContainerPath:
 
     def mkdir(
         self,
-        mode: int = DEFAULT_MKDIR_MODE,
+        mode: int = _constants.DEFAULT_MKDIR_MODE,
         parents: bool = False,
         exist_ok: bool = False,
         *,
@@ -656,7 +655,7 @@ class ContainerPath:
             self._container.make_dir(
                 path=self._path.parent,
                 make_parents=True,
-                permissions=DEFAULT_MKDIR_MODE,
+                permissions=_constants.DEFAULT_MKDIR_MODE,
             )
         try:
             self._container.make_dir(
