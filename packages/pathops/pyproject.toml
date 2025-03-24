@@ -1,0 +1,41 @@
+[project]
+name = "charmlibs-pathops"
+description = "A pathlib-like interface for Juju K8s charms to interact with files in their workload container."
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name="The Charm Tech team at Canonical Ltd."},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Development Status :: 2 - Pre-Alpha",
+]
+dynamic = ["version"]
+dependencies = [
+    "ops~=2.19",
+]
+
+[project.urls]
+"Repository" = "https://github.com/canonical/charmlibs-pathops"
+"Issues" = "https://github.com/canonical/charmlibs-pathops/issues"
+
+[build-system]
+requires = [
+    "setuptools>=60",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {file = ["src/charmlibs/pathops/_version.txt"]}
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+src = ["src", "tests/unit", "tests/integration/pebble"]  # correctly sort local imports in tests
+
+[tool.pyright]
+extend = "../../pyproject.toml"
+include = ["src", "tests"]
+pythonVersion = "3.8"  # check no python > 3.8 features are used

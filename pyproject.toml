@@ -1,36 +1,3 @@
-[project]
-name = "charmlibs-pathops"
-description = "A pathlib-like interface for Juju K8s charms to interact with files in their workload container."
-readme = "README.md"
-requires-python = ">=3.8"
-authors = [
-    {name="The Charm Tech team at Canonical Ltd."},
-]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
-    "Intended Audience :: Developers",
-    "Operating System :: POSIX :: Linux",
-    "Development Status :: 2 - Pre-Alpha",
-]
-dynamic = ["version"]
-dependencies = [
-    "ops~=2.19",
-]
-
-[project.urls]
-"Repository" = "https://github.com/canonical/charmlibs-pathops"
-"Issues" = "https://github.com/canonical/charmlibs-pathops/issues"
-
-[build-system]
-requires = [
-    "setuptools>=60",
-]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.dynamic]
-version = {file = ["src/charmlibs/pathops/_version.txt"]}
-
 [tool.coverage.run]
 dynamic_context = "test_function"
 branch = true
@@ -48,8 +15,7 @@ exclude_also = [
 [tool.ruff]
 line-length = 99
 target-version = "py38"
-extend-exclude = ["__pycache__", "*.egg_info", "htmlcov", "docs/"]
-src = ["src", "tests/unit", "tests/integration/pebble"]  # correctly sort local imports in tests
+extend-exclude = ["__pycache__", "*.egg_info", "htmlcov", "docs"]
 
 # Ruff formatter configuration
 [tool.ruff.format]
@@ -122,7 +88,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = [
+"packages/*/tests/*" = [
     # All documentation linting.
     "D",
 
@@ -162,8 +128,6 @@ skip = [
 quiet-level = 3  # disable warnings about (1) wrong encoding + (2) binary files
 
 [tool.pyright]
-include = ["src", "tests"]
-pythonVersion = "3.8"  # check no python > 3.8 features are used
 pythonPlatform = "All"
 typeCheckingMode = "strict"
 reportPrivateUsage = false  # things that are effectively public still need to be private to users
