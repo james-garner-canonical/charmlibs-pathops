@@ -37,7 +37,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run ${{ matrix.just-recipe }} tests
-        run: uvx --from rust-just just python=${{ matrix.python-version }} ${{ matrix.tox-environment }}
+        run: uvx --from rust-just just python=${{ matrix.python-version }} ${{ matrix.just-recipe }}
 
   pebble:
     runs-on: ubuntu-latest
@@ -79,5 +79,5 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Run linting
+      - name: Run Pebble integration tests
         run: uvx --from rust-just just python=${{ matrix.python-version }} pebble
