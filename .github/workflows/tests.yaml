@@ -73,13 +73,9 @@ jobs:
         run: |
           umask 0
           $HOME/go/bin/pebble run --create-dirs &
-        env:
-          PEBBLE: /tmp/pebble-test
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
       - name: Run Pebble integration tests
         run: uvx --from rust-just just python=${{ matrix.python-version }} pebble
-        env:
-          PEBBLE: /tmp/pebble-test
