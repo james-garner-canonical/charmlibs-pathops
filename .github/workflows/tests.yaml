@@ -79,3 +79,5 @@ jobs:
 
       - name: Run Pebble integration tests
         run: uvx --from rust-just just python=${{ matrix.python-version }} pebble
+        env:
+          PEBBLE: /tmp/pebble
