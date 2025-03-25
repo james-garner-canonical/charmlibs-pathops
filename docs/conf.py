@@ -381,6 +381,8 @@ autodoc_default_options = {
         '__repr__,'
         '__subclasshook__,'
         '__weakref__,'
+        '__annotations__,'
+        '__protocol_attrs__,'
     ),
     'undoc-members': None,
     'show-inheritance': None,
