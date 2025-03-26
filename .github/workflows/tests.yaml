@@ -19,11 +19,21 @@ jobs:
 
       - id: packages
         run: |
-          PACKAGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }} -- | grep ^packages | cut -d'/' -f2 | uniq)
+          CHANGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }})
+          GLOBAL=$(echo $CHANGES | grep -e ^pyproject.toml -e ^justfile -e ^.github)
+          if [[ $GLOBAL ]]; then
+            echo 'Changes to repo level config files, running tests for all packages.'
+            PACKAGES=$(ls -1 packages/)
+          else
+            echo 'No changes to repo level config files, running tests for changed packages only.'
+            PACKAGES=$(echo $CHANGES | grep ^packages | cut -d'/' -f2 | uniq)
+          fi
           if [[ $PACKAGES ]]; then
             JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo $JSON
             echo "changed=$JSON" >> "$GITHUB_OUTPUT"
           else
+            echo 'No packages changed, tests will be skipped.'
             echo 'changed=[]' >> "$GITHUB_OUTPUT"
           fi
 
