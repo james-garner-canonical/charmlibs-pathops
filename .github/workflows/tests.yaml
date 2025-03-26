@@ -21,7 +21,7 @@ jobs:
         run: |
           PACKAGES=$(git diff --name-only ${{ github.base_ref || 'main' }} -- | grep ^packages | cut -d'/' -f2 | uniq)
           JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-          echo $JSON >> ${GITUB_OUTPUT}
+          echo $JSON >> "$GITHUB_OUTPUT"
 
   lint:
     runs-on: ubuntu-latest
