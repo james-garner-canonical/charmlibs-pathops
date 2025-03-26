@@ -86,7 +86,6 @@ class LocalPath(pathlib.PosixPath):
         data: str,
         encoding: str | None = None,
         errors: str | None = None,
-        # TODO: support Python 3.10+ newline argument
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
