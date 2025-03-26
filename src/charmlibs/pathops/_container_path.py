@@ -277,7 +277,7 @@ class ContainerPath:
         r"""A list of the path name's suffixes.
 
         Each suffix includes the leading ``'.'``.
-        
+
         If the path name doesn't have any suffixes, the result is an empty list.
         """
         return self._path.suffixes
