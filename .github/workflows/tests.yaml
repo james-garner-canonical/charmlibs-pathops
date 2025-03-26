@@ -20,8 +20,12 @@ jobs:
       - id: packages
         run: |
           PACKAGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }} -- | grep ^packages | cut -d'/' -f2 | uniq)
-          JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-          echo $JSON >> "$GITHUB_OUTPUT"
+          if [[ $PACKAGES ]]; then
+            JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo $JSON >> "$GITHUB_OUTPUT"
+          else
+            echo '[]' >> "$GITHUB_OUTPUT"
+          fi
 
   lint:
     runs-on: ubuntu-latest
