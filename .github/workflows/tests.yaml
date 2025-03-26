@@ -14,9 +14,11 @@ jobs:
       changed: ${{ steps.packages.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # fetch all history for git diff
 
       - id: packages
-        run:
+        run: |
           PACKAGES=$(git diff ${{ github.base_ref || 'main' }} --name-only | grep ^packages | cut -d'/' -f2 | uniq)
           JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
           echo $JSON >> ${GITUB_OUTPUT}
