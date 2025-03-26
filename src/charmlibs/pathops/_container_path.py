@@ -44,7 +44,7 @@ class RelativePathError(ValueError):
 
 
 class ContainerPath:
-    r"""Implementation of :class:`PathProtocol` for Juju Charm workload containers.
+    r"""Implementation of :class:`PathProtocol` for Pebble-based workload containers.
 
     Args:
         \*parts: :class:`str` or :class:`os.PathLike`.
@@ -74,7 +74,7 @@ class ContainerPath:
     #############################
 
     def __hash__(self) -> int:
-        """Hash on (container-name, path) for efficiency."""
+        """Hash the tuple (container-name, path) for efficiency."""
         return hash((self._container.name, self._path))
 
     def __repr__(self) -> str:
@@ -186,7 +186,7 @@ class ContainerPath:
         path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
 
         .. warning::
-            Only the path is matched against, the container is not considered.
+           This method only matches the path. The container is not considered.
         """
         return self._path.match(path_pattern)
 
@@ -274,9 +274,11 @@ class ContainerPath:
 
     @property
     def suffixes(self) -> list[str]:
-        r"""A list of the path name's suffixes, or an empty list if it doesn't have any.
+        r"""A list of the path name's suffixes.
 
         Each suffix includes the leading ``'.'``.
+        
+        If the path name doesn't have any suffixes, the result is an empty list.
         """
         return self._path.suffixes
 
@@ -284,7 +286,7 @@ class ContainerPath:
     def stem(self) -> str:
         """The path name, minus its last suffix.
 
-        :meth:`name` == :meth:`stem` + :meth:`suffix`
+        Where :meth:`name` == :meth:`stem` + :meth:`suffix`
         """
         return self._path.stem
 
@@ -380,8 +382,8 @@ class ContainerPath:
             Recursive matching using the ``'**'`` pattern is not supported.
 
         Args:
-            pattern: The :class:`str` or :class:`os.PathLike` pattern to match against. It must be
-                a relative pattern, that is it cannot begin with ``'/'``.
+            pattern: The :class:`str` or :class:`os.PathLike` pattern to match against.
+                The pattern must be relative, meaning it cannot begin with ``'/'``.
 
         Returns:
             A generator yielding :class:`ContainerPath` objects, corresponding to those of its
@@ -481,7 +483,7 @@ class ContainerPath:
         return self._exists_and_matches(pebble.FileType.FILE)
 
     def is_fifo(self) -> bool:
-        """Whether this path exists and is a named pipe (aka FIFO).
+        """Whether this path exists and is a named pipe (also called a FIFO).
 
         Will follow symlinks to determine if the symlink target exists and is a named pipe.
 
@@ -633,8 +635,9 @@ class ContainerPath:
             parents: Whether to create any missing parent directories as well. If ``False``
                 (default) and a parent directory does not exist, a :class:`FileNotFound` error will
                 be raised.
-            exist_ok: Whether to error if the directory already exists. If ``False`` (default) and
-                the directory already exists, a :class:`FileExistsError` will be raised.
+            exist_ok: Whether to raise an error if the directory already exists.
+                If ``False`` (default) and the directory already exists,
+                a :class:`FileExistsError` will be raised.
             user: The name of the user to set for the directory.
             group: The name of the group to set for the directory.
 
@@ -685,9 +688,9 @@ class ContainerPath:
     def with_segments(self, *pathsegments: StrPathLike) -> Self:
         """Return a new ContainerPath with the same container, with its entire path replaced.
 
-        All :class:`ContainerPath` methods returning new :class:`ContainerPath` instances do so by
-        calling this method, including :meth:`parent` and :meth:`parents`. Subclasses can therefore
-        customise the behaviour of all these methods by overriding only this method. The same is
-        true of :class:`pathlib.Path` in Python 3.12+.
+        This method is used internally by all :class:`ContainerPath` methods that return new
+        :class:`ContainerPath` instances, including :meth:`parent` and :meth:`parents`. Therefore,
+        subclasses can customise the behaviour of all such methods by overriding only this method.
+        The same is true of :class:`pathlib.Path` in Python 3.12+.
         """
         return type(self)(*pathsegments, container=self._container)

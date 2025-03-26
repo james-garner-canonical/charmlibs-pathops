@@ -17,7 +17,7 @@ r""":mod:`pathlib`-like interface for local and :class:`ops.Container` filesyste
 :class:`ContainerPath` implements a ``pathlib.Path`` style interface for path operations on
 a Juju charm's workload container.
 This interface is defined in :class:`PathProtocol`, which defines a subset of ``pathlib.Path``
-methods that can be implemented via Pebble. The file creation methods are extended with ownership
+methods that Pebble supports. The file creation methods are extended with ownership
 and permissions arguments, as Pebble sets these on file creation.
 :class:`LocalPath` is a subclass of ``pathlib.Path`` that provides these extended method
 signatures for local filesystem operations.

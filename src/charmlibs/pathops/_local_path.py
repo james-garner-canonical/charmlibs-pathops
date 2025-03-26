@@ -67,7 +67,8 @@ class LocalPath(pathlib.PosixPath):
             group: The name of the group to set for the file using :func:`shutil.chown`.
                 Validated to be an existing group before writing.
 
-        Returns: The number of bytes written.
+        Returns:
+            The number of bytes written.
 
         Raises:
             FileNotFoundError: if the parent directory does not exist.
@@ -115,7 +116,8 @@ class LocalPath(pathlib.PosixPath):
             group: The name of the group to set for the file using :func:`shutil.chown`.
                 Validated to be an existing group before writing.
 
-        Returns: The number of bytes written.
+        Returns:
+            The number of bytes written.
 
         Raises:
             FileNotFoundError: if the parent directory does not exist.
@@ -151,8 +153,9 @@ class LocalPath(pathlib.PosixPath):
             parents: Whether to create any missing parent directories as well. If ``False``
                 (default) and a parent directory does not exist, a :class:`FileNotFound` error will
                 be raised.
-            exist_ok: Whether to error if the directory already exists. If ``False`` (default) and
-                the directory already exists, a :class:`FileExistsError` will be raised.
+            exist_ok: Whether to raise an error if the directory already exists.
+                If ``False`` (default) and the directory already exists,
+                a :class:`FileExistsError` will be raised.
             user: The name of the user to set for the directory using :func:`shutil.chown`.
                 Validated to be an existing user before writing.
             group: The name of the group to set for the directory using :func:`shutil.chown`.

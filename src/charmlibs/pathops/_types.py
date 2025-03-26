@@ -41,12 +41,12 @@ class PathProtocol(typing.Protocol):
         :class:`LocalPath` is acceptable. This will result in both correct type checking
         and useful autocompletions.
 
-        Using a union type instead will also give correct type checking
-        results, but will autocomplete methods and attributes that *any* of the union members have,
-        rather than only those that *all* of the union members have.
+        While using a union type will also give correct type checking results, it provides less
+        useful autocompletions, as most editors will autocomplete methods and attributes that *any*
+        of the union members have, rather than only those that *all* of the union members have.
 
         Consider using the following pattern if you don't want callers to have to wrap their
-        arguments with :class:`LocalPath`, but want to use PathProtocol internally::
+        arguments with :class:`LocalPath`, but want to use :class:`PathProtocol` internally::
 
             def fn(arg: str | os.PathLike[str] | ContainerPath):
                 path: PathProtocol = (
@@ -118,14 +118,14 @@ class PathProtocol(typing.Protocol):
         """Return the string representation of the path.
 
         Exactly like :class:`pathlib.Path` for local paths. Following this convention,
-        remote filesystem paths like :class:`ContainerPath` return the string representation
+        remote filesystem paths such as :class:`ContainerPath` return the string representation
         of the path in the remote filesystem. The string representation is suitable for
         use with system calls (on the correct local or remote system) and Pebble layers.
         """
         ...
 
     def as_posix(self) -> str:
-        """Return the string representation of the path with.
+        """Return the string representation of the path.
 
         Identical to :meth:`__str__`, since we only support posix systems.
         """
@@ -182,7 +182,8 @@ class PathProtocol(typing.Protocol):
         Args:
             other: Any number of :class:`str` or :class:`os.PathLike` objects.
 
-        Returns: A new instance of the same type, updated as follows. For each item in other,
+        Returns:
+            A new instance of the same type, updated as follows. For each item in other,
             if it is a relative path, it is appended to the current path. If it is an absolute
             path, it replaces the current path.
 
@@ -222,9 +223,11 @@ class PathProtocol(typing.Protocol):
 
     @property
     def suffixes(self) -> list[str]:
-        r"""A list of the path name's suffixes, or an empty list if it doesn't have any.
+        r"""A list of the path name's suffixes.
 
         Each suffix includes the leading ``'.'``.
+
+        If the path name doesn't have any suffixes, the result is an empty list.
         """
         ...
 
@@ -232,7 +235,7 @@ class PathProtocol(typing.Protocol):
     def stem(self) -> str:
         """The path name, minus its last suffix.
 
-        :meth:`name` == :meth:`stem` + :meth:`suffix`
+        Where :meth:`name` == :meth:`stem` + :meth:`suffix`
         """
         ...
 
@@ -248,7 +251,8 @@ class PathProtocol(typing.Protocol):
             ``errors`` args to simplify the API. The Python 3.13+ ``newline`` argument is also not
             required by this protocol.
 
-        Returns: The utf-8 decoded contents of the file as a :class:`str`.
+        Returns:
+            The utf-8 decoded contents of the file as a :class:`str`.
 
         Raises:
             FileNotFoundError: If this path does not exist.
@@ -261,7 +265,8 @@ class PathProtocol(typing.Protocol):
     def read_bytes(self) -> bytes:
         """Read the corresponding local or remote filesystem path and return the binary contents.
 
-        Returns: The file's raw contents as :class:`bytes`.
+        Returns:
+            The file's raw contents as :class:`bytes`.
 
         Raises:
             FileNotFoundError: If this path does not exist.
@@ -389,7 +394,7 @@ class PathProtocol(typing.Protocol):
         ...
 
     def is_fifo(self) -> bool:
-        """Whether this path exists and is a named pipe (aka FIFO).
+        """Whether this path exists and is a named pipe (also called a FIFO).
 
         Will follow symlinks to determine if the symlink target exists and is a named pipe.
 
@@ -433,7 +438,8 @@ class PathProtocol(typing.Protocol):
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 
-        Returns: The number of bytes written.
+        Returns:
+            The number of bytes written.
 
         Raises:
             FileNotFoundError: if the parent directory does not exist.
@@ -466,7 +472,8 @@ class PathProtocol(typing.Protocol):
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 
-        Returns: The number of bytes written.
+        Returns:
+            The number of bytes written.
 
         Raises:
             FileNotFoundError: if the parent directory does not exist.
@@ -500,8 +507,9 @@ class PathProtocol(typing.Protocol):
             parents: Whether to create any missing parent directories as well. If ``False``
                 (default) and a parent directory does not exist, a :class:`FileNotFound` error will
                 be raised.
-            exist_ok: Whether to error if the directory already exists. If ``False`` (default) and
-                the directory already exists, a :class:`FileExistsError` will be raised.
+            exist_ok: Whether to raise an error if the directory already exists.
+                If ``False`` (default) and the directory already exists,
+                a :class:`FileExistsError` will be raised.
             user: The name of the user to set for the directory.
             group: The name of the group to set for the directory.
 
