@@ -542,8 +542,7 @@ class ContainerPath:
         Args:
             data: The bytes to write. If data is a :class:`bytearray` or :class:`memoryview`, it
                 will be converted to :class:`bytes` in memory first.
-            mode: The permissions to set on the file. Defaults to
-                :data:`_constants.DEFAULT_WRITE_MODE`.
+            mode: The permissions to set on the file. Defaults to 0o644 (-rw-rw-r--).
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 
@@ -596,8 +595,7 @@ class ContainerPath:
         Args:
             data: The string to write. Will be encoded to :class:`bytes` in memory as utf-8,
                 raising any errors. Newlines are not modified on writing.
-            mode: The permissions to set on the file. Defaults to
-                :data:`_constants.DEFAULT_WRITE_MODE`.
+            mode: The permissions to set on the file. Defaults to 0o644 (-rw-rw-r--).
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 

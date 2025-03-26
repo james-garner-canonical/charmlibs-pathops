@@ -62,6 +62,7 @@ class LocalPath(pathlib.PosixPath):
             data: The bytes to write, typically a :class:`bytes` object, but may also be a
                 :class:`bytearray` or :class:`memoryview`.
             mode: The permissions to set on the file using :meth:`pathlib.PosixPath.chmod`.
+                Defaults to 0o644 (-rw-rw-r--).
             user: The name of the user to set for the file using :func:`shutil.chown`.
                 Validated to be an existing user before writing.
             group: The name of the group to set for the file using :func:`shutil.chown`.
@@ -111,6 +112,7 @@ class LocalPath(pathlib.PosixPath):
             errors: 'strict' to raise any encoding errors, 'ignore' to ignore them.
                 Defaults to 'strict'.
             mode: The permissions to set on the file using :meth:`pathlib.PosixPath.chmod`.
+                Defaults to 0o644 (-rw-rw-r--).
             user: The name of the user to set for the file using :func:`shutil.chown`.
                 Validated to be an existing user before writing.
             group: The name of the group to set for the file using :func:`shutil.chown`.
