@@ -5,9 +5,6 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src/charmlibs'))  # So that sphinx.ext.autodoc can find code.
 
-def setup(app):
-    app.add_css_file('project_specific.css')
-
 # don't automatically add parentheses after function and method references
 add_function_parentheses = False
 
@@ -183,6 +180,7 @@ html_context = {
 # Template and asset locations
 
 html_static_path = [".sphinx/_static"]
+html_css_files = ["project_specific.css"]
 templates_path = [".sphinx/_templates"]
 
 
