@@ -22,9 +22,9 @@ jobs:
           PACKAGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }} -- | grep ^packages | cut -d'/' -f2 | uniq)
           if [[ $PACKAGES ]]; then
             JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo $JSON >> "$GITHUB_OUTPUT"
+            echo "changed=$JSON" >> "$GITHUB_OUTPUT"
           else
-            echo '[]' >> "$GITHUB_OUTPUT"
+            echo 'changed=[]' >> "$GITHUB_OUTPUT"
           fi
 
   lint:
