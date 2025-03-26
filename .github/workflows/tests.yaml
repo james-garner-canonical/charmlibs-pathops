@@ -8,6 +8,19 @@ on:
   workflow_call:
 
 jobs:
+  packages:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.packages.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: packages
+        run:
+          PACKAGES=$(git diff ${{ github.base_ref || 'main' }} --name-only | grep ^packages | cut -d'/' -f2 | uniq)
+          JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+          echo $JSON >> ${GITUB_OUTPUT}
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -20,11 +33,13 @@ jobs:
         run: uvx --from rust-just just lint
 
   test:
+    needs: packages
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        just-recipe: [ 'static', 'unit']
+        package: ${{ fromJson(needs.packages.outputs.changed) }}
+        recipe: [ 'static', 'unit']
         python-version: [
           '3.8',  # oldest supported by Ops
           '3.12',  # latest Ubuntu LTS
@@ -37,13 +52,15 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run ${{ matrix.just-recipe }} tests
-        run: uvx --from rust-just just python=${{ matrix.python-version }} ${{ matrix.just-recipe }}
+        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} ${{ matrix.recipe }}
 
   pebble:
+    needs: packages
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        package: ${{ fromJson(needs.packages.outputs.changed) }}
         pebble-version: [
           'v1.1.1',  # Juju 2.9.50 LTS
           # 'v1.7.4',  # Juju 3.4.6
@@ -80,6 +97,6 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run Pebble integration tests
-        run: uvx --from rust-just just python=${{ matrix.python-version }} pebble
+        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} pebble
         env:
           PEBBLE: /tmp/pebble-test
