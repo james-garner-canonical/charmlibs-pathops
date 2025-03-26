@@ -14,6 +14,10 @@ _ruff_version := '0.11.0'
 _coverage_dir := '.report'
 _pebble_dir := '/tmp/pebble-test'
 
+[doc('List the available recipes.')]
+help:
+    @just --list
+
 [doc('Run ruff and codespell, failing if any errors are found.')]
 lint:
     # '@' prefix is syntax to not skip printing the command before printing its output.
