@@ -14,40 +14,20 @@
 
 r""":mod:`pathlib`-like interface for local and :class:`ops.Container` filesystem paths.
 
-:class:`ContainerPath` implements a ``pathlib.Path`` style interface for path operations on
-a Juju charm's workload container.
-This interface is defined in :class:`PathProtocol`, which defines a subset of ``pathlib.Path``
-methods that Pebble supports. The file creation methods are extended with ownership
-and permissions arguments, as Pebble sets these on file creation.
-:class:`LocalPath` is a subclass of ``pathlib.Path`` that provides these extended method
-signatures for local filesystem operations.
+The ``pathops`` charm library provides:
+- :class:`PathProtocol`: defines the interface of methods common to both local and container paths.
+    Use this to type annotate code designed to work on both Kubernetes and machine charms.
+- :class:`ContainerPath`: the concrete implementation of the interface for remote paths in the
+    workload container of Kubernetes charms. Operations are implemented using the Pebble file API.
+- :class:`LocalPath`: the concrete implementation of the interface for local paths, which includes
+    both machine charms and the charm container of Kubernetes charms.
+- Top-level helper functions such as :func:``ensure_contents``, which operate on both container
+    and local paths.
 
-.. tip::
-    When writing substrate-agnostic code, use :class:`PathProtocol` in your type annotations
-    for accurate type checking and useful autocompletions.
-    Calling code can then supply a :class:`ContainerPath` or :class:`LocalPath` as needed.
-
-.. warning::
-    :class:`ContainerPath` may raise a :class:`PebbleConnectionError` if the workload container is
-    unreachable. Subtrate-agnostic code may choose to be aware of this, or may leave handling this
-    up to substrate-aware calling code, documenting this if so.
-
-This library also provides the following functions:
-
-- :func:`ensure_contents` operates on a :class:`ContainerPath` or any local filesystem :class:`str`
-  or :class:`os.PathLike` object, and ensures that the requested contents are available at that
-  path, writing and setting ownership and permissions as needed.
-
-.. note::
-    ``StrPathLike`` is a type alias for :class:`str` | :class:`os.PathLike`\[:class:`str`].
-    This allows path arguments to be specified as strings or as path-like objects, such as
-    :class:`pathlib.PurePath`. :class:`ContainerPath` is **not** :class:`os.PathLike`.
-
-The constants defining the default file and directory permissions are not exported by this package,
-but are documented here to explain the otherwise opaque numbers appearing as default arguments.
-
-.. autodata:: pathops._constants.DEFAULT_MKDIR_MODE
-.. autodata:: pathops._constants.DEFAULT_WRITE_MODE
+:class:`ContainerPath` methods that interact with the remote filesystem will raise a
+:class:`PebbleConnectionError` if the workload container isn't reachable.
+Methods designed to work with both local and container paths may handle this error internally,
+or they may leave handling connection errors to the caller, documenting this if so.
 """
 
 from __future__ import annotations
