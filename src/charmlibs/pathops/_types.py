@@ -503,7 +503,7 @@ class PathProtocol(typing.Protocol):
 
         Args:
             mode: The permissions to set on the created directory. Any parents created will have
-                their permissions set to the default value for this argument.
+                their permissions set to the default value of 0o755 (drwxr-xr-x).
             parents: Whether to create any missing parent directories as well. If ``False``
                 (default) and a parent directory does not exist, a :class:`FileNotFound` error will
                 be raised.
