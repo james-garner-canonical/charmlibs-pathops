@@ -24,11 +24,7 @@ if typing.TYPE_CHECKING:
     import os
     from typing import Generator, Sequence
 
-    from typing_extensions import Self, TypeAlias
-
-
-Bytes: TypeAlias = 'bytes | bytearray | memoryview'
-StrPathLike: TypeAlias = 'str | os.PathLike[str]'
+    from typing_extensions import Self
 
 
 # based on typeshed.stdlib.pathlib.PurePath
@@ -103,7 +99,7 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
-    def __truediv__(self, key: StrPathLike) -> Self:
+    def __truediv__(self, key: str | os.PathLike[str]) -> Self:
         """Return a new instance of the same type, with the other operand appended to its path.
 
         Used as ``protocol_implementor / str_or_pathlike``.
@@ -176,7 +172,7 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
-    def joinpath(self, *other: StrPathLike) -> Self:
+    def joinpath(self, *other: str | os.PathLike[str]) -> Self:
         """Return a new instance of the same type, with its path joined with the arguments.
 
         Args:
@@ -547,13 +543,13 @@ class PathProtocol(typing.Protocol):
 # make a Container object connected to the appropriate pebble socket
 # for simplicity this will be omitted from v1 unless requested
 
-# def __rtruediv__(self, key: StrPathLike) -> Self: ...
+# def __rtruediv__(self, key: str | os.PathLike[str]) -> Self: ...
 # omitted from v1 protocol
 # doesn't seem worth supporting until (if) ContainerPath gets relative paths
 #
 # when we have relative paths, it will be meaningful to support the following:
-# def __truediv__(self, key: StrPathLike | Self) -> Self: ...
-# def __rtruediv__(self, key: StrPathLike | Self) -> Self: ...
+# def __truediv__(self, key: str | os.PathLike[str] | Self) -> Self: ...
+# def __rtruediv__(self, key: str | os.PathLike[str] | Self) -> Self: ...
 # `ContainerPath / (str or pathlib.Path)`, or `(str or pathlib.Path) / containerPath`
 # will result in a new ContainerPath with the same container.
 # `ContainerPath / ContainerPath` is an error if the containers are not the same,

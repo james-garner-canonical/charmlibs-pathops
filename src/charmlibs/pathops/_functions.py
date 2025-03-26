@@ -24,15 +24,14 @@ from ._container_path import ContainerPath
 from ._local_path import LocalPath
 
 if typing.TYPE_CHECKING:
+    import os
     from typing import BinaryIO, TextIO
 
     from ops import pebble
 
-    from ._types import StrPathLike
-
 
 def ensure_contents(
-    path: StrPathLike | ContainerPath,
+    path: str | os.PathLike[str] | ContainerPath,
     source: bytes | str | BinaryIO | TextIO,
     *,
     mode: int = _constants.DEFAULT_WRITE_MODE,
@@ -82,7 +81,7 @@ def ensure_contents(
     return True
 
 
-def _get_fileinfo(path: StrPathLike | ContainerPath) -> pebble.FileInfo:
+def _get_fileinfo(path: str | os.PathLike[str] | ContainerPath) -> pebble.FileInfo:
     if isinstance(path, ContainerPath):
         return _fileinfo.from_container_path(path)
     return _fileinfo.from_pathlib_path(pathlib.Path(path))

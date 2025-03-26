@@ -27,11 +27,10 @@ from ops import pebble
 from . import _constants, _errors, _fileinfo
 
 if typing.TYPE_CHECKING:
+    import os
     from typing import Generator, Literal
 
     from typing_extensions import Self
-
-    from ._types import Bytes, StrPathLike
 
 
 class RelativePathError(ValueError):
@@ -61,7 +60,7 @@ class ContainerPath:
         ContainerPath('/', 'foo', container=container)
     """
 
-    def __init__(self, *parts: StrPathLike, container: ops.Container) -> None:
+    def __init__(self, *parts: str | os.PathLike[str], container: ops.Container) -> None:
         self._container = container
         self._path = pathlib.PurePosixPath(*parts)
         if not self._path.is_absolute():
@@ -158,7 +157,7 @@ class ContainerPath:
             return False
         return self._path == other._path
 
-    def __truediv__(self, key: StrPathLike) -> Self:
+    def __truediv__(self, key: str | os.PathLike[str]) -> Self:
         """Return a new ContainerPath with the same container and the joined path.
 
         The joined path is equivalent to ``str(self) / pathlib.PurePath(key)``.
@@ -222,7 +221,7 @@ class ContainerPath:
         """
         return self.with_segments(self._path.with_suffix(suffix))
 
-    def joinpath(self, *other: StrPathLike) -> Self:
+    def joinpath(self, *other: str | os.PathLike[str]) -> Self:
         r"""Return a new ContainerPath with the same container and the new args joined to its path.
 
         Args:
@@ -373,7 +372,7 @@ class ContainerPath:
         for f in file_infos:
             yield self.with_segments(f.path)
 
-    def glob(self, pattern: StrPathLike) -> Generator[Self]:
+    def glob(self, pattern: str | os.PathLike[str]) -> Generator[Self]:
         r"""Iterate over this directory and yield all paths matching the provided pattern.
 
         For example, ``path.glob('*.txt')``, ``path.glob('*/foo.txt')``.
@@ -399,7 +398,7 @@ class ContainerPath:
         """
         return self._glob(pattern)
 
-    def _glob(self, pattern: StrPathLike, skip_is_dir: bool = False) -> Generator[Self]:
+    def _glob(self, pattern: str | os.PathLike[str], skip_is_dir: bool = False) -> Generator[Self]:
         pattern_path = pathlib.PurePosixPath(pattern)
         if pattern_path.is_absolute():
             raise NotImplementedError('Non-relative paths are unsupported.')
@@ -527,7 +526,7 @@ class ContainerPath:
 
     def write_bytes(
         self,
-        data: Bytes,
+        data: bytes | bytearray | memoryview,
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
@@ -683,7 +682,7 @@ class ContainerPath:
     # non-protocol Path methods #
     #############################
 
-    def with_segments(self, *pathsegments: StrPathLike) -> Self:
+    def with_segments(self, *pathsegments: str | os.PathLike[str]) -> Self:
         """Return a new ContainerPath with the same container, with its entire path replaced.
 
         This method is used internally by all :class:`ContainerPath` methods that return new
