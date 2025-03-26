@@ -22,7 +22,7 @@ The ``pathops`` charm library provides:
   workload container of Kubernetes charms. Operations are implemented using the Pebble file API.
 - :class:`LocalPath`: the concrete implementation of the interface for local paths, which includes
   both machine charms and the charm container of Kubernetes charms.
-- Top-level helper functions such as :func:``ensure_contents``, which operate on both container
+- Top-level helper functions such as :func:`ensure_contents`, which operate on both container
   and local paths.
 
 :class:`ContainerPath` methods that interact with the remote filesystem will raise a
