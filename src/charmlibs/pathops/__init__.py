@@ -15,6 +15,7 @@
 r""":mod:`pathlib`-like interface for local and :class:`ops.Container` filesystem paths.
 
 The ``pathops`` charm library provides:
+
 - :class:`PathProtocol`: defines the interface of methods common to both local and container paths.
   Use this to type annotate code designed to work on both Kubernetes and machine charms.
 - :class:`ContainerPath`: the concrete implementation of the interface for remote paths in the
