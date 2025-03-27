@@ -46,9 +46,9 @@ class ContainerPath:
     r"""Implementation of :class:`PathProtocol` for Pebble-based workload containers.
 
     Args:
-        \*parts: :class:`str` or :class:`os.PathLike`.
-        container: :class:`ops.Container` used to communicate with workload container.
-            Required, keyword only argument.
+        \*parts: components of the path, like :class:`pathlib.Path` constructor.
+        container: used to communicate with the workload container. Required.
+            Must be provided as a keyword argument.
 
     Raises:
         RelativePathError: If instantiated with a relative path.
