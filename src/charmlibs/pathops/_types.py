@@ -60,7 +60,7 @@ class PathProtocol(typing.Protocol):
 
     # comparison methods
     def __lt__(self, other: Self) -> bool:
-        """Comparison methods other than equality are only implemented for objects of the same type.
+        """Comparison methods (besides equality) are only implemented for objects of the same type.
 
         Specifically, :class:`ContainerPath` objects are not comparable to other types of objects,
         nor to :class:`ContainerPath`s on different containers.
