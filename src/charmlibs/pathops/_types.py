@@ -24,16 +24,42 @@ if typing.TYPE_CHECKING:
     import os
     from typing import Generator, Sequence
 
-    from typing_extensions import Self, TypeAlias
-
-
-Bytes: TypeAlias = 'bytes | bytearray | memoryview'
-StrPathLike: TypeAlias = 'str | os.PathLike[str]'
+    from typing_extensions import Self
 
 
 # based on typeshed.stdlib.pathlib.PurePath
 # https://github.com/python/typeshed/blob/main/stdlib/pathlib.pyi#L29
 class PathProtocol(typing.Protocol):
+    """The protocol implemented by :class:`ContainerPath` and :class:`LocalPath`.
+
+    Use this class in type annotations where either :class:`ContainerPath` or
+    :class:`LocalPath` is acceptable. This will result in both correct type checking
+    and useful autocompletions.
+
+    While using a union type will also give correct type checking results, it provides less
+    useful autocompletions, as most editors will autocomplete methods and attributes that *any*
+    of the union members have, rather than only those that *all* of the union members have.
+
+    Consider using the following pattern if you don't want callers to have to wrap their
+    arguments with :class:`LocalPath`, but want to use :class:`PathProtocol` internally::
+
+        def fn(arg: str | os.PathLike[str] | ContainerPath):
+            path: PathProtocol = (
+                arg if isinstance(arg, ContainerPath) else LocalPath(arg)
+            )
+
+    :class:`str` follows the :mod:`pathlib` convention and returns the string representation of
+    the path. :class:`ContainerPath` return the string representation of the path in the remote
+    filesystem. The string representation is suitable for use with system calls (on the correct
+    local or remote system) and Pebble layers.
+
+    Comparison methods compare by path. A :class:`ContainerPath` is only comparable to another
+    object if it is also a :class:`ContainerPath` on the same :class:`ops.Container`. If this is
+    not the case, then equality is ``False`` and other comparisons are :class:`NotImplemented`.
+
+    Protocol implementers are hashable.
+    """
+
     #############################
     # protocol PurePath methods #
     #############################
@@ -42,105 +68,298 @@ class PathProtocol(typing.Protocol):
 
     # comparison methods
     def __lt__(self, other: Self) -> bool: ...
+
     def __le__(self, other: Self) -> bool: ...
+
     def __gt__(self, other: Self) -> bool: ...
+
     def __ge__(self, other: Self) -> bool: ...
+
     def __eq__(self, other: object, /) -> bool: ...
 
-    # '/' operator
-    def __truediv__(self, key: StrPathLike) -> Self: ...
+    def __truediv__(self, key: str | os.PathLike[str]) -> Self:
+        """Return a new instance of the same type, with the other operand appended to its path.
 
-    # we follow the pathlib convention here and guarantee that str is a representation of
-    # the path in its local filesystem
+        Used as ``protocol_implementor / str_or_pathlike``.
+
+        .. note::
+            ``__rtruediv__`` is currently not part of this protocol, as
+            :class:`ContainerPath` objects only support absolute paths.
+        """
+        ...
+
     def __str__(self) -> str: ...
 
-    # like __str__
-    def as_posix(self) -> str: ...
+    def as_posix(self) -> str:
+        """Return the string representation of the path.
 
-    def is_absolute(self) -> bool: ...
+        Exactly like :class:`pathlib.Path` for local paths. Following this convention,
+        remote filesystem paths such as :class:`ContainerPath` return the string representation
+        of the path in the remote filesystem. The string representation is suitable for
+        use with system calls (on the correct local or remote system) and Pebble layers.
 
-    # signature extended further in 3.12+
-    # def match(self, pattern: str, * case_sensitive: bool = False) -> bool: ...
-    # extended signature is not part of the protocol but may eventually be provided on
-    # ContainerPath to ease compatibility with pathlib.Path on 3.12+
-    def match(self, path_pattern: str) -> bool: ...
+        Identical to :class:`str`, since we only support posix systems.
+        """
+        ...
 
-    def with_name(self, name: str) -> Self: ...
+    def is_absolute(self) -> bool:
+        """Return whether the path is absolute (has a root).
 
-    def with_suffix(self, suffix: str) -> Self: ...
+        .. note::
+            Currently always ``True`` for :class:`ContainerPath`.
+        """
+        ...
 
-    # *other cannot be a ContainerPath
-    def joinpath(self, *other: StrPathLike) -> Self: ...
+    # NOTE: Not supported -- (Python 3.12) ``case_sensitive`` keyword argument
+    def match(self, path_pattern: str) -> bool:
+        """Return whether this path matches the given pattern.
+
+        If the pattern is relative, matching is done from the right; otherwise, the entire path is
+        matched. The recursive wildcard ``'**'`` is **not** supported by this method. Matching is
+        always case-sensitive.
+        """
+        ...
+
+    def with_name(self, name: str) -> Self:
+        """Return a new instance of the same type, with the path name replaced.
+
+        The name is the last component of the path, including any suffixes.
+        """
+        ...
+
+    def with_suffix(self, suffix: str) -> Self:
+        """Return a new instance of the same type, with the path suffix replaced.
+
+        Args:
+            suffix: Must start with a ``'.'``, unless it is an empty string, in which case
+                any existing suffix will be removed entirely.
+
+        Returns:
+            A new instance of the same type, updated as follows. If it contains no ``'.'``,
+            or ends with a ``'.'``, the ``suffix`` argument is appended to its name. Otherwise,
+            the last ``'.'`` and any trailing content is replaced with the ``suffix`` argument.
+        """
+        ...
+
+    def joinpath(self, *other: str | os.PathLike[str]) -> Self:
+        """Return a new instance of the same type, with its path joined with the arguments.
+
+        Args:
+            other: Any number of :class:`str` or :class:`os.PathLike` objects.
+
+        Returns:
+            A new instance of the same type, updated as follows. For each item in other,
+            if it is a relative path, it is appended to the current path. If it is an absolute
+            path, it replaces the current path.
+
+        .. warning::
+            :class:`ContainerPath` is not :class:`os.PathLike`. A :class:`ContainerPath` instance
+            is not a valid value for ``other``, and will result in an error.
+        """
+        ...
 
     @property
-    def parents(self) -> Sequence[Self]: ...
+    def parents(self) -> Sequence[Self]:
+        """A sequence of this path's logical parents. Each parent is an instance of this type."""
+        ...
 
     @property
-    def parent(self) -> Self: ...
+    def parent(self) -> Self:
+        """The logical parent of this path. An instance of this type."""
+        ...
 
     @property
-    def parts(self) -> tuple[str, ...]: ...
+    def parts(self) -> tuple[str, ...]:
+        """A sequence of the components in the filesystem path."""
+        ...
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        """The final path component, or an empty string if this is the root path."""
+        ...
 
     @property
-    def suffix(self) -> str: ...
+    def suffix(self) -> str:
+        """The path name's last suffix (if it has any) including the leading ``'.'``.
+
+        If the path name doesn't have a suffix, the result is an empty string.
+        """
+        ...
 
     @property
-    def suffixes(self) -> list[str]: ...
+    def suffixes(self) -> list[str]:
+        r"""A list of the path name's suffixes.
+
+        Each suffix includes the leading ``'.'``.
+
+        If the path name doesn't have any suffixes, the result is an empty list.
+        """
+        ...
 
     @property
-    def stem(self) -> str: ...
+    def stem(self) -> str:
+        """The path name, minus its last suffix.
+
+        Where :meth:`name` == :meth:`stem` + :meth:`suffix`
+        """
+        ...
 
     #########################
     # protocol Path methods #
     #########################
 
-    # pull
-    def read_text(
-        self,
-        # # we drop encoding and errors for a simpler API
-        # # TODO: move this information to the docstring
-        # encoding: str | None = None,
-        # errors: typing.Literal['strict', 'ignore'] | None = None,
-        # # newline is not part of the protocol since we support Python 3.8+
-        # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.13+
-    ) -> str: ...
+    # NOTE: Not supported -- (Python 3.13) ``newline`` argument
+    def read_text(self) -> str:
+        """Read the corresponding local or remote filesystem path and return the string contents.
 
-    def read_bytes(self) -> bytes: ...
+        Compared to :meth:`pathlib.Path.read_text`, this method drops the ``encoding`` and
+        ``errors`` args to simplify the API.
 
-    # list_files
-    def iterdir(self) -> typing.Iterable[Self]: ...
+        Returns:
+            The UTF-8 decoded contents of the file as a :class:`str`.
 
-    def glob(
-        self,
-        pattern: str,  # support for _StrPath added in 3.13
-        # *,
-        # # TODO: move this information to the docstring
-        # case_sensitive: bool = False,  # added in 3.12
-        # recurse_symlinks: bool = False,  # added in 3.13
-    ) -> Generator[Self]: ...
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            PermissionError: If the local or remote user does not have read permissions.
+            UnicodeError: If the file's contents are not valid UTF-8.
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
 
-    def owner(self) -> str: ...
+    def read_bytes(self) -> bytes:
+        """Read the corresponding local or remote filesystem path and return the binary contents.
 
-    def group(self) -> str: ...
+        Returns:
+            The file's raw contents as :class:`bytes`.
 
-    def exists(self) -> bool: ...  # follow_symlinks=True added in 3.12
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            PermissionError: If the local or remote user does not have read permissions.
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
 
-    def is_dir(self) -> bool: ...  # follow_symlinks=True added in 3.13
+    def iterdir(self) -> Generator[Self]:
+        """Yield objects of the same type corresponding to the directory's contents.
 
-    def is_file(self) -> bool: ...  # follow_symlinks=True added in 3.13
+        There are no guarantees about the order of the children. The special entries
+        ``'.'`` and ``'..'`` are not included.
 
-    def is_fifo(self) -> bool: ...
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            NotADirectoryError: If this path is not a directory.
+            PermissionError: If the local or remote user does not have appropriate permissions.
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
 
-    def is_socket(self) -> bool: ...
+    # NOTE: Not supported -- (Python 3.12) ``case_sensitive`` argument
+    # NOTE: Not supported -- (Python 3.13) ``pattern`` can be path-like
+    # NOTE: Not supported -- (Python 3.13) ``recurse_symlinks``
+    def glob(self, pattern: str) -> Generator[Self]:
+        r"""Iterate over this directory and yield all paths matching the provided pattern.
+
+        For example, ``path.glob('*.txt')``, ``path.glob('*/foo.txt')``.
+
+        .. warning::
+            Recursive matching, using the ``'**'`` pattern, is not supported by
+            :meth:`ContainerPath.glob`.
+
+        Args:
+            pattern: Must be relative, meaning it cannot begin with ``'/'``.
+                Matching is case-sensitive.
+
+        Returns:
+            A generator yielding objects of the same type as this path, corresponding to those
+            of its children which match the pattern. If this path is not a directory, there will
+            be no matches.
+
+        Raises:
+            FileNotFoundError: If this path does not exist.
+            NotImplementedError: If pattern is an absolute path, or (in the case of
+                :class:`ContainerPath`) if it uses the ``'**'`` pattern.
+            PermissionError: If the local or remote user does not have appropriate permissions.
+            ValueError: If the pattern is invalid.
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
+
+    def owner(self) -> str:
+        """Return the user name of the file owner.
+
+        Raises:
+            FileNotFoundError: If the path does not exist.
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
+
+    def group(self) -> str:
+        """Return the group name of the file.
+
+        Raises:
+            FileNotFoundError: If the path does not exist.
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
+
+    # NOTE: Not supported -- (Python 3.12) ``follow_symlinks`` argument (default=True)
+    def exists(self) -> bool:
+        """Whether this path exists.
+
+        Will follow symlinks to determine if the symlink target exists. This means that this
+        method will return ``False`` for a broken symlink.
+
+        Raises:
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
+
+    # NOTE: Not supported -- (Python 3.13) ``follow_symlinks`` argument (default=True)
+    def is_dir(self) -> bool:
+        """Whether this path exists and is a directory.
+
+        Will follow symlinks to determine if the symlink target exists and is a directory.
+
+        Raises:
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
+
+    # NOTE: Not supported -- (Python 3.13) ``follow_symlinks`` argument (default=True)
+    def is_file(self) -> bool:
+        """Whether this path exists and is a regular file.
+
+        Will follow symlinks to determine if the symlink target exists and is a regular file.
+
+        Raises:
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
+
+    def is_fifo(self) -> bool:
+        """Whether this path exists and is a named pipe (also called a FIFO).
+
+        Will follow symlinks to determine if the symlink target exists and is a named pipe.
+
+        Raises:
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
+
+    def is_socket(self) -> bool:
+        """Whether this path exists and is a socket.
+
+        Will follow symlinks to determine if the symlink target exists and is a socket.
+
+        Raises:
+            PebbleConnectionError: If the remote container cannot be reached.
+        """
+        ...
 
     ##################################################
     # protocol Path methods with extended signatures #
     ##################################################
 
-    # push
     def write_bytes(
         self,
         data: bytes,
@@ -148,24 +367,65 @@ class PathProtocol(typing.Protocol):
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
-    ) -> int: ...
+    ) -> int:
+        """Write the provided data to the corresponding path.
 
+        Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
+        and ``group`` args, which are set on file creation.
+
+        Args:
+            data: The bytes to write, typically a :class:`bytes` object, but may also be a
+                :class:`bytearray` or :class:`memoryview`.
+            mode: The permissions to set on the file. Defaults to 0o644 (-rw-rw-r--).
+            user: The name of the user to set for the file.
+            group: The name of the group to set for the file.
+
+        Returns:
+            The number of bytes written.
+
+        Raises:
+            FileNotFoundError: if the parent directory does not exist.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the user does not have permissions for the operation.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
+        """
+        ...
+
+    # NOTE: Not supported -- (Python 3.10) ``newline`` argument
     def write_text(
         self,
         data: str,
-        # # we drop encoding and errors for a simpler API
-        # # TODO: move this information to the docstring
-        # encoding: str | None = None,
-        # errors: typing.Literal['strict', 'ignore'] | None = None,
-        # # newline is not part of the protocol since we support Python 3.8+
-        # newline: typing.Literal['', '\n', '\r', '\r\n'] | None = None,  # 3.10+
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
-    ) -> int: ...
+    ) -> int:
+        """Write the provided string to the corresponding path.
 
-    # make_dir
+        Compared to :meth:`pathlib.Path.write_text`, this method drops the ``encoding`` and
+        ``errors`` args to simplify the API. This method adds ``mode``, ``user`` and ``group``
+        args, which are set on file creation.
+
+        Args:
+            data: The string to write. Newlines are not modified on writing.
+            mode: The permissions to set on the file. Defaults to 0o644 (-rw-rw-r--).
+            user: The name of the user to set for the file.
+            group: The name of the group to set for the file.
+
+        Returns:
+            The number of bytes written.
+
+        Raises:
+            FileNotFoundError: if the parent directory does not exist.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the user does not have permissions for the operation.
+            UnicodeError: if the provided data is not valid UTF-8.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
+        """
+        ...
+
     def mkdir(
         self,
         mode: int = _constants.DEFAULT_MKDIR_MODE,
@@ -174,7 +434,34 @@ class PathProtocol(typing.Protocol):
         *,
         user: str | None = None,
         group: str | None = None,
-    ) -> None: ...
+    ) -> None:
+        """Create a new directory at the corresponding path.
+
+        Compared to :meth:`pathlib.Path.mkdir`, this method adds ``user`` and ``group`` args.
+        These are used to set the ownership of the created directory. Any created parents
+        will not have their ownership set.
+
+        Args:
+            mode: The permissions to set on the created directory. Any parents created will have
+                their permissions set to the default value of 0o755 (drwxr-xr-x).
+            parents: Whether to create any missing parent directories as well. If ``False``
+                (default) and a parent directory does not exist, a :class:`FileNotFound` error will
+                be raised.
+            exist_ok: Whether to raise an error if the directory already exists.
+                If ``False`` (default) and the directory already exists,
+                a :class:`FileExistsError` will be raised.
+            user: The name of the user to set for the directory.
+            group: The name of the group to set for the directory.
+
+        Raises:
+            FileExistsError: if the directory already exists and ``exist_ok`` is ``False``.
+            FileNotFoundError: if the parent directory does not exist and ``parents`` is ``False``.
+            LookupError: if the user or group is unknown.
+            NotADirectoryError: if the parent exists as a non-directory file.
+            PermissionError: if the local user does not have permissions for the operation.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
+        """
+        ...
 
 
 ################################################
@@ -200,13 +487,13 @@ class PathProtocol(typing.Protocol):
 # make a Container object connected to the appropriate pebble socket
 # for simplicity this will be omitted from v1 unless requested
 
-# def __rtruediv__(self, key: StrPathLike) -> Self: ...
+# def __rtruediv__(self, key: str | os.PathLike[str]) -> Self: ...
 # omitted from v1 protocol
 # doesn't seem worth supporting until (if) ContainerPath gets relative paths
 #
 # when we have relative paths, it will be meaningful to support the following:
-# def __truediv__(self, key: StrPathLike | Self) -> Self: ...
-# def __rtruediv__(self, key: StrPathLike | Self) -> Self: ...
+# def __truediv__(self, key: str | os.PathLike[str] | Self) -> Self: ...
+# def __rtruediv__(self, key: str | os.PathLike[str] | Self) -> Self: ...
 # `ContainerPath / (str or pathlib.Path)`, or `(str or pathlib.Path) / containerPath`
 # will result in a new ContainerPath with the same container.
 # `ContainerPath / ContainerPath` is an error if the containers are not the same,

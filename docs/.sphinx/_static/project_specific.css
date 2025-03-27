@@ -1,0 +1,8 @@
+/**
+ * Increase the width of the right hand table of contents.
+ *
+ * The default width is 15em.
+ */
+.toc-drawer {
+  width: 16em;
+}

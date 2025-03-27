@@ -5,6 +5,15 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src/charmlibs'))  # So that sphinx.ext.autodoc can find code.
 
+def setup(app):
+    app.add_css_file('project_specific.css')
+
+# don't automatically add parentheses after function and method references
+add_function_parentheses = False
+
+ # not worthwhile because it doesn't replace references in function signatures
+ # open issue: https://github.com/sphinx-doc/sphinx/issues/10785
+ # autodoc_type_aliases = {'StrPathLike': 'str | os.PathLike[str]'}
 
 # Configuration for the Sphinx documentation builder.
 # All configuration specific to your project should be done in this file.
@@ -110,7 +119,7 @@ html_context = {
     # TODO: If there's no such website,
     #       remove the {{ product_page }} link from the page header template
     #       (usually .sphinx/_templates/header.html; also, see README.rst).
-    "product_page": "juju.is",
+    "product_page": "github.com/canonical/charmlibs-pathops",
     # Product tag image; the orange part of your logo, shown in the page header
     #
     # TODO: [@dwilding DONE] To add a tag image, uncomment and update as needed.
@@ -250,8 +259,18 @@ extensions = [
     "sphinxcontrib.cairosvgconverter",
     "sphinx_last_updated_by_git",
     "sphinx.ext.autodoc",
+    'sphinx.ext.intersphinx',
     "sphinx.ext.napoleon",
 ]
+
+intersphinx_mapping = {
+    'ops': ('https://ops.readthedocs.io/en/latest', None),
+    'python': ('https://docs.python.org/3', None),
+    'juju': ('https://canonical-juju.readthedocs-hosted.com/en/latest', None),
+    'charmcraft': ('https://canonical-charmcraft.readthedocs-hosted.com/en/latest', None),
+}
+
+maximum_signature_line_length = 80
 
 # Excludes files or directories from processing
 
@@ -341,10 +360,39 @@ autoclass_content = 'class'
 # alphabetical (value 'alphabetical'), by member type (value
 # 'groupwise') or by source order (value 'bysource'). The default is
 # alphabetical.
-autodoc_member_order = 'alphabetical'
+#autodoc_member_order = 'alphabetical'
+#autodoc_member_order = 'groupwise'
+autodoc_member_order = 'bysource'
+
+# don't evaluate default values
+# autodoc_preserve_defaults = True
+
+add_module_names = False
 
 autodoc_default_options = {
     'members': None,  # None here means "yes"
+    'special-members': None,  # meaning all
+    'exclude-members': (
+        '__annotations__,'
+        '__abstractmethods__,'
+        '__dict__,'
+        '__hash__,'
+        '__init__,'
+        '__module__,'
+        '__parameters__,'
+        '__protocol_attrs__,'
+        '__subclasshook__,'
+        '__weakref__,'
+        # string methods
+        '__repr__,'
+        '__str__,'
+        # comparison methods
+        '__eq__,'
+        '__ge__,'
+        '__gt__,'
+        '__le__,'
+        '__lt__,'
+    ),
     'undoc-members': None,
     'show-inheritance': None,
 }

@@ -171,6 +171,22 @@ class TestGlob:
         container_result = sorted(str(p) for p in container_path.glob(pattern))
         assert container_result == pathlib_result
 
+    def test_pattern_is_case_sensitive(self, container: ops.Container, session_dir: pathlib.Path):
+        pattern = f'*/{utils.TEXT_FILE_NAME}'
+        container_path = ContainerPath(session_dir, container=container)
+        pathlib_result = sorted(str(p) for p in session_dir.glob(pattern))
+        container_result = sorted(str(p) for p in container_path.glob(pattern))
+        assert pathlib_result
+        assert container_result
+        assert container_result == pathlib_result
+        pattern = pattern.upper()
+        assert not (session_dir / utils.NESTED_DIR_NAME / pattern).exists()
+        pathlib_result = sorted(str(p) for p in session_dir.glob(pattern))
+        container_result = sorted(str(p) for p in container_path.glob(pattern))
+        assert not pathlib_result
+        assert not container_result
+        assert container_result == pathlib_result
+
     @pytest.mark.parametrize('pattern', ['*', '*.txt'])
     def test_non_directory_target(
         self, container: ops.Container, session_dir: pathlib.Path, pattern: str
@@ -318,6 +334,17 @@ class TestWriteBytes:
         with pytest.raises(FileNotFoundError):
             path.write_bytes(b'')
         with pytest.raises(FileNotFoundError):
+            ContainerPath(path, container=container).write_bytes(b'')
+
+    def test_parent_isnt_a_dir(self, container: ops.Container, tmp_path: pathlib.Path):
+        parent = tmp_path / 'parent'
+        assert not parent.exists()
+        parent.touch()
+        assert not parent.is_dir()
+        path = parent / 'filename'
+        with pytest.raises(NotADirectoryError):
+            path.write_bytes(b'')
+        with pytest.raises(NotADirectoryError):
             ContainerPath(path, container=container).write_bytes(b'')
 
 

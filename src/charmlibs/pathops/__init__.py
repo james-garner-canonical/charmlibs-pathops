@@ -12,7 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pathlib-like interface for local and ops.Container filesystem paths."""
+r""":mod:`pathlib`-like interface for local and :class:`ops.Container` filesystem paths.
+
+The ``pathops`` charm library provides:
+
+- :class:`PathProtocol`: defines the interface of methods common to both local and container paths.
+  Use this to type annotate code designed to work on both Kubernetes and machine charms.
+- :class:`ContainerPath`: the concrete implementation of the interface for remote paths in the
+  workload container of Kubernetes charms. Operations are implemented using the Pebble file API.
+- :class:`LocalPath`: the concrete implementation of the interface for local paths, which includes
+  both machine charms and the charm container of Kubernetes charms.
+- Top-level helper functions such as :func:`ensure_contents`, which operate on both container
+  and local paths.
+
+:class:`ContainerPath` methods that interact with the remote filesystem will raise a
+:class:`PebbleConnectionError` if the workload container isn't reachable.
+Methods designed to work with both local and container paths may handle this error internally,
+or they may leave handling connection errors to the caller, documenting this if so.
+"""
 
 from __future__ import annotations
 
