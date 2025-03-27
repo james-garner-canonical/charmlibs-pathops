@@ -135,8 +135,8 @@ class ContainerPath:
 
         .. warning::
             ``__rtruediv__`` is not supported, as :class:`ContainerPath` only supports absolute
-            paths. Since an absolute path as the right hand operand will completely replace the
-            left hand path, this is mostly likely to be a user error, so it isn't supported.
+            paths. You likely wouldn't want to provide an absolute path as the right-hand operand,
+            because the absolute path would completely replace the left-hand path.
         """
         return self.with_segments(self._path, key)
 
