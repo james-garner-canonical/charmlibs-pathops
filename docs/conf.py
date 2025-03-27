@@ -385,7 +385,7 @@ autodoc_default_options = {
         '__weakref__,'
         # string methods
         '__repr__,'
-        '__str__',
+        '__str__,'
         # comparison methods
         '__eq__,'
         '__ge__,'
