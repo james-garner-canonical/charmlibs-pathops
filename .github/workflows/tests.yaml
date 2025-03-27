@@ -20,50 +20,64 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: packages
+      - name: Collect changed packages and which tests they have
+        id: packages
         run: |
+          set -xueo pipefail
           CHANGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }})
           GLOBAL=$(echo $CHANGES | grep -e ^pyproject.toml -e ^justfile -e ^.github)
-          if [[ $GLOBAL ]]; then
+          if [[ -n "$GLOBAL" ]]; then
             echo 'Changes to repo level config files, running tests for all packages.'
             PACKAGES=$(ls -1 packages/)
           else
             echo 'No changes to repo level config files, running tests for changed packages only.'
             PACKAGES=$(echo $CHANGES | grep ^packages | cut -d'/' -f2 | uniq)
           fi
-          if [[ $PACKAGES ]]; then
-            UNIT=()
-            PEBBLE=()
-            JUJU=()
-            for package in $PACKAGES; do
-              if [[ -d "packages/$package/tests/unit" ]]; then
-                UNIT+=("$package")
-              fi
-              if [[ -d "packages/$package/tests/integration/pebble" ]]; then
-                PEBBLE+=("$package")
-              fi
-              if [[ -d "packages/$package/tests/integration/juju" ]]; then
-                JUJU+=("$package")
-              fi
-            done
-            JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo "changed=$JSON"
-            echo "changed=$JSON" >> "$GITHUB_OUTPUT"
-            JSON=$(echo ${UNIT[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo "unit=$JSON"
-            echo "unit=$JSON" >> "$GITHUB_OUTPUT"
-            JSON=$(echo ${PEBBLE[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo "pebble=$JSON"
-            echo "pebble=$JSON" >> "$GITHUB_OUTPUT"
-            JSON=$(echo ${JUJU[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo "juju=$JSON"
-            echo "juju=$JSON" >> "$GITHUB_OUTPUT"
-          else
+          if [[ -z "$PACKAGES" ]]; then
             echo 'No packages changed, tests will be skipped.'
             echo 'changed=[]' >> "$GITHUB_OUTPUT"
             echo 'unit=[]' >> "$GITHUB_OUTPUT"
             echo 'pebble=[]' >> "$GITHUB_OUTPUT"
             echo 'juju=[]' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+          echo "changed=$JSON"
+          echo "changed=$JSON" >> "$GITHUB_OUTPUT"
+          UNIT=()
+          PEBBLE=()
+          JUJU=()
+          for package in $PACKAGES; do
+            if [[ -d "packages/$package/tests/unit" ]]; then
+              UNIT+=("$package")
+            fi
+            if [[ -d "packages/$package/tests/integration/pebble" ]]; then
+              PEBBLE+=("$package")
+            fi
+            if [[ -d "packages/$package/tests/integration/juju" ]]; then
+              JUJU+=("$package")
+            fi
+          done
+          if [[ ${#UNIT[@]} -eq 0 ]]; then
+            echo "unit=[]" >> "$GITHUB_OUTPUT"
+          else
+            JSON=$(echo ${UNIT[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo "unit=$JSON"
+            echo "unit=$JSON" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ ${#PEBBLE[@]} -eq 0 ]]; then
+            echo "pebble=[]" >> "$GITHUB_OUTPUT"
+          else
+            JSON=$(echo ${PEBBLE[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo "pebble=$JSON"
+            echo "pebble=$JSON" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ ${#JUJU[@]} -eq 0 ]]; then
+            echo "juju=[]" >> "$GITHUB_OUTPUT"
+          else
+            JSON=$(echo ${JUJU[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo "juju=$JSON"
+            echo "juju=$JSON" >> "$GITHUB_OUTPUT"
           fi
 
   lint:
