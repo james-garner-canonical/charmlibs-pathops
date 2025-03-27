@@ -24,7 +24,7 @@ import typing
 import ops
 from ops import pebble
 
-from . import _constants, _errors, _fileinfo
+from . import _constants, _errors, _fileinfo, _types
 
 if typing.TYPE_CHECKING:
     import os
@@ -149,15 +149,9 @@ class ContainerPath:
         return self._path.is_absolute()
 
     def match(self, path_pattern: str) -> bool:
-        """Return true if this path matches the given pattern.
-
-        If the pattern is relative, matching is done from the right; otherwise, the entire
-        path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
-
-        .. warning::
-           This method only matches the path. The container is not considered.
-        """
         return self._path.match(path_pattern)
+
+    match.__doc__ = _types.PathProtocol.match.__doc__
 
     def with_name(self, name: str) -> Self:
         """Return a new ContainerPath, with the same container, but with the path name replaced.
