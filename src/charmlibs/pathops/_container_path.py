@@ -141,7 +141,7 @@ class ContainerPath:
         return self.with_segments(self._path, key)
 
     def is_absolute(self) -> bool:
-        """Return True if the path is absolute (has a root), which is always the case.
+        """Return whether the path is absolute (has a root), which is always the case.
 
         Always ``True``, since initialising a :class:`ContainerPath` with a non-absolute
         path will result in a :class:`RelativePathError`.
@@ -179,18 +179,14 @@ class ContainerPath:
     def with_suffix(self, suffix: str) -> Self:
         """Return a new ContainerPath with the same container and the suffix changed.
 
-        If the original path had no suffix, the new suffix is added.
-        The new suffix must start with '.', unless the new suffix is an empty string,
-        in which case the original suffix (if there was one) is removed ('.' included).
+        Args:
+            suffix: Must start with a ``'.'``, unless it is an empty string, in which case
+                any existing suffix will be removed entirely.
 
-        ::
-
-            container = self.unit.get_container('c')
-            path = ContainerPath('/', 'foo', 'bar.txt.zip', container=container)
-            repr(path.with_suffix('.tar.gz'))
-            # "ContainerPath('/foo/bar.txt.tar.gz', container=<ops.Container 'c'>)"
-            repr(path.with_suffix(''))
-            # "ContainerPath('/foo/bar.txt', container=<ops.Container 'c'>)"
+        Returns:
+            A new instance of the same type, updated as follows. If it contains no ``'.'``,
+            or ends with a ``'.'``, the ``suffix`` argument is appended to its name. Otherwise,
+            the last ``'.'`` and any trailing content is replaced with the ``suffix`` argument.
         """
         return self.with_segments(self._path.with_suffix(suffix))
 
