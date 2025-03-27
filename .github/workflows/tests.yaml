@@ -27,7 +27,9 @@ jobs:
 
           function set_output {
             NAME=$1
+            set +u  # allow $2 to be missing
             RAW=$2
+            set -u  # exit on unbound variables again
             if [[ -z "$RAW" ]]; then
               OUT = "$NAME=[]"
               echo "$NAME=[]" >> "$GITHUB_OUTPUT"
