@@ -31,8 +31,7 @@ jobs:
             RAW=$2
             set -u  # exit on unbound variables again
             if [[ -z "$RAW" ]]; then
-              OUT = "$NAME=[]"
-              echo "$NAME=[]" >> "$GITHUB_OUTPUT"
+              OUT="$NAME=[]"
             else
               JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
               OUT="$NAME=$JSON"
