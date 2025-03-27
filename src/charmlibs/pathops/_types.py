@@ -60,42 +60,28 @@ class PathProtocol(typing.Protocol):
 
     # comparison methods
     def __lt__(self, other: Self) -> bool:
-        """Comparison methods other than equality are only guaranteed for members of the same type.
+        """Comparison methods other than equality are only implemented for members of the same type.
 
-        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
-        For sorting, consider using :func:`str` or :func:`repr` as the key.
+        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects,
+        nor to :class:`ContainerPath`s on different containers.
         """
         ...
 
-    def __le__(self, other: Self) -> bool:
-        """Comparison methods other than equality are only guaranteed for members of the same type.
+    def __le__(self, other: Self) -> bool: ...
 
-        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
-        For sorting, consider using :func:`str` or :func:`repr` as the key.
-        """
-        ...
+    def __gt__(self, other: Self) -> bool: ...
 
-    def __gt__(self, other: Self) -> bool:
-        """Comparison methods other than equality are only guaranteed for members of the same type.
+    def __ge__(self, other: Self) -> bool: ...
 
-        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
-        For sorting, consider using :func:`str` or :func:`repr` as the key.
-        """
-        ...
-
-    def __ge__(self, other: Self) -> bool:
-        """Comparison methods other than equality are only guaranteed for members of the same type.
-
-        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects.
-        For sorting, consider using :func:`str` or :func:`repr` as the key.
-        """
-        ...
+    __le__.__doc__ = __lt__.__doc__
+    __gt__.__doc__ = __lt__.__doc__
+    __ge__.__doc__ = __lt__.__doc__
 
     def __eq__(self, other: object, /) -> bool:
         """Like all objects, equality testing is supported.
 
         However, :class:`ContainerPath` objects will compare inequal with all local filesystem
-        paths, and even all paths in different containers.
+        paths, as well as all paths in different containers.
         """
         ...
 
