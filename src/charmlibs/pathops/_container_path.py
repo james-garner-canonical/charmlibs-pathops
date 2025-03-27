@@ -649,7 +649,10 @@ class ContainerPath:
     #############################
 
     def with_segments(self, *pathsegments: str | os.PathLike[str]) -> Self:
-        """Return a new ContainerPath with the same container, with its entire path replaced.
+        """Construct a new ``ContainerPath`` (with the same container) from path-like objects.
+
+        You can think of this like a copy of the current :class:`ContainerPath`, with its path
+        replaced by ``pathlib.Path(*pathsegments)``.
 
         This method is used internally by all :class:`ContainerPath` methods that return new
         :class:`ContainerPath` instances, including :meth:`parent` and :meth:`parents`. Therefore,
