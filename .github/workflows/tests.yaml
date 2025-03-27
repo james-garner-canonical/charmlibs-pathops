@@ -194,6 +194,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install concierge
+        run: sudo snap install --classic concierge
+
+      - name: Prepare Juju
+        run: sudo concierge prepare --verbose --juju-channel=3/stable --charmcraft-channel=3.x/stable -p microk8s
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
