@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed: ${{ steps.packages.outputs.changed }}
+      unit: ${{ steps.packages.outputs.unit }}
+      pebble: ${{ steps.packages.outputs.pebble }}
+      juju: ${{ steps.packages.outputs.juju }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,12 +32,38 @@ jobs:
             PACKAGES=$(echo $CHANGES | grep ^packages | cut -d'/' -f2 | uniq)
           fi
           if [[ $PACKAGES ]]; then
+            UNIT=()
+            PEBBLE=()
+            JUJU=()
+            for package in $PACKAGES; do
+              if [[ -d "packages/$package/tests/unit" ]]; then
+                UNIT+=("$package")
+              fi
+              if [[ -d "packages/$package/tests/integration/pebble" ]]; then
+                PEBBLE+=("$package")
+              fi
+              if [[ -d "packages/$package/tests/integration/juju" ]]; then
+                JUJU+=("$package")
+              fi
+            done
             JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo $JSON
+            echo "changed=$JSON"
             echo "changed=$JSON" >> "$GITHUB_OUTPUT"
+            JSON=$(echo ${UNIT[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo "unit=$JSON"
+            echo "unit=$JSON" >> "$GITHUB_OUTPUT"
+            JSON=$(echo ${PEBBLE[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo "pebble=$JSON"
+            echo "pebble=$JSON" >> "$GITHUB_OUTPUT"
+            JSON=$(echo ${JUJU[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+            echo "juju=$JSON"
+            echo "juju=$JSON" >> "$GITHUB_OUTPUT"
           else
             echo 'No packages changed, tests will be skipped.'
             echo 'changed=[]' >> "$GITHUB_OUTPUT"
+            echo 'unit=[]' >> "$GITHUB_OUTPUT"
+            echo 'pebble=[]' >> "$GITHUB_OUTPUT"
+            echo 'juju=[]' >> "$GITHUB_OUTPUT"
           fi
 
   lint:
@@ -75,7 +104,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.packages.outputs.changed) }}
+        package: ${{ fromJson(needs.packages.outputs.unit) }}
         python-version: [
           '3.8',  # oldest supported by Ops
           '3.12',  # latest Ubuntu LTS
@@ -87,8 +116,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Run ${{ matrix.just-recipe }} tests
-        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} static
+      - name: Run unit tests
+        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} unit
 
   pebble:
     needs: packages
@@ -96,7 +125,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.packages.outputs.changed) }}
+        package: ${{ fromJson(needs.packages.outputs.pebble) }}
         pebble-version: [
           'v1.1.1',  # Juju 2.9.50 LTS
           # 'v1.7.4',  # Juju 3.4.6
@@ -143,7 +172,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.packages.outputs.changed) }}
+        package: ${{ fromJson(needs.packages.outputs.juju) }}
         python-version: [
           '3.8',  # oldest supported by Ops
           '3.12',  # latest Ubuntu LTS
@@ -155,5 +184,5 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Run ${{ matrix.just-recipe }} tests
+      - name: Run Juju integration tests
         run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} juju
