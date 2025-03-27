@@ -62,44 +62,45 @@ static *args:
         pyright@{{_pyright_version}} --pythonversion={{python}} {{args}}
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
-unit +flags='-rA': (_coverage 'unit' 'unit' flags)
+unit +flags='-rA': (_coverage 'unit' '.' flags)
 
 [doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
-pebble +flags='-rA': (_coverage 'pebble' 'integration/pebble' flags)
+pebble +flags='-rA': (_coverage 'pebble' 'integration' flags)
 
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
-juju +flags='-rA': (_coverage 'juju' 'integration/juju' flags)
+juju +flags='-rA': (_coverage 'juju' 'integration' flags)
 
 [doc("Use uvx to install and run coverage for the specified package's tests.")]
-_coverage test_id test_subdir +flags='-rA':
+_coverage test_id test_subdir='.' +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
-    DATA_FILE={{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db
-    XML_FILE={{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml
-    HTML_DIR={{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}
     function coverage_cmd {
+        CMD="$1"
+        shift 1
         uvx \
             --python={{python}} \
             --with=pytest=={{_pytest_version}} \
             --with-editable='.' \
             coverage[toml]@{{_coverage_version}} \
+            "$CMD" \
+            --data-file='{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db' \
+            --rcfile=../../pyproject.toml \
             "$@"
     }
     cd packages/{{package}}
     mkdir --parents {{_coverage_dir}}  # parents also means it's ok if it exists
     coverage_cmd run \
-        --data-file=$DATA_FILE \
-        --rcfile=../../pyproject.toml \
         --source=src \
         -m pytest \
         -vv \
         {{flags}} \
         --tb=native \
-        tests/{{test_subdir}}
-    coverage_cmd xml --data-file=$DATA_FILE -o $XML_FILE
-    rm -rf $HTML_DIR  # coverage html doesn't overwrite explicitly passed --directory
-    coverage_cmd html --data-file=$DATA_FILE --show-contexts --directory=$HTML_DIR
-    coverage_cmd report --data-file=$DATA_FILE
+        tests/{{test_subdir}}/{{test_id}}
+    coverage_cmd xml -o '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml'
+    HTML_DIR='{{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}'
+    rm -rf "$HTML_DIR"  # let coverage create html directory from scratch
+    coverage_cmd html --show-contexts --directory="$HTML_DIR"
+    coverage_cmd report
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
@@ -136,15 +137,17 @@ pebble-local +flags='-rA':
 combine-coverage:
     #!/usr/bin/env bash
     set -xueo pipefail
-    DATA_FILE={{_coverage_dir}}/coverage-all-{{python}}.db
-    XML_FILE={{_coverage_dir}}/coverage-all-{{python}}.xml
-    HTML_DIR={{_coverage_dir}}/htmlcov-all-{{python}}
     function coverage_cmd {
+        CMD="$1"
+        shift 1
         uvx \
             --python={{python}} \
             --with=pytest=={{_pytest_version}} \
             --with-editable='.' \
             coverage[toml]@{{_coverage_version}} \
+            "$CMD" \
+            --data-file='{{_coverage_dir}}/coverage-all-{{python}}.db' \
+            --rcfile=../../pyproject.toml \
             "$@"
     }
     cd packages/{{package}}
@@ -157,7 +160,9 @@ combine-coverage:
         fi
     done
     # combine coverage
-    coverage_cmd combine --keep --data-file=$DATA_FILE "${data_files[@]}"
-    coverage_cmd xml --data-file=$DATA_FILE -o $XML_FILE
-    coverage_cmd html --data-file=$DATA_FILE --show-contexts  --directory=$HTML_DIR
-    coverage_cmd report  --data-file=$DATA_FILE
+    coverage_cmd combine --keep "${data_files[@]}"
+    coverage_cmd xml -o '{{_coverage_dir}}/coverage-all-{{python}}.xml'
+    HTML_DIR='{{_coverage_dir}}/htmlcov-all-{{python}}'
+    rm -rf "$HTML_DIR"  # let coverage create html directory from scratch
+    coverage_cmd html --show-contexts  --directory=$HTML_DIR
+    coverage_cmd report
