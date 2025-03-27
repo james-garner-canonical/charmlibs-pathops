@@ -54,9 +54,8 @@ class LocalPath(pathlib.PosixPath):
     ) -> int:
         """Write the provided data to the corresponding local filesystem path.
 
-        .. note::
-            Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
-            and ``group`` args. These are used to set the permissions and ownership of the file.
+        Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
+        and ``group`` args. These are used to set the permissions and ownership of the file.
 
         Args:
             data: The bytes to write, typically a :class:`bytes` object, but may also be a
@@ -95,9 +94,8 @@ class LocalPath(pathlib.PosixPath):
     ) -> int:
         """Write the provided string to the corresponding local filesystem path.
 
-        .. note::
-            Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
-            and ``group`` args. These are used to set the permissions and ownership of the file.
+        Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
+        and ``group`` args. These are used to set the permissions and ownership of the file.
 
         .. warning::
             :class:`ContainerPath` and :class:`PathProtocol` do not support the
@@ -144,10 +142,9 @@ class LocalPath(pathlib.PosixPath):
     ) -> None:
         """Create a new directory at the corresponding local filesystem path.
 
-        .. note::
-            Compared to :meth:`pathlib.Path.mkdir`, this method adds ``user`` and ``group`` args.
-            These are used to set the ownership of the created directory. Any created parents
-            will not have their ownership set.
+        Compared to :meth:`pathlib.Path.mkdir`, this method adds ``user`` and ``group`` args.
+        These are used to set the ownership of the created directory. Any created parents
+        will not have their ownership set.
 
         Args:
             mode: The permissions to set on the created directory. Any parents created will have
