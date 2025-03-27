@@ -77,14 +77,7 @@ class ContainerPath:
         return hash((self._container.name, self._path))
 
     def __repr__(self) -> str:
-        """Return a string representation including the class, path string, and container name.
-
-        ::
-
-            container = self.unit.get_container('c')
-            repr(ContainerPath('/', 'foo', 'bar', container=container))
-            # "ContainerPath('/foo/bar', container=<ops.Container 'c'>)"
-        """
+        """Return a string representation including the class, path string, and container name."""
         container_repr = f'<ops.Container {self._container.name!r}>'
         return f"{type(self).__name__}('{self._path}', container={container_repr})"
 
