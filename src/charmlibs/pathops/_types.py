@@ -60,10 +60,10 @@ class PathProtocol(typing.Protocol):
 
     # comparison methods
     def __lt__(self, other: Self) -> bool:
-        """Comparison methods (besides equality) are only implemented for objects of the same type.
+        r"""Comparison methods (besides equality) are only implemented for objects of the same type.
 
         Specifically, :class:`ContainerPath` objects are not comparable to other types of objects,
-        nor to :class:`ContainerPath`s on different containers.
+        nor to :class:`ContainerPath`\s on different containers.
         """
         ...
 
@@ -128,12 +128,10 @@ class PathProtocol(typing.Protocol):
         path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
 
         .. warning::
-            Python 3.12's :class:`pathlib.Path` adds the ``case_sensitive`` keyword argument
-            (default False), which is not part of this protocol. The default behaviour is always
-            case-insensitive matching.
-
-        .. note::
             :class:`ContainerPath` only matches against its path, the container is not considered.
+
+            Python 3.12's :class:`pathlib.Path` adds the ``case_sensitive`` keyword argument,
+            which is not part of this protocol. Matching is always case-sensitive.
         """
         ...
 
