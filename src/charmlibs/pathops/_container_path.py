@@ -30,7 +30,7 @@ if typing.TYPE_CHECKING:
     import os
     from typing import Generator, Literal
 
-    from typing_extensions import Self
+    from typing_extensions import Self, TypeGuard
 
 
 class RelativePathError(ValueError):
@@ -93,62 +93,39 @@ class ContainerPath:
         """Return the string representation of the path in the container."""
         return self._path.__str__()
 
-    def __lt__(self, other: Self) -> bool:
-        """Compare paths only if other is a ContainerPath on the same container.
-
-        To sort collections of mixed paths, consider using :class:`str` as the key to sort
-        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
-        and thirdly by container name.
-        """
+    def __lt__(self, other: Self) -> bool:  # docstring is copied to other comparison methods
+        """Compare paths only if other is a :class:`ContainerPath` on the same container."""
         if not self._can_compare(other):
             return NotImplemented
         return self._path < other._path
 
-    def __le__(self, other: Self) -> bool:
-        """Compare paths only if other is a ContainerPath on the same container.
-
-        To sort collections of mixed paths, consider using :class:`str` as the key to sort
-        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
-        and thirdly by container name.
-        """
+    def __le__(self, other: Self) -> bool:  # __lt__.__doc__ assigned as docstring below
         if not self._can_compare(other):
             return NotImplemented
         return self._path <= other._path
 
-    def __gt__(self, other: Self) -> bool:
-        """Compare paths only if other is a ContainerPath on the same container.
+    __le__.__doc__ = __lt__.__doc__
 
-        To sort collections of mixed paths, consider using :class:`str` as the key to sort
-        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
-        and thirdly by container name.
-        """
+    def __gt__(self, other: Self) -> bool:  # __lt__.__doc__ assigned as docstring below
         if not self._can_compare(other):
             return NotImplemented
         return self._path > other._path
 
-    def __ge__(self, other: Self) -> bool:
-        """Compare paths only if other is a ContainerPath on the same container.
+    __gt__.__doc__ = __lt__.__doc__
 
-        To sort collections of mixed paths, consider using the :func:`str` as the key to sort
-        purely by the path, or :func:`repr` to sort primarily by path class, secondarily by path,
-        and thirdly by container name.
-        """
+    def __ge__(self, other: Self) -> bool:  # __lt__.__doc__ assigned as docstring below
         if not self._can_compare(other):
             return NotImplemented
         return self._path >= other._path
 
-    def _can_compare(self, other: object) -> bool:
+    __ge__.__doc__ = __lt__.__doc__
+
+    def _can_compare(self, other: object) -> TypeGuard[Self]:
         return isinstance(other, ContainerPath) and other._container.name == self._container.name
 
     def __eq__(self, other: object, /) -> bool:
-        """Compare paths if other is a ContainerPath on the same container, else return False.
-
-        To explicitly compare paths, consider using :class:`str` to get the canonical path string,
-        or create a :class:`ContainerPath` with the same container using :meth:`with_segments`.
-        """
-        if not isinstance(other, ContainerPath) or self._container.name != other._container.name:
-            return False
-        return self._path == other._path
+        """Compare paths if other is a ContainerPath on the same container, else return False."""
+        return self._can_compare(other) and self._path == other._path
 
     def __truediv__(self, key: str | os.PathLike[str]) -> Self:
         """Return a new ContainerPath with the same container and the joined path.
