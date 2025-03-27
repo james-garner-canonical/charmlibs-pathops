@@ -151,14 +151,9 @@ class ContainerPath:
     def match(self, path_pattern: str) -> bool:
         """Return whether this path matches the given pattern.
 
-        If the pattern is relative, matching is done from the right; otherwise, the entire
-        path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
-
-        .. warning::
-            :class:`ContainerPath` only matches against its path, the container is not considered.
-
-            Python 3.12's :class:`pathlib.Path` adds the ``case_sensitive`` keyword argument,
-            which is not part of this protocol. Matching is always case-sensitive.
+        If the pattern is relative, matching is done from the right; otherwise, the entire path is
+        matched. The recursive wildcard ``'**'`` is **not** supported by this method. Matching is
+        always case-sensitive. Only the path is matched against, the container is not considered.
         """
         return self._path.match(path_pattern)
 
@@ -265,9 +260,8 @@ class ContainerPath:
     def read_text(self, *, newline: str | None = None) -> str:
         r"""Read a remote file as text and return the contents as a string.
 
-        .. note::
-            Compared to pathlib.Path.read_text, this method drops the encoding and errors args.
-            The encoding is assumed to be UTF-8, and any errors encountered will be raised.
+        Compared to pathlib.Path.read_text, this method drops the encoding and errors args.
+        The encoding is assumed to be UTF-8, and any errors encountered will be raised.
 
         Args:
             newline: if ``None`` (default), all newlines ``('\r\n', '\r', '\n')`` are replaced
@@ -323,10 +317,9 @@ class ContainerPath:
         There are no guarantees about the order of the children. The special entries
         ``'.'`` and ``'..'`` are not included.
 
-        .. note::
-            :class:`NotADirectoryError` is raised (if appropriate) when ``iterdir()`` is called.
-            This follows the behaviour of :meth:`pathlib.Path.iterdir` in Python 3.13+.
-            Previous versions deferred the error until the generator was consumed.
+        :class:`NotADirectoryError` is raised (if appropriate) when ``iterdir()`` is called.
+        This follows the behaviour of :meth:`pathlib.Path.iterdir` in Python 3.13+.
+        Previous versions deferred the error until the generator was consumed.
 
         Raises:
             FileNotFoundError: If this path does not exist.
@@ -350,8 +343,8 @@ class ContainerPath:
             Recursive matching using the ``'**'`` pattern is not supported.
 
         Args:
-            pattern: The :class:`str` or :class:`os.PathLike` pattern to match against.
-                The pattern must be relative, meaning it cannot begin with ``'/'``.
+            pattern: The pattern must be relative, meaning it cannot begin with ``'/'``.
+                Matching is case-sensitive.
 
         Returns:
             A generator yielding :class:`ContainerPath` objects, corresponding to those of its
@@ -554,9 +547,8 @@ class ContainerPath:
         """Write the provided string to the corresponding path in the remote container.
 
         Compared to :meth:`pathlib.Path.write_text`, this method drops the ``encoding`` and
-        ``errors`` args to simplify the API. The Python 3.10+ ``newline`` argument is not
-        implemented. The args ``mode``, ``user`` and ``group`` are added, and are forwarded
-        to Pebble, which sets these on file creation.
+        ``errors`` args to simplify the API. The args ``mode``, ``user`` and ``group`` are added,
+        and are forwarded to Pebble, which sets these on file creation.
 
         Args:
             data: The string to write. Will be encoded to :class:`bytes` in memory as UTF-8,

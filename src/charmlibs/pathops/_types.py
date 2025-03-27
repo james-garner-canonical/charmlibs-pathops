@@ -110,17 +110,13 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
+    # NOTE: Not supported -- (Python 3.12) ``case_sensitive`` keyword argument
     def match(self, path_pattern: str) -> bool:
         """Return whether this path matches the given pattern.
 
-        If the pattern is relative, matching is done from the right; otherwise, the entire
-        path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
-
-        .. warning::
-            :class:`ContainerPath` only matches against its path, the container is not considered.
-
-            Python 3.12's :class:`pathlib.Path` adds the ``case_sensitive`` keyword argument,
-            which is not part of this protocol. Matching is always case-sensitive.
+        If the pattern is relative, matching is done from the right; otherwise, the entire path is
+        matched. The recursive wildcard ``'**'`` is **not** supported by this method. Matching is
+        always case-sensitive.
         """
         ...
 
@@ -212,13 +208,12 @@ class PathProtocol(typing.Protocol):
     # protocol Path methods #
     #########################
 
+    # NOTE: Not supported -- (Python 3.13) ``newline`` argument
     def read_text(self) -> str:
         """Read the corresponding local or remote filesystem path and return the string contents.
 
-        .. note::
-            Compared to :meth:`pathlib.Path.read_text`, this method drops the ``encoding`` and
-            ``errors`` args to simplify the API. The Python 3.13+ ``newline`` argument is also not
-            required by this protocol.
+        Compared to :meth:`pathlib.Path.read_text`, this method drops the ``encoding`` and
+        ``errors`` args to simplify the API.
 
         Returns:
             The UTF-8 decoded contents of the file as a :class:`str`.
@@ -258,6 +253,9 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
+    # NOTE: Not supported -- (Python 3.12) ``case_sensitive`` argument
+    # NOTE: Not supported -- (Python 3.13) ``pattern`` can be path-like
+    # NOTE: Not supported -- (Python 3.13) ``recurse_symlinks``
     def glob(self, pattern: str) -> Generator[Self]:
         r"""Iterate over this directory and yield all paths matching the provided pattern.
 
@@ -268,7 +266,8 @@ class PathProtocol(typing.Protocol):
             :meth:`ContainerPath.glob`.
 
         Args:
-            pattern: to match against. Must be relative, meaning it cannot begin with ``'/'``.
+            pattern: Must be relative, meaning it cannot begin with ``'/'``.
+                Matching is case-sensitive.
 
         Returns:
             A generator yielding objects of the same type as this path, corresponding to those
@@ -282,18 +281,6 @@ class PathProtocol(typing.Protocol):
             PermissionError: If the local or remote user does not have appropriate permissions.
             ValueError: If the pattern is invalid.
             PebbleConnectionError: If the remote container cannot be reached.
-
-        .. note::
-            In Python 3.13, :meth:`pathlib.Path.glob` added support for ``pattern`` to be an
-            :class:`os.PathLike`\[:class:`str`] instead of just a :class:`str`. This is not
-            required by this protocol.
-
-            The ``case_sensitive`` argument, added in Python 3.12, is also not required -- the
-            default behaviour is case-sensitive matching.
-
-            The ``recurse_symlinks`` argument, added in Python 3.13, is also not required,
-            and is not supported by :meth:`ContainerPath.glob`, which does not support recursive
-            matching.
         """
         ...
 
@@ -315,46 +302,34 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
+    # NOTE: Not supported -- (Python 3.12) ``follow_symlinks`` argument (default=True)
     def exists(self) -> bool:
         """Whether this path exists.
 
         Will follow symlinks to determine if the symlink target exists. This means that this
         method will return ``False`` for a broken symlink.
 
-        .. note::
-            In Python 3.12, :class:`pathlib.Path.exists` added the ``follow_symlinks`` argument,
-            defaulting to ``True``. This is not required by this protocol, and is unsupported by
-            :class:`ContainerPath.exists` due to current Pebble limitations.
-
         Raises:
             PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
+    # NOTE: Not supported -- (Python 3.13) ``follow_symlinks`` argument (default=True)
     def is_dir(self) -> bool:
         """Whether this path exists and is a directory.
 
         Will follow symlinks to determine if the symlink target exists and is a directory.
 
-        .. note::
-            In Python 3.13, :class:`pathlib.Path.is_dir` added the ``follow_symlinks`` argument,
-            defaulting to ``True``. This is not required by this protocol, and is unsupported by
-            :class:`ContainerPath.is_dir` due to current Pebble limitations.
-
         Raises:
             PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
+    # NOTE: Not supported -- (Python 3.13) ``follow_symlinks`` argument (default=True)
     def is_file(self) -> bool:
         """Whether this path exists and is a regular file.
 
         Will follow symlinks to determine if the symlink target exists and is a regular file.
-
-        .. note::
-            In Python 3.13, :class:`pathlib.Path.is_file` added the ``follow_symlinks`` argument,
-            defaulting to ``True``. This is not required by this protocol, and is unsupported by
-            :class:`ContainerPath.is_file` due to current Pebble limitations.
 
         Raises:
             PebbleConnectionError: If the remote container cannot be reached.
@@ -417,6 +392,7 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
+    # NOTE: Not supported -- (Python 3.10) ``newline`` argument
     def write_text(
         self,
         data: str,
@@ -428,9 +404,8 @@ class PathProtocol(typing.Protocol):
         """Write the provided string to the corresponding path.
 
         Compared to :meth:`pathlib.Path.write_text`, this method drops the ``encoding`` and
-        ``errors`` args to simplify the API. The Python 3.10+ ``newline`` argument is also not
-        required by this protocol. This method adds ``mode``, ``user`` and ``group`` args,
-        which are set on file creation.
+        ``errors`` args to simplify the API. This method adds ``mode``, ``user`` and ``group``
+        args, which are set on file creation.
 
         Args:
             data: The string to write. Newlines are not modified on writing.
