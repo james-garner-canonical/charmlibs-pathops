@@ -20,10 +20,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Collect changed packages and which tests they have
+      - name: Collect changed packages and record which test suites they have
         id: packages
         run: |
-          set -xueo pipefail
+          set -ueo pipefail
           CHANGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }})
           GLOBAL=$(echo $CHANGES | grep -e ^pyproject.toml -e ^justfile -e ^.github)
           if [[ -n "$GLOBAL" ]]; then
@@ -35,15 +35,28 @@ jobs:
           fi
           if [[ -z "$PACKAGES" ]]; then
             echo 'No packages changed, tests will be skipped.'
-            echo 'changed=[]' >> "$GITHUB_OUTPUT"
-            echo 'unit=[]' >> "$GITHUB_OUTPUT"
-            echo 'pebble=[]' >> "$GITHUB_OUTPUT"
-            echo 'juju=[]' >> "$GITHUB_OUTPUT"
+            {
+              echo 'changed=[]'
+              echo 'unit=[]'
+              echo 'pebble=[]'
+              echo 'juju=[]'
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-          echo "changed=$JSON"
-          echo "changed=$JSON" >> "$GITHUB_OUTPUT"
+          function set_output {
+            NAME=$1
+            RAW=$2
+            if [[ -z "$RAW" ]]; then
+            OUT = "$NAME=[]"
+              echo "$NAME=[]" >> "$GITHUB_OUTPUT"
+            else
+              JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+              OUT="$NAME=$JSON"
+            fi
+            echo "$OUT"
+            echo "$OUT" >> "$GITHUB_OUTPUT"
+          }
+          set_output changed "$PACKAGES"
           UNIT=()
           PEBBLE=()
           JUJU=()
@@ -58,13 +71,7 @@ jobs:
               JUJU+=("$package")
             fi
           done
-          if [[ ${#UNIT[@]} -eq 0 ]]; then
-            echo "unit=[]" >> "$GITHUB_OUTPUT"
-          else
-            JSON=$(echo ${UNIT[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo "unit=$JSON"
-            echo "unit=$JSON" >> "$GITHUB_OUTPUT"
-          fi
+          set_output unit "${UNIT[@]}"
           if [[ ${#PEBBLE[@]} -eq 0 ]]; then
             echo "pebble=[]" >> "$GITHUB_OUTPUT"
           else
