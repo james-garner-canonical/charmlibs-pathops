@@ -65,6 +65,9 @@ unit +flags='-rA': (_coverage 'unit' 'unit' flags)
 [doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
 pebble +flags='-rA': (_coverage 'pebble' 'integration/pebble' flags)
 
+[doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
+juju +flags='-rA': (_coverage 'juju' 'integration/juju' flags)
+
 [doc("Use uvx to install and run coverage for the specified package's tests.")]
 _coverage test_id test_subdir +flags='-rA':
     #!/usr/bin/env bash
