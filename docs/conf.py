@@ -373,16 +373,25 @@ autodoc_default_options = {
     'members': None,  # None here means "yes"
     'special-members': None,  # meaning all
     'exclude-members': (
+        '__annotations__,'
         '__abstractmethods__,'
         '__dict__,'
+        '__hash__,'
         '__init__,'
         '__module__,'
         '__parameters__,'
-        '__repr__,'
+        '__protocol_attrs__,'
         '__subclasshook__,'
         '__weakref__,'
-        '__annotations__,'
-        '__protocol_attrs__,'
+        # string methods
+        '__repr__,'
+        '__str__',
+        # comparison methods
+        '__eq__,'
+        '__ge__,'
+        '__gt__,'
+        '__le__,'
+        '__lt__,'
     ),
     'undoc-members': None,
     'show-inheritance': None,

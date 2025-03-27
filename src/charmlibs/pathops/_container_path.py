@@ -51,6 +51,15 @@ class ContainerPath:
         ContainerPath(pathlib.Path('/foo'), container=container)
         ContainerPath('/', 'foo', container=container)
 
+    :class:`str` follows the :mod:`pathlib` convention and returns the string representation of
+    the path. :class:`ContainerPath` return the string representation of the path in the remote
+    filesystem. The string representation is suitable for use with system calls (on the correct
+    local or remote system) and Pebble layers.
+
+    Comparison methods compare by path. A :class:`ContainerPath` is only comparable to another
+    object if it is also a :class:`ContainerPath` on the same :class:`ops.Container`. If this is
+    not the case, then equality is ``False`` and other comparisons are :class:`NotImplemented`.
+
     Args:
         \*parts: components of the path, like :class:`pathlib.Path` constructor.
         container: used to communicate with the workload container. Required.
@@ -58,10 +67,6 @@ class ContainerPath:
 
     Raises:
         RelativePathError: If instantiated with a relative path.
-
-    Comparison methods compare by path. A :class:`ContainerPath` is only comparable to another
-    object if it is also a :class:`ContainerPath` on the same :class:`ops.Container`. If this is
-    not the case, then equality is ``False`` and other comparisons are :class:`NotImplemented`.
     """
 
     def __init__(self, *parts: str | os.PathLike[str], container: ops.Container) -> None:

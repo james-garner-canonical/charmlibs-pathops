@@ -48,11 +48,16 @@ class PathProtocol(typing.Protocol):
                 arg if isinstance(arg, ContainerPath) else LocalPath(arg)
             )
 
-    Protocol implementers must be hashable.
+    :class:`str` follows the :mod:`pathlib` convention and returns the string representation of
+    the path. :class:`ContainerPath` return the string representation of the path in the remote
+    filesystem. The string representation is suitable for use with system calls (on the correct
+    local or remote system) and Pebble layers.
 
     Comparison methods compare by path. A :class:`ContainerPath` is only comparable to another
     object if it is also a :class:`ContainerPath` on the same :class:`ops.Container`. If this is
     not the case, then equality is ``False`` and other comparisons are :class:`NotImplemented`.
+
+    Protocol implementers are hashable.
     """
 
     #############################
@@ -83,20 +88,17 @@ class PathProtocol(typing.Protocol):
         """
         ...
 
-    def __str__(self) -> str:
+    def __str__(self) -> str: ...
+
+    def as_posix(self) -> str:
         """Return the string representation of the path.
 
         Exactly like :class:`pathlib.Path` for local paths. Following this convention,
         remote filesystem paths such as :class:`ContainerPath` return the string representation
         of the path in the remote filesystem. The string representation is suitable for
         use with system calls (on the correct local or remote system) and Pebble layers.
-        """
-        ...
 
-    def as_posix(self) -> str:
-        """Return the string representation of the path.
-
-        Identical to :meth:`__str__`, since we only support posix systems.
+        Identical to :class:`str`, since we only support posix systems.
         """
         ...
 
