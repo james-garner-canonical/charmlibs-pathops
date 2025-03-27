@@ -47,24 +47,22 @@ class PathProtocol(typing.Protocol):
             path: PathProtocol = (
                 arg if isinstance(arg, ContainerPath) else LocalPath(arg)
             )
+
+    Protocol implementers must be hashable.
+
+    Comparison methods compare by path. A :class:`ContainerPath` is only comparable to another
+    object if it is also a :class:`ContainerPath` on the same :class:`ops.Container`. If this is
+    not the case, then equality is ``False`` and other comparisons are :class:`NotImplemented`.
     """
 
     #############################
     # protocol PurePath methods #
     #############################
 
-    def __hash__(self) -> int:
-        """Protocol implementers are hashable."""
-        ...
+    def __hash__(self) -> int: ...
 
     # comparison methods
-    def __lt__(self, other: Self) -> bool:
-        r"""Comparison methods (besides equality) are only implemented for objects of the same type.
-
-        Specifically, :class:`ContainerPath` objects are not comparable to other types of objects,
-        nor to :class:`ContainerPath`\s on different containers.
-        """
-        ...
+    def __lt__(self, other: Self) -> bool: ...
 
     def __le__(self, other: Self) -> bool: ...
 
@@ -72,17 +70,7 @@ class PathProtocol(typing.Protocol):
 
     def __ge__(self, other: Self) -> bool: ...
 
-    __le__.__doc__ = __lt__.__doc__
-    __gt__.__doc__ = __lt__.__doc__
-    __ge__.__doc__ = __lt__.__doc__
-
-    def __eq__(self, other: object, /) -> bool:
-        """Like all objects, equality testing is supported.
-
-        However, :class:`ContainerPath` objects will compare inequal with all local filesystem
-        paths, as well as all paths in different containers.
-        """
-        ...
+    def __eq__(self, other: object, /) -> bool: ...
 
     def __truediv__(self, key: str | os.PathLike[str]) -> Self:
         """Return a new instance of the same type, with the other operand appended to its path.
@@ -278,8 +266,7 @@ class PathProtocol(typing.Protocol):
             :meth:`ContainerPath.glob`.
 
         Args:
-            pattern: The string pattern to match against. It must be a relative pattern, that is
-                it cannot begin with ``'/'``.
+            pattern: to match against. Must be relative, meaning it cannot begin with ``'/'``.
 
         Returns:
             A generator yielding objects of the same type as this path, corresponding to those
@@ -300,7 +287,7 @@ class PathProtocol(typing.Protocol):
             required by this protocol.
 
             The ``case_sensitive`` argument, added in Python 3.12, is also not required -- the
-            default behaviour is case-insensitive matching.
+            default behaviour is case-sensitive matching.
 
             The ``recurse_symlinks`` argument, added in Python 3.13, is also not required,
             and is not supported by :meth:`ContainerPath.glob`, which does not support recursive

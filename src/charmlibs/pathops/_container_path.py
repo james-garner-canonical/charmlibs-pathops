@@ -58,6 +58,10 @@ class ContainerPath:
 
     Raises:
         RelativePathError: If instantiated with a relative path.
+
+    Comparison methods compare by path. A :class:`ContainerPath` is only comparable to another
+    object if it is also a :class:`ContainerPath` on the same :class:`ops.Container`. If this is
+    not the case, then equality is ``False`` and other comparisons are :class:`NotImplemented`.
     """
 
     def __init__(self, *parts: str | os.PathLike[str], container: ops.Container) -> None:
@@ -93,39 +97,31 @@ class ContainerPath:
         """Return the string representation of the path in the container."""
         return self._path.__str__()
 
-    def __lt__(self, other: Self) -> bool:  # docstring is copied to other comparison methods
-        """Compare paths only if other is a :class:`ContainerPath` on the same container."""
+    def __lt__(self, other: Self) -> bool:
         if not self._can_compare(other):
             return NotImplemented
         return self._path < other._path
 
-    def __le__(self, other: Self) -> bool:  # __lt__.__doc__ assigned as docstring below
+    def __le__(self, other: Self) -> bool:
         if not self._can_compare(other):
             return NotImplemented
         return self._path <= other._path
 
-    __le__.__doc__ = __lt__.__doc__
-
-    def __gt__(self, other: Self) -> bool:  # __lt__.__doc__ assigned as docstring below
+    def __gt__(self, other: Self) -> bool:
         if not self._can_compare(other):
             return NotImplemented
         return self._path > other._path
 
-    __gt__.__doc__ = __lt__.__doc__
-
-    def __ge__(self, other: Self) -> bool:  # __lt__.__doc__ assigned as docstring below
+    def __ge__(self, other: Self) -> bool:
         if not self._can_compare(other):
             return NotImplemented
         return self._path >= other._path
 
-    __ge__.__doc__ = __lt__.__doc__
+    def __eq__(self, other: object, /) -> bool:
+        return self._can_compare(other) and self._path == other._path
 
     def _can_compare(self, other: object) -> TypeGuard[Self]:
         return isinstance(other, ContainerPath) and other._container.name == self._container.name
-
-    def __eq__(self, other: object, /) -> bool:
-        """Compare paths if other is a ContainerPath on the same container, else return False."""
-        return self._can_compare(other) and self._path == other._path
 
     def __truediv__(self, key: str | os.PathLike[str]) -> Self:
         """Return a new ContainerPath with the same container and the joined path.
