@@ -73,6 +73,7 @@ juju +flags='-rA': (_coverage 'juju' 'integration/juju' flags)
 [doc("Use uvx to install and run coverage for the specified package's tests.")]
 _coverage test_id test_subdir +flags='-rA':
     #!/usr/bin/env bash
+    set -xueo pipefail
     DATA_FILE={{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db
     XML_FILE={{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml
     HTML_DIR={{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}
@@ -84,7 +85,6 @@ _coverage test_id test_subdir +flags='-rA':
             coverage[toml]@{{_coverage_version}} \
             "$@"
     }
-    set -xueo pipefail
     cd packages/{{package}}
     mkdir --parents {{_coverage_dir}}  # parents also means it's ok if it exists
     coverage_cmd run \
@@ -106,36 +106,36 @@ pebble-local +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
     mkdir --parents {{_pebble_dir}}  # parents also means it's ok if it exists
-    # start pebble
     if [ ! -e '{{_pebble_dir}}/pebble.pid' ]; then
-        # run pebble in background, redirecting its output to /dev/null, and write its pid to a file
+        : 'Run pebble in background, redirecting its output to /dev/null, and write its pid to a file.'
         bash -c 'PEBBLE={{_pebble_dir}} pebble run --create-dirs &>/dev/null & echo -n $! > {{_pebble_dir}}/pebble.pid'
         sleep 1
-        cleanup=true
+        CLEANUP=true
     else
-        cleanup=false
-        echo 'Skipped running pebble as {{_pebble_dir}}/pebble.pid already exists.'
+        : 'Skipped running pebble as {{_pebble_dir}}/pebble.pid already exists.'
+        CLEANUP=false
     fi
-    # run tests
+    : 'Run pebble integration tests.'
     set +e  # disable exiting if a command fails, so we don't exit if the tests fail
     env PEBBLE={{_pebble_dir}} just \
         --justfile '{{justfile()}}' \
         package='{{package}}' \
         python='{{python}}' \
         pebble {{flags}}
-    exit_code=$?
-    # cleanup pebble
+    EXIT=$?
     set -e  # re-enable exiting if a command fails
-    if $cleanup; then
+    if $CLEANUP; then
+        : 'Cleanup pebble.'
         sleep 1
         bash -c 'kill $(<{{_pebble_dir}}/pebble.pid)'  # kill the pebble that we started
         rm {{_pebble_dir}}/pebble.pid
     fi
-    exit $exit_code
+    exit $EXIT
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
 combine-coverage:
     #!/usr/bin/env bash
+    set -xueo pipefail
     DATA_FILE={{_coverage_dir}}/coverage-all-{{python}}.db
     XML_FILE={{_coverage_dir}}/coverage-all-{{python}}.xml
     HTML_DIR={{_coverage_dir}}/htmlcov-all-{{python}}
@@ -147,9 +147,8 @@ combine-coverage:
             coverage[toml]@{{_coverage_version}} \
             "$@"
     }
-    set -xueo pipefail
     cd packages/{{package}}
-    # make an array of the coverage data files that exist for this package
+    : 'Collect the coverage data files that exist for this package.'
     data_files=()
     for test_id in unit pebble juju; do
         data_file={{_coverage_dir}}/coverage-$test_id-{{python}}.db
