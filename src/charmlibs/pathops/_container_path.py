@@ -150,7 +150,7 @@ class ContainerPath:
         return self._path.is_absolute()
 
     def match(self, path_pattern: str) -> bool:
-        """Return True if this path matches the given pattern.
+        """Return whether this path matches the given pattern.
 
         If the pattern is relative, matching is done from the right; otherwise, the entire
         path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
