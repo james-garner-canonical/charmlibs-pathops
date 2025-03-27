@@ -422,8 +422,8 @@ class ContainerPath:
     def exists(self) -> bool:
         """Whether this path exists.
 
-        Will follow symlinks to determine if the symlink target exists. This means that exists
-        will return False for a broken symlink.
+        Will follow symlinks to determine if the symlink target exists. This means that this
+        method will return ``False`` for a broken symlink.
 
         Raises:
             PebbleConnectionError: If the remote container cannot be reached.
