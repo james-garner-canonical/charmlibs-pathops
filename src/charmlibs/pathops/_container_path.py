@@ -45,6 +45,12 @@ class RelativePathError(ValueError):
 class ContainerPath:
     r"""Implementation of :class:`PathProtocol` for Pebble-based workload containers.
 
+    Example::
+
+        container = self.unit.get_container('c')
+        ContainerPath(pathlib.Path('/foo'), container=container)
+        ContainerPath('/', 'foo', container=container)
+
     Args:
         \*parts: components of the path, like :class:`pathlib.Path` constructor.
         container: used to communicate with the workload container. Required.
@@ -52,12 +58,6 @@ class ContainerPath:
 
     Raises:
         RelativePathError: If instantiated with a relative path.
-
-    ::
-
-        container = self.unit.get_container('c')
-        ContainerPath(pathlib.Path('/foo'), container=container)
-        ContainerPath('/', 'foo', container=container)
     """
 
     def __init__(self, *parts: str | os.PathLike[str], container: ops.Container) -> None:
