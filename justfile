@@ -1,10 +1,10 @@
 set ignore-comments  # don't print comment lines in recipes
 
-# prefix explanations
+# prefix explanations:
 # @ don't print line before execution
 # - continue even if the line fails
 
-# shell options explanation
+# shell options explanation:
 # e.g. set -xueo pipefail
 # x: print lines, exit on u: undefined var, e: cmd failure, o pipefail: even in a pipeline
 
@@ -35,16 +35,18 @@ help:
 
 [doc('Run `ruff` and `codespell`, failing if any errors are found.')]
 lint:
-    # Run ruff and suppress failures so output isn\'t truncated:
-    -uvx --python={{python}} ruff@{{_ruff_version}} check --preview --diff
-    -uvx --python={{python}} ruff@{{_ruff_version}} format --preview --diff
-    # Codespell may fail linting but will tell us all the spelling errors first.
+    #!/usr/bin/env bash
+    set -xu
+    EXIT=0
+    uvx --python={{python}} ruff@{{_ruff_version}} check --preview --diff
+    EXIT+=$?
+    uvx --python={{python}} ruff@{{_ruff_version}} format --preview --diff
+    EXIT+=$?
     uvx --python={{python}} codespell@{{_codespell_version}} \
         '{{justfile_directory()}}' \
         --toml='{{justfile_directory()}}/pyproject.toml'
-    # Run ruff again, allowing errors to fail linting:
-    uvx --python={{python}} ruff@{{_ruff_version}} check --preview
-    uvx --python={{python}} ruff@{{_ruff_version}} format --preview --check
+    EXIT+=$?
+    exit $EXIT
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format *args:
