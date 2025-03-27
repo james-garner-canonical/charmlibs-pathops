@@ -32,22 +32,21 @@ if typing.TYPE_CHECKING:
 class PathProtocol(typing.Protocol):
     """The protocol implemented by :class:`ContainerPath` and :class:`LocalPath`.
 
-    .. tip::
-        Use this class in type annotations where either :class:`ContainerPath` or
-        :class:`LocalPath` is acceptable. This will result in both correct type checking
-        and useful autocompletions.
+    Use this class in type annotations where either :class:`ContainerPath` or
+    :class:`LocalPath` is acceptable. This will result in both correct type checking
+    and useful autocompletions.
 
-        While using a union type will also give correct type checking results, it provides less
-        useful autocompletions, as most editors will autocomplete methods and attributes that *any*
-        of the union members have, rather than only those that *all* of the union members have.
+    While using a union type will also give correct type checking results, it provides less
+    useful autocompletions, as most editors will autocomplete methods and attributes that *any*
+    of the union members have, rather than only those that *all* of the union members have.
 
-        Consider using the following pattern if you don't want callers to have to wrap their
-        arguments with :class:`LocalPath`, but want to use :class:`PathProtocol` internally::
+    Consider using the following pattern if you don't want callers to have to wrap their
+    arguments with :class:`LocalPath`, but want to use :class:`PathProtocol` internally::
 
-            def fn(arg: str | os.PathLike[str] | ContainerPath):
-                path: PathProtocol = (
-                    arg if isinstance(arg, ContainerPath) else LocalPath(arg)
-                )
+        def fn(arg: str | os.PathLike[str] | ContainerPath):
+            path: PathProtocol = (
+                arg if isinstance(arg, ContainerPath) else LocalPath(arg)
+            )
     """
 
     #############################
