@@ -181,7 +181,7 @@ def test_is_absolute(container: ops.Container):
 
 class TestMatch:
     @pytest.mark.parametrize('path_str', ('/', '/foo', '/foo/bar.txt', '/foo/bar_txt'))
-    @pytest.mark.parametrize('pattern', ('', '*', '**/bar', '/foo/bar*', '*.txt'))
+    @pytest.mark.parametrize('pattern', ('', '*', '**/bar', '/foo/bar*', '*.txt', '/FoO/bAr.txt'))
     def test_ok(self, path_str: str, pattern: str, container: ops.Container):
         container_path = ContainerPath(path_str, container=container)
         pathlib_path = pathlib.Path(path_str)
@@ -192,6 +192,15 @@ class TestMatch:
                 container_path.match(pattern)
         else:
             assert container_path.match(pattern) == pathlib_result
+
+    def test_pattern_is_case_sensitive(self, container: ops.Container):
+        pattern = '/foo/bar.txt'
+        path = pathlib.Path(pattern)
+        assert path.match(pattern)
+        assert not path.match(pattern.upper())
+        container_path = ContainerPath(path, container=container)
+        assert container_path.match(pattern)
+        assert not container_path.match(pattern.upper())
 
     def test_pattern_cant_be_container_path(self, container: ops.Container):
         container_path = ContainerPath('/', container=container)

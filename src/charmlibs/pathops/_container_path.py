@@ -24,7 +24,7 @@ import typing
 import ops
 from ops import pebble
 
-from . import _constants, _errors, _fileinfo, _types
+from . import _constants, _errors, _fileinfo
 
 if typing.TYPE_CHECKING:
     import os
@@ -149,9 +149,18 @@ class ContainerPath:
         return self._path.is_absolute()
 
     def match(self, path_pattern: str) -> bool:
-        return self._path.match(path_pattern)
+        """Return True if this path matches the given pattern.
 
-    match.__doc__ = _types.PathProtocol.match.__doc__
+        If the pattern is relative, matching is done from the right; otherwise, the entire
+        path is matched. The recursive wildcard ``'**'`` is **not** supported by this method.
+
+        .. warning::
+            :class:`ContainerPath` only matches against its path, the container is not considered.
+
+            Python 3.12's :class:`pathlib.Path` adds the ``case_sensitive`` keyword argument,
+            which is not part of this protocol. Matching is always case-sensitive.
+        """
+        return self._path.match(path_pattern)
 
     def with_name(self, name: str) -> Self:
         """Return a new ContainerPath, with the same container, but with the path name replaced.
