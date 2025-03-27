@@ -227,7 +227,7 @@ class PathProtocol(typing.Protocol):
             FileNotFoundError: If this path does not exist.
             PermissionError: If the local or remote user does not have read permissions.
             UnicodeError: If the file's contents are not valid UTF-8.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -240,7 +240,7 @@ class PathProtocol(typing.Protocol):
         Raises:
             FileNotFoundError: If this path does not exist.
             PermissionError: If the local or remote user does not have read permissions.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -254,7 +254,7 @@ class PathProtocol(typing.Protocol):
             FileNotFoundError: If this path does not exist.
             NotADirectoryError: If this path is not a directory.
             PermissionError: If the local or remote user does not have appropriate permissions.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -281,7 +281,7 @@ class PathProtocol(typing.Protocol):
                 :class:`ContainerPath`) if it uses the ``'**'`` pattern.
             PermissionError: If the local or remote user does not have appropriate permissions.
             ValueError: If the pattern is invalid.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
 
         .. note::
             In Python 3.13, :meth:`pathlib.Path.glob` added support for ``pattern`` to be an
@@ -302,7 +302,7 @@ class PathProtocol(typing.Protocol):
 
         Raises:
             FileNotFoundError: If the path does not exist.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -311,7 +311,7 @@ class PathProtocol(typing.Protocol):
 
         Raises:
             FileNotFoundError: If the path does not exist.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -327,7 +327,7 @@ class PathProtocol(typing.Protocol):
             :class:`ContainerPath.exists` due to current Pebble limitations.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -342,7 +342,7 @@ class PathProtocol(typing.Protocol):
             :class:`ContainerPath.is_dir` due to current Pebble limitations.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -357,7 +357,7 @@ class PathProtocol(typing.Protocol):
             :class:`ContainerPath.is_file` due to current Pebble limitations.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -367,7 +367,7 @@ class PathProtocol(typing.Protocol):
         Will follow symlinks to determine if the symlink target exists and is a named pipe.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -377,7 +377,7 @@ class PathProtocol(typing.Protocol):
         Will follow symlinks to determine if the symlink target exists and is a socket.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         ...
 
@@ -414,7 +414,7 @@ class PathProtocol(typing.Protocol):
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the user does not have permissions for the operation.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         ...
 
@@ -449,7 +449,7 @@ class PathProtocol(typing.Protocol):
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the user does not have permissions for the operation.
             UnicodeError: if the provided data is not valid UTF-8.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         ...
 
@@ -487,7 +487,7 @@ class PathProtocol(typing.Protocol):
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the local user does not have permissions for the operation.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         ...
 

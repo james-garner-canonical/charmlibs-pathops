@@ -280,7 +280,7 @@ class ContainerPath:
             FileNotFoundError: if the parent directory does not exist.
             IsADirectoryError: if the target is a directory.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         text = self._pull(text=True)
         if newline is None:
@@ -297,7 +297,7 @@ class ContainerPath:
             FileNotFoundError: if the parent directory does not exist.
             IsADirectoryError: if the target is a directory.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         return self._pull(text=False)
 
@@ -332,7 +332,7 @@ class ContainerPath:
             FileNotFoundError: If this path does not exist.
             NotADirectoryError: If this path is not a directory.
             PermissionError: If the local or remote user does not have appropriate permissions.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         if info.type != pebble.FileType.DIRECTORY:
@@ -363,7 +363,7 @@ class ContainerPath:
             NotImplementedError: If pattern is an absolute path or it uses the ``'**'`` pattern.
             PermissionError: If the remote user does not have appropriate permissions.
             ValueError: If the pattern is invalid.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         return self._glob(pattern)
 
@@ -404,7 +404,7 @@ class ContainerPath:
 
         Raises:
             FileNotFoundError: If the path does not exist.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         return info.user or ''
@@ -414,7 +414,7 @@ class ContainerPath:
 
         Raises:
             FileNotFoundError: If the path does not exist.
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         info = _fileinfo.from_container_path(self)  # FileNotFoundError if path doesn't exist
         return info.group or ''
@@ -426,7 +426,7 @@ class ContainerPath:
         will return False for a broken symlink.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         return self._exists_and_matches(filetype=None)
 
@@ -436,7 +436,7 @@ class ContainerPath:
         Will follow symlinks to determine if the symlink target exists and is a directory.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         return self._exists_and_matches(pebble.FileType.DIRECTORY)
 
@@ -446,7 +446,7 @@ class ContainerPath:
         Will follow symlinks to determine if the symlink target exists and is a regular file.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         return self._exists_and_matches(pebble.FileType.FILE)
 
@@ -456,7 +456,7 @@ class ContainerPath:
         Will follow symlinks to determine if the symlink target exists and is a named pipe.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         return self._exists_and_matches(pebble.FileType.NAMED_PIPE)
 
@@ -466,7 +466,7 @@ class ContainerPath:
         Will follow symlinks to determine if the symlink target exists and is a socket.
 
         Raises:
-            ops.pebble.ConnectionError: If the remote container cannot be reached.
+            PebbleConnectionError: If the remote container cannot be reached.
         """
         return self._exists_and_matches(pebble.FileType.SOCKET)
 
@@ -521,7 +521,7 @@ class ContainerPath:
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         if isinstance(data, (bytearray, memoryview)):
             # TODO: update ops to correctly test for bytearray and memoryview in push
@@ -574,7 +574,7 @@ class ContainerPath:
             FileNotFoundError: if the parent directory does not exist.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the Pebble user does not have permissions for the operation.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         encoded_data = data.encode()
         return self.write_bytes(encoded_data, mode=mode, user=user, group=group)
@@ -613,7 +613,7 @@ class ContainerPath:
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the remote user does not have permissions for the operation.
-            ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+            PebbleConnectionError: if the remote Pebble client cannot be reached.
         """
         if parents and not exist_ok and self.exists():
             raise _errors.raise_file_exists(repr(self))

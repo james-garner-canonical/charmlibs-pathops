@@ -59,7 +59,7 @@ def ensure_contents(
         LookupError: if the user or group is unknown.
         NotADirectoryError: if the parent exists as a non-directory file.
         PermissionError: if the user does not have permissions for the operation.
-        ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
+        PebbleConnectionError: if the remote Pebble client cannot be reached.
     """
     if not isinstance(path, ContainerPath):  # most likely str or pathlib.Path
         path = LocalPath(path)
