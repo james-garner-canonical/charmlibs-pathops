@@ -24,30 +24,12 @@ jobs:
         id: packages
         run: |
           set -ueo pipefail
-          CHANGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }})
-          GLOBAL=$(echo $CHANGES | grep -e ^pyproject.toml -e ^justfile -e ^.github)
-          if [[ -n "$GLOBAL" ]]; then
-            echo 'Changes to repo level config files, running tests for all packages.'
-            PACKAGES=$(ls -1 packages/)
-          else
-            echo 'No changes to repo level config files, running tests for changed packages only.'
-            PACKAGES=$(echo $CHANGES | grep ^packages | cut -d'/' -f2 | uniq)
-          fi
-          if [[ -z "$PACKAGES" ]]; then
-            echo 'No packages changed, tests will be skipped.'
-            {
-              echo 'changed=[]'
-              echo 'unit=[]'
-              echo 'pebble=[]'
-              echo 'juju=[]'
-            } >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+
           function set_output {
             NAME=$1
             RAW=$2
             if [[ -z "$RAW" ]]; then
-            OUT = "$NAME=[]"
+              OUT = "$NAME=[]"
               echo "$NAME=[]" >> "$GITHUB_OUTPUT"
             else
               JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
@@ -56,7 +38,27 @@ jobs:
             echo "$OUT"
             echo "$OUT" >> "$GITHUB_OUTPUT"
           }
-          set_output changed "$PACKAGES"
+
+          CHANGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }})
+          GLOBAL=$(echo $CHANGES | grep -e ^pyproject.toml -e ^justfile -e ^.github)
+
+          if [[ -z "$GLOBAL" ]]; then
+            echo 'No changes to repo level config files, running tests for changed packages only.'
+            PACKAGES=$(echo $CHANGES | grep ^packages | cut -d'/' -f2 | uniq)
+          else
+            echo 'Changes to repo level config files, running tests for all packages.'
+            PACKAGES=$(ls -1 packages/)
+          fi
+
+          if [[ -z "$PACKAGES" ]]; then
+            echo 'No packages changed, tests will be skipped.'
+            set_output changed
+            set_output unit
+            set_output pebble
+            set_output juju
+            exit 0
+          fi
+
           UNIT=()
           PEBBLE=()
           JUJU=()
@@ -71,21 +73,10 @@ jobs:
               JUJU+=("$package")
             fi
           done
+          set_output changed "$PACKAGES"
           set_output unit "${UNIT[@]}"
-          if [[ ${#PEBBLE[@]} -eq 0 ]]; then
-            echo "pebble=[]" >> "$GITHUB_OUTPUT"
-          else
-            JSON=$(echo ${PEBBLE[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo "pebble=$JSON"
-            echo "pebble=$JSON" >> "$GITHUB_OUTPUT"
-          fi
-          if [[ ${#JUJU[@]} -eq 0 ]]; then
-            echo "juju=[]" >> "$GITHUB_OUTPUT"
-          else
-            JSON=$(echo ${JUJU[@]} | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-            echo "juju=$JSON"
-            echo "juju=$JSON" >> "$GITHUB_OUTPUT"
-          fi
+          set_output pebble "${PEBBLE[@]}"
+          set_output juju "${JUJU[@]}"
 
   lint:
     runs-on: ubuntu-latest
