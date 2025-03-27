@@ -129,7 +129,7 @@ class ContainerPath:
         return isinstance(other, ContainerPath) and other._container.name == self._container.name
 
     def __truediv__(self, key: str | os.PathLike[str]) -> Self:
-        """Return a new ContainerPath with the same container and the joined path.
+        """Return a new ``ContainerPath`` with the same container and the joined path.
 
         The joined path is equivalent to ``str(self) / pathlib.PurePath(key)``.
 
