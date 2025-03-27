@@ -103,7 +103,7 @@ class PathProtocol(typing.Protocol):
         ...
 
     def is_absolute(self) -> bool:
-        """Return True if the path is absolute (has a root).
+        """Return whether the path is absolute (has a root).
 
         .. note::
             Currently always ``True`` for :class:`ContainerPath`.

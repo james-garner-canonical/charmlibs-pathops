@@ -143,9 +143,8 @@ class ContainerPath:
     def is_absolute(self) -> bool:
         """Return True if the path is absolute (has a root), which is always the case.
 
-        .. note::
-            Always ``True``, since initialising a :class:`ContainerPath` with a non-absolute
-            path will result in a :class:`RelativePathError`.
+        Always ``True``, since initialising a :class:`ContainerPath` with a non-absolute
+        path will result in a :class:`RelativePathError`.
         """
         return self._path.is_absolute()
 
