@@ -108,7 +108,7 @@ class LocalPath(pathlib.PosixPath):
 
         Args:
             data: The string to write. Newlines are not modified on writing.
-            encoding: The encoding to use when writing the data, defaults to 'utf-8'.
+            encoding: The encoding to use when writing the data, defaults to 'UTF-8'.
             errors: 'strict' to raise any encoding errors, 'ignore' to ignore them.
                 Defaults to 'strict'.
             mode: The permissions to set on the file using :meth:`pathlib.PosixPath.chmod`.

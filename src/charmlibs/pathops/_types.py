@@ -221,12 +221,12 @@ class PathProtocol(typing.Protocol):
             required by this protocol.
 
         Returns:
-            The utf-8 decoded contents of the file as a :class:`str`.
+            The UTF-8 decoded contents of the file as a :class:`str`.
 
         Raises:
             FileNotFoundError: If this path does not exist.
             PermissionError: If the local or remote user does not have read permissions.
-            UnicodeError: If the file's contents are not valid utf-8.
+            UnicodeError: If the file's contents are not valid UTF-8.
             ops.pebble.ConnectionError: If the remote container cannot be reached.
         """
         ...
@@ -448,7 +448,7 @@ class PathProtocol(typing.Protocol):
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the user does not have permissions for the operation.
-            UnicodeError: if the provided data is not valid utf-8.
+            UnicodeError: if the provided data is not valid UTF-8.
             ops.pebble.ConnectionError: if the remote Pebble client cannot be reached.
         """
         ...

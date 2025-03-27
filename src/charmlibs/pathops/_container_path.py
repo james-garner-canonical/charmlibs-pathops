@@ -267,7 +267,7 @@ class ContainerPath:
 
         .. note::
             Compared to pathlib.Path.read_text, this method drops the encoding and errors args.
-            The encoding is assumed to be utf-8, and any errors encountered will be raised.
+            The encoding is assumed to be UTF-8, and any errors encountered will be raised.
 
         Args:
             newline: if ``None`` (default), all newlines ``('\r\n', '\r', '\n')`` are replaced
@@ -561,7 +561,7 @@ class ContainerPath:
             to Pebble, which sets these on file creation.
 
         Args:
-            data: The string to write. Will be encoded to :class:`bytes` in memory as utf-8,
+            data: The string to write. Will be encoded to :class:`bytes` in memory as UTF-8,
                 raising any errors. Newlines are not modified on writing.
             mode: The permissions to set on the file. Defaults to 0o644 (-rw-rw-r--).
             user: The name of the user to set for the file.
