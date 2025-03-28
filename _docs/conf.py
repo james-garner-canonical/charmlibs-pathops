@@ -3,7 +3,7 @@ import ast
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'src/charmlibs'))  # So that sphinx.ext.autodoc can find code.
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'pathops/src/charmlibs'))  # So that sphinx.ext.autodoc can find code.
 
 def setup(app):
     app.add_css_file('project_specific.css')
@@ -155,7 +155,7 @@ html_context = {
 
 
     # TODO: To customise the directory, uncomment and update as needed.
-    "repo_folder": "/docs/",
+    "repo_folder": "/_docs/",
     # TODO: To enable or disable the Previous / Next buttons at the bottom of pages
     # Valid options: none, prev, next, both
     # "sequential_nav": "both",
