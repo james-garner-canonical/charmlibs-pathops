@@ -119,7 +119,7 @@ skip = [
     ".ruff_cache",
     ".vscode",
     "build",
-    "docs",
+    "_docs",
     "htmlcov",
     "htmlcov-*",
     "venv",
