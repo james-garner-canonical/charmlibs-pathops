@@ -64,13 +64,13 @@ jobs:
           PEBBLE=()
           JUJU=()
           for package in $PACKAGES; do
-            if [[ -d "packages/$package/tests/unit" ]]; then
+            if [[ -d "$package/tests/unit" ]]; then
               UNIT+=("$package")
             fi
-            if [[ -d "packages/$package/tests/integration/pebble" ]]; then
+            if [[ -d "$package/tests/integration/pebble" ]]; then
               PEBBLE+=("$package")
             fi
-            if [[ -d "packages/$package/tests/integration/juju" ]]; then
+            if [[ -d "$package/tests/integration/juju" ]]; then
               JUJU+=("$package")
             fi
           done
