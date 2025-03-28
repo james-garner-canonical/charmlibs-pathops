@@ -57,7 +57,7 @@ format *args:
 static *args:
     #!/usr/bin/env bash
     set -xueo pipefail
-    cd packages/{{package}}
+    cd {{package}}
     uvx --with=pytest=={{_pytest_version}} --with-editable='.' \
         pyright@{{_pyright_version}} --pythonversion={{python}} {{args}}
 
@@ -84,10 +84,10 @@ _coverage test_id test_subdir='.' +flags='-rA':
             coverage[toml]@{{_coverage_version}} \
             "$CMD" \
             --data-file='{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db' \
-            --rcfile=../../pyproject.toml \
+            --rcfile='{{justfile_directory()}}/pyproject.toml' \
             "$@"
     }
-    cd packages/{{package}}
+    cd {{package}}
     mkdir --parents {{_coverage_dir}}  # parents also means it's ok if it exists
     coverage_cmd run \
         --source=src \
@@ -147,10 +147,10 @@ combine-coverage:
             coverage[toml]@{{_coverage_version}} \
             "$CMD" \
             --data-file='{{_coverage_dir}}/coverage-all-{{python}}.db' \
-            --rcfile=../../pyproject.toml \
+            --rcfile='{{justfile_directory()}}/pyproject.toml' \
             "$@"
     }
-    cd packages/{{package}}
+    cd {{package}}
     : 'Collect the coverage data files that exist for this package.'
     data_files=()
     for test_id in unit pebble juju; do
