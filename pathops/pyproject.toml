@@ -32,10 +32,10 @@ build-backend = "setuptools.build_meta"
 version = {file = ["src/charmlibs/pathops/_version.txt"]}
 
 [tool.ruff]
-extend = "../../pyproject.toml"
+extend = "../pyproject.toml"
 src = ["src", "tests/unit", "tests/integration/pebble"]  # correctly sort local imports in tests
 
 [tool.pyright]
-extend = "../../pyproject.toml"
+extend = "../pyproject.toml"
 include = ["src", "tests"]
 pythonVersion = "3.8"  # check no python > 3.8 features are used

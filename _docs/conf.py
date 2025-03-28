@@ -3,7 +3,7 @@ import ast
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'packages/pathops/src/charmlibs'))  # So that sphinx.ext.autodoc can find code.
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / 'pathops/src/charmlibs'))  # So that sphinx.ext.autodoc can find code.
 
 def setup(app):
     app.add_css_file('project_specific.css')

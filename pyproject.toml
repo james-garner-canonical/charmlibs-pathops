@@ -88,7 +88,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"packages/*/tests/*" = [
+"./*/tests/*" = [
     # All documentation linting.
     "D",
 
