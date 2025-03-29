@@ -165,34 +165,43 @@ _coverage test_id test_subdir='.' +flags='-rA':
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
-    #!/usr/bin/env bash
-    set -xueo pipefail
-    mkdir --parents {{_pebble_dir}}  # parents also means it's ok if it exists
-    if [ ! -e '{{_pebble_dir}}/pebble.pid' ]; then
-        : 'Run pebble in background, redirecting its output to /dev/null, and write its pid to a file.'
-        bash -c 'PEBBLE={{_pebble_dir}} pebble run --create-dirs &>/dev/null & echo -n $! > {{_pebble_dir}}/pebble.pid'
-        sleep 1
-        CLEANUP=true
-    else
-        : 'Skipped running pebble as {{_pebble_dir}}/pebble.pid already exists.'
-        CLEANUP=false
-    fi
-    : 'Run pebble integration tests.'
-    set +e  # disable exiting if a command fails, so we don't exit if the tests fail
-    env PEBBLE={{_pebble_dir}} just \
-        --justfile '{{justfile()}}' \
-        package='{{package}}' \
-        python='{{python}}' \
-        pebble {{flags}}
-    EXIT=$?
-    set -e  # re-enable exiting if a command fails
-    if $CLEANUP; then
-        : 'Cleanup pebble.'
-        sleep 1
-        bash -c 'kill $(<{{_pebble_dir}}/pebble.pid)'  # kill the pebble that we started
-        rm {{_pebble_dir}}/pebble.pid
-    fi
-    exit $EXIT
+    #!/usr/bin/env -S uv run --python={{python}} --script
+    import os
+    import pathlib
+    import subprocess
+    import sys
+    import time
+    from subprocess import DEVNULL
+
+    ENV = {**os.environ, 'PEBBLE': '{{_pebble_dir}}'}
+    pathlib.Path('{{_pebble_dir}}').mkdir(exist_ok=True)
+
+    print('Run pebble in background, redirecting its output to /dev/null, and write its pid to a file.')
+    pebble_cmd = ['pebble', 'run', '--create-dirs']
+    print(pebble_cmd)
+    pebble_result = subprocess.Popen(pebble_cmd, stdout=DEVNULL, stderr=DEVNULL, env=ENV)
+    pid = pebble_result.pid
+    print(f'Pebble PID: {pid}')
+    time.sleep(1)
+
+    just_cmd = [
+        'just',
+        '--justfile={{justfile()}}',
+        'package={{package}}',
+        'python={{python}}',
+        'pebble',
+        '{{flags}}',
+    ]
+    print(just_cmd)
+    result = subprocess.run(just_cmd, env=ENV, cwd='{{justfile_directory()}}')
+
+    print('Cleanup pebble.')
+    time.sleep(1)
+    cleanup_cmd = ['kill', str(pid)]
+    print(cleanup_cmd)
+    subprocess.run(cleanup_cmd)
+
+    sys.exit(result.returncode)
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
 combine-coverage:
