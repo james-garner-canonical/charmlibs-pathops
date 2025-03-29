@@ -42,7 +42,7 @@ lint:
     EXIT+=$?
     uvx --python={{python}} ruff@{{_ruff_version}} format --preview --diff
     EXIT+=$?
-    uvx --python={{python}} codespell@{{_codespell_version}} \
+    uvx --python={{python}} codespell[toml]@{{_codespell_version}} \
         '{{justfile_directory()}}' \
         --toml='{{justfile_directory()}}/pyproject.toml'
     EXIT+=$?
