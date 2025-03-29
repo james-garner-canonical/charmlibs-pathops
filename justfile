@@ -44,6 +44,7 @@ lint:
     # ///
     import subprocess
     import sys
+
     error_count = 0
     for cmd in (
         ['ruff', 'check', '--preview', '--diff'],
@@ -68,11 +69,16 @@ format:
     # ///
     import sys
     import subprocess
-    try:
-        subprocess.run(['ruff', 'check', '--preview', '--fix'], check=True)
-        subprocess.run(['ruff', 'format', '--preview'], check=True)
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+
+    for cmd in (
+        ['ruff', 'check', '--preview', '--fix'],
+        ['ruff', 'format', '--preview'],
+    ):
+        print(cmd)
+        try:
+            subprocess.run(cmd, check=True)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
@@ -85,10 +91,13 @@ static *args:
     # ]
     # ///
     import sys
+    import shlex
     import subprocess
+
+    cmd = ['pyright', *shlex.split('{{args}}')]
+    print(cmd)
     try:
-        print('Running pyright!')
-        subprocess.run(['pyright'], check=True, cwd='{{package}}')
+        subprocess.run(cmd, check=True, cwd='{{package}}')
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
