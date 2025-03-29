@@ -1,13 +1,5 @@
 set ignore-comments  # don't print comment lines in recipes
 
-# prefix explanations:
-# @ don't print line before execution
-# - continue even if the line fails
-
-# shell options explanation:
-# e.g. set -xueo pipefail
-# x: print lines, exit on u: undefined var, e: cmd failure, o pipefail: even in a pipeline
-
 # set on the commandline as needed, e.g. `just package=pathops python=3.8 unit`
 package := 'pathops'
 python := '3.12'
