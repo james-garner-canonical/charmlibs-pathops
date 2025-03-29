@@ -48,7 +48,7 @@ jobs:
             PACKAGES=$(echo $CHANGES | grep '^[a-z].*/.*' | cut -d'/' -f1 | uniq)
           else
             echo 'Changes to repo level config files, running tests for all packages.'
-            PACKAGES=$(ls -1d [a-z]*/)
+            PACKAGES=$(ls -1d [a-z]*/ | cut -d'/' -f1)
           fi
 
           if [[ -z "$PACKAGES" ]]; then
