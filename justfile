@@ -165,7 +165,7 @@ _coverage test_id test_subdir='.' +flags='-rA':
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
-    #!/usr/bin/env -S uv run --python={{python}} --script
+    #!/usr/bin/env -S uv run --python={{python}} --no-project --script
     import os
     import pathlib
     import subprocess
