@@ -74,14 +74,23 @@ format:
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
 
-
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
-    #!/usr/bin/env bash
-    set -xueo pipefail
-    cd {{package}}
-    uvx --with=pytest=={{_pytest_version}} --with-editable='.' \
-        pyright@{{_pyright_version}} --pythonversion={{python}} {{args}}
+    #!/usr/bin/env -S uv run --python={{python}} --script
+    # /// script
+    # dependencies =[
+    #     'pyright=={{_pyright_version}}',
+    #     'pytest=={{_pytest_version}}',
+    #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
+    # ]
+    # ///
+    import sys
+    import subprocess
+    try:
+        print('Running pyright!')
+        subprocess.run(['pyright'], check=True, cwd='{{package}}')
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
 unit +flags='-rA': (_coverage 'unit' '.' flags)
