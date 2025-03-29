@@ -157,6 +157,7 @@ _coverage test_id test_subdir='.' +flags='-rA':
         'tests/{{test_subdir}}/{{test_id}}',
     )
     coverage('xml', '-o', '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml')
+    # let coverage create html directory from scratch
     html_dir = '{{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}'
     if (CWD / html_dir).is_dir():
         shutil.rmtree(CWD / html_dir)
