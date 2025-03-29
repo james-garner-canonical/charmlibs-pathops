@@ -92,6 +92,7 @@ jobs:
 
   static:
     needs: packages
+    if: ${{ fromJson(needs.packages.outputs.changed) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -113,6 +114,7 @@ jobs:
 
   unit:
     needs: packages
+    if: ${{ fromJson(needs.packages.outputs.changed) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -134,6 +136,7 @@ jobs:
 
   pebble:
     needs: packages
+    if: ${{ fromJson(needs.packages.outputs.changed) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -181,6 +184,7 @@ jobs:
 
   juju:
     needs: packages
+    if: ${{ fromJson(needs.packages.outputs.changed) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
