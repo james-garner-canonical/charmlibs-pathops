@@ -114,7 +114,7 @@ jobs:
 
   unit:
     needs: packages
-    if: ${{ fromJson(needs.packages.outputs.changed) != '[]' }}
+    if: ${{ fromJson(needs.packages.outputs.unit) != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -136,7 +136,7 @@ jobs:
 
   pebble:
     needs: packages
-    if: ${{ fromJson(needs.packages.outputs.changed) != '[]' }}
+    if: ${{ fromJson(needs.packages.outputs.pebble) != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -184,7 +184,7 @@ jobs:
 
   juju:
     needs: packages
-    if: ${{ fromJson(needs.packages.outputs.changed) != '[]' }}
+    if: ${{ fromJson(needs.packages.outputs.juju) != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
