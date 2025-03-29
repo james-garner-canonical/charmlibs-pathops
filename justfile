@@ -22,7 +22,6 @@ _ruff_version := '0.11.0'
 
 # constants for recipes
 _coverage_dir := '.report'
-_pebble_dir := '/tmp/pebble-test'
 
 # this is the first recipe in the file, so it will run if just is called without a recipe
 [doc('Describe usage and list the available recipes.')]
@@ -42,8 +41,7 @@ lint:
     #     'codespell[toml]=={{_codespell_version}}',
     # ]
     # ///
-    import subprocess
-    import sys
+    import subprocess, sys
 
     error_count = 0
     for cmd in (
@@ -67,13 +65,9 @@ format:
     # /// script
     # dependencies =['ruff=={{_ruff_version}}']
     # ///
-    import sys
-    import subprocess
+    import subprocess, sys
 
-    for cmd in (
-        ['ruff', 'check', '--preview', '--fix'],
-        ['ruff', 'format', '--preview'],
-    ):
+    for cmd in (['ruff', 'check', '--preview', '--fix'], ['ruff', 'format', '--preview']):
         print(cmd)
         try:
             subprocess.run(cmd, check=True)
@@ -90,9 +84,7 @@ static *args:
     #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
     # ]
     # ///
-    import sys
-    import shlex
-    import subprocess
+    import shlex, subprocess, sys
 
     cmd = ['pyright', '--pythonversion={{python}}', *shlex.split('{{args}}')]
     print(cmd)
@@ -120,25 +112,16 @@ _coverage test_id test_subdir='.' +flags='-rA':
     #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
     # ]
     # ///
-    import pathlib
-    import shlex
-    import shutil
-    import subprocess
-    import sys
+    import pathlib, shlex, shutil, subprocess, sys
 
     CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')
+    RCFILE = '{{justfile_directory()}}/pyproject.toml'
+    DATA_FILE = '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db'
 
     def coverage(command: str, *args: str) -> None:
-        cmd = [
-            'uv',
-            'run',
-            '--active',
-            'coverage',
-            command,
-            f'--data-file={{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db',
-            '--rcfile={{justfile_directory()}}/pyproject.toml',
-            *args,
-        ]
+        uv = ['uv', 'run', '--active']
+        coverage = ['coverage', command, f'--data-file={DATA_FILE}', f'--rcfile={RCFILE}', *args]
+        cmd = [*uv, *coverage]
         print(cmd)
         try:
             subprocess.run(cmd, check=True, cwd=CWD)
@@ -146,16 +129,9 @@ _coverage test_id test_subdir='.' +flags='-rA':
             sys.exit(e.returncode)
 
     (CWD / '{{_coverage_dir}}').mkdir(exist_ok=True)
-    coverage(
-        'run',
-        '--source=src',
-        '-m',
-        'pytest',
-        '-vv',
-        *shlex.split('{{flags}}'),
-        '--tb=native',
-        'tests/{{test_subdir}}/{{test_id}}',
-    )
+    flags = shlex.split('{{flags}}')
+    pytest = ['pytest', '--tb=native', '-vv', *flags, 'tests/{{test_subdir}}/{{test_id}}']
+    coverage('run', '--source=src', '-m', *pytest)
     coverage('xml', '-o', '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml')
     # let coverage create html directory from scratch
     html_dir = '{{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}'
@@ -167,23 +143,18 @@ _coverage test_id test_subdir='.' +flags='-rA':
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
     #!/usr/bin/env -S uv run --python={{python}} --no-project --script
-    import os
-    import pathlib
-    import subprocess
-    import sys
-    import time
+    import os, pathlib, subprocess, sys
     from subprocess import DEVNULL
 
-    ENV = {**os.environ, 'PEBBLE': '{{_pebble_dir}}'}
-    pathlib.Path('{{_pebble_dir}}').mkdir(exist_ok=True)
+    pebble_dir = '/tmp/pebble-test'
+    pathlib.Path(pebble_dir).mkdir(exist_ok=True)
+    ENV = {**os.environ, 'PEBBLE': pebble_dir}
 
-    print('Run pebble in background, redirecting its output to /dev/null, and write its pid to a file.')
     pebble_cmd = ['pebble', 'run', '--create-dirs']
-    print(pebble_cmd)
+    print('Start pebble:', pebble_cmd)
     pebble_result = subprocess.Popen(pebble_cmd, stdout=DEVNULL, stderr=DEVNULL, env=ENV)
     pid = pebble_result.pid
     print(f'Pebble PID: {pid}')
-    time.sleep(1)
 
     just_cmd = [
         'just',
@@ -193,16 +164,14 @@ pebble-local +flags='-rA':
         'pebble',
         '{{flags}}',
     ]
-    print(just_cmd)
-    result = subprocess.run(just_cmd, env=ENV, cwd='{{justfile_directory()}}')
+    print('Run pebble tests:', just_cmd)
+    just_result = subprocess.run(just_cmd, env=ENV)
 
-    print('Cleanup pebble.')
-    time.sleep(1)
     cleanup_cmd = ['kill', str(pid)]
-    print(cleanup_cmd)
+    print('Cleanup pebble:', cleanup_cmd)
     subprocess.run(cleanup_cmd)
 
-    sys.exit(result.returncode)
+    sys.exit(just_result.returncode)
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
 combine-coverage:
@@ -210,36 +179,27 @@ combine-coverage:
     # /// script
     # dependencies = ['coverage[toml]=={{_coverage_version}}']
     # ///
-    from __future__ import annotations
-    import pathlib
-    import subprocess
-    import sys
+    import pathlib, subprocess, sys
 
     CWD = pathlib.Path('{{package}}')
+    DATA_FILE = '{{_coverage_dir}}/coverage-all-{{python}}.db'
+    RCFILE = '{{justfile_directory()}}/pyproject.toml'
 
     def coverage(command: str, *args: str) -> None:
-        cmd = [
-            'uv',
-            'run',
-            '--active',
-            'coverage',
-            command,
-            f'--data-file={{_coverage_dir}}/coverage-all-{{python}}.db',
-            '--rcfile={{justfile_directory()}}/pyproject.toml',
-            *args,
-        ]
+        uv = ['uv', 'run', '--active']
+        coverage = ['coverage', command, f'--data-file={DATA_FILE}', f'--rcfile={RCFILE}', *args]
+        cmd = [*uv, *coverage]
         print(cmd)
         try:
             subprocess.run(cmd, check=True, cwd=CWD)
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 
-    data_files: list[str] = []
+    data_files = []
     for test_id in ('unit', 'pebble', 'juju'):
         data_file = f'{{_coverage_dir}}/coverage-{test_id}-{{python}}.db'
         if (CWD / data_file).exists():
             data_files.append(data_file)
-
     coverage('combine', '--keep', *data_files)
     coverage('xml', '-o', '{{_coverage_dir}}/coverage-all-{{python}}.xml')
     # let coverage create html directory from scratch
