@@ -35,18 +35,30 @@ help:
 
 [doc('Run `ruff` and `codespell`, failing if any errors are found.')]
 lint:
-    #!/usr/bin/env bash
-    set -xu
-    EXIT=0
-    uvx --python={{python}} ruff@{{_ruff_version}} check --preview --diff
-    EXIT+=$?
-    uvx --python={{python}} ruff@{{_ruff_version}} format --preview --diff
-    EXIT+=$?
-    uvx --python={{python}} codespell[toml]@{{_codespell_version}} \
-        '{{justfile_directory()}}' \
-        --toml='{{justfile_directory()}}/pyproject.toml'
-    EXIT+=$?
-    exit $EXIT
+    #!/usr/bin/env -S uv run --python={{python}} --script
+    # /// script
+    # dependencies =[
+    #     'ruff=={{_ruff_version}}',
+    #     'codespell[toml]=={{_codespell_version}}',
+    # ]
+    # ///
+    import subprocess
+    import sys
+    error_count = 0
+    for cmd in (
+        ['ruff', 'check', '--preview', '--diff'],
+        ['ruff', 'format', '--preview', '--diff'],
+        ['codespell', '{{justfile_directory()}}', '--toml={{justfile_directory()}}/pyproject.toml'],
+    ):
+        print(cmd)
+        try:
+            subprocess.run(cmd, check=True)
+            print(f'Linting command {cmd[0]!r} succeeded!')
+        except subprocess.CalledProcessError:
+            print(f'Linting command {cmd[0]!r} failed.')
+            error_count += 1
+    print(f'Linting done! There were {error_count} error(s).')
+    sys.exit(error_count)
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format *args:
