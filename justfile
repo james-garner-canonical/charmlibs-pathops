@@ -61,9 +61,19 @@ lint:
     sys.exit(error_count)
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
-format *args:
-    uvx --python={{python}} ruff@{{_ruff_version}} check --preview --fix {{args}}
-    uvx --python={{python}} ruff@{{_ruff_version}} format --preview {{args}}
+format:
+    #!/usr/bin/env -S uv run --python={{python}} --script
+    # /// script
+    # dependencies =['ruff=={{_ruff_version}}']
+    # ///
+    import sys
+    import subprocess
+    try:
+        subprocess.run(['ruff', 'check', '--preview', '--fix'], check=True)
+        subprocess.run(['ruff', 'format', '--preview'], check=True)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
+
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
