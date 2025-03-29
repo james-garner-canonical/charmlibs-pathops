@@ -94,7 +94,7 @@ static *args:
     import shlex
     import subprocess
 
-    cmd = ['pyright', *shlex.split('{{args}}')]
+    cmd = ['pyright', '--pythonversion={{python}}', *shlex.split('{{args}}')]
     print(cmd)
     try:
         subprocess.run(cmd, check=True, cwd='{{package}}')
