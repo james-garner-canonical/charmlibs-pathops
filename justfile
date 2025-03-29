@@ -110,37 +110,58 @@ pebble +flags='-rA': (_coverage 'pebble' 'integration' flags)
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
 juju +flags='-rA': (_coverage 'juju' 'integration' flags)
 
-[doc("Use uvx to install and run coverage for the specified package's tests.")]
+[doc("Use uv to install and run coverage for the specified package's tests.")]
 _coverage test_id test_subdir='.' +flags='-rA':
-    #!/usr/bin/env bash
-    set -xueo pipefail
-    function coverage_cmd {
-        CMD="$1"
-        shift 1
-        uvx \
-            --python={{python}} \
-            --with=pytest=={{_pytest_version}} \
-            --with-editable='.' \
-            coverage[toml]@{{_coverage_version}} \
-            "$CMD" \
-            --data-file='{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db' \
-            --rcfile='{{justfile_directory()}}/pyproject.toml' \
-            "$@"
-    }
-    cd {{package}}
-    mkdir --parents {{_coverage_dir}}  # parents also means it's ok if it exists
-    coverage_cmd run \
-        --source=src \
-        -m pytest \
-        -vv \
-        {{flags}} \
-        --tb=native \
-        tests/{{test_subdir}}/{{test_id}}
-    coverage_cmd xml -o '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml'
-    HTML_DIR='{{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}'
-    rm -rf "$HTML_DIR"  # let coverage create html directory from scratch
-    coverage_cmd html --show-contexts --directory="$HTML_DIR"
-    coverage_cmd report
+    #!/usr/bin/env -S uv run --python={{python}} --script
+    # /// script
+    # dependencies = [
+    #     'pytest=={{_pytest_version}}',
+    #     'coverage[toml]=={{_coverage_version}}',
+    #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
+    # ]
+    # ///
+    import pathlib
+    import shlex
+    import shutil
+    import subprocess
+    import sys
+
+    CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')
+
+    def coverage(command: str, *args: str) -> None:
+        cmd = [
+            'uv',
+            'run',
+            '--active',
+            'coverage',
+            command,
+            f'--data-file={{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db',
+            '--rcfile={{justfile_directory()}}/pyproject.toml',
+            *args,
+        ]
+        print(cmd)
+        try:
+            subprocess.run(cmd, check=True, cwd=CWD)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    (CWD / '{{_coverage_dir}}').mkdir(exist_ok=True)
+    coverage(
+        'run',
+        '--source=src',
+        '-m',
+        'pytest',
+        '-vv',
+        *shlex.split('{{flags}}'),
+        '--tb=native',
+        'tests/{{test_subdir}}/{{test_id}}',
+    )
+    coverage('xml', '-o', '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml')
+    html_dir = '{{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}'
+    if (CWD / html_dir).is_dir():
+        shutil.rmtree(CWD / html_dir)
+    coverage('html', '--show-contexts', f'--directory={html_dir}')
+    coverage('report')
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
