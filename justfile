@@ -28,9 +28,9 @@ _pebble_dir := '/tmp/pebble-test'
 [doc('Describe usage and list the available recipes.')]
 help:
     @echo 'Execute one of the following recipes with {{CYAN}}`just {{BLUE}}$recipe-name{{CYAN}}`{{NORMAL}}.'
-    @echo 'Most recipes require {{CYAN}}`uvx`{{NORMAL}} and {{CYAN}}`bash`{{NORMAL}} to be available.'
+    @echo 'All recipes require {{CYAN}}`uv`{{NORMAL}} to be available.'
     @echo 'Set the {{BOLD}}package{{NORMAL}} and {{BOLD}}python{{NORMAL}} version before the recipe name if needed.'
-    @echo 'For example, {{CYAN}}`just {{BOLD}}package{{NORMAL}}{{CYAN}}={{package}} {{BOLD}}python{{NORMAL}}{{CYAN}}={{python}} {{BLUE}}$recipe-name{{CYAN}}`{{NORMAL}}.'
+    @echo 'For example, {{CYAN}}`just {{BOLD}}package{{NORMAL}}{{CYAN}}={{package}} {{BOLD}}python{{NORMAL}}{{CYAN}}={{python}} unit`{{NORMAL}}.'
     @just --list --unsorted
 
 [doc('Run `ruff` and `codespell`, failing if any errors are found.')]
