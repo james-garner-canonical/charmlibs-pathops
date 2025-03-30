@@ -127,7 +127,7 @@ _coverage test_subdir +flags='-rA':
             sys.exit(e.returncode)
 
     (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
-    pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/TEST_SUBDIR']
+    pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
     coverage('run', '--source=src', '-m', *pytest)
     coverage('xml', '-o', XML_FILE)
     # let coverage create html directory from scratch
