@@ -39,7 +39,7 @@ lint:
     for cmd in (
         ['ruff', 'check', '--preview', '--diff'],
         ['ruff', 'format', '--preview', '--diff'],
-        ['codespell', '{{justfile_directory()}}', '--toml={{justfile_directory()}}/pyproject.toml'],
+        ['codespell', '--toml=pyproject.toml'],
     ):
         print(cmd)
         try:
