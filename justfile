@@ -4,13 +4,6 @@ set ignore-comments  # don't print comment lines in recipes
 package := 'pathops'
 python := '3.12'
 
-# dependency versions -- note intended to be set from the commandline
-_codespell_version := '2.3.0'
-_coverage_version := '7.6.1'
-_pyright_version := '1.1.397'
-_pytest_version := '8.3.5'
-_ruff_version := '0.11.0'
-
 # this is the first recipe in the file, so it will run if just is called without a recipe
 [doc('Describe usage and list the available recipes.')]
 help:
@@ -23,12 +16,6 @@ help:
 [doc('Run `ruff` and `codespell`, failing if any errors are found.')]
 lint:
     #!/usr/bin/env -S uv run --python={{python}} --script
-    # /// script
-    # dependencies = [
-    #     'ruff=={{_ruff_version}}',
-    #     'codespell[toml]=={{_codespell_version}}',
-    # ]
-    # ///
     import subprocess, sys
 
     error_count = 0
@@ -49,29 +36,12 @@ lint:
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format:
-    #!/usr/bin/env -S uv run --python={{python}} --script
-    # /// script
-    # dependencies = ['ruff=={{_ruff_version}}']
-    # ///
-    import subprocess, sys
-
-    for cmd in (['ruff', 'check', '--preview', '--fix'], ['ruff', 'format', '--preview']):
-        print(cmd)
-        try:
-            subprocess.run(cmd, check=True)
-        except subprocess.CalledProcessError as e:
-            sys.exit(e.returncode)
+    uv run --python={{python}} ruff check --preview --fix
+    uv run --python={{python}} ruff format --preview
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
-    #!/usr/bin/env -S uv run --python={{python}} --script
-    # /// script
-    # dependencies = [
-    #     'pyright=={{_pyright_version}}',
-    #     'pytest=={{_pytest_version}}',
-    #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
-    # ]
-    # ///
+    #!/usr/bin/env -S uv run --python={{python}} --group={{package}} --script
     import shlex, subprocess, sys
 
     cmd = ['pyright', '--pythonversion={{python}}', *shlex.split('{{args}}')]
@@ -95,14 +65,7 @@ combine-coverage +flags='-rA': (_coverage 'combine' 'all' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
 _coverage coverage_cmd test_subdir +flags='-rA':
-    #!/usr/bin/env -S uv run --python={{python}} --script
-    # /// script
-    #  dependencies = [
-    #     'pytest=={{_pytest_version}}',
-    #     'coverage[toml]=={{_coverage_version}}',
-    #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
-    # ]
-    # ///
+    #!/usr/bin/env -S uv run --python={{python}} --group={{package}} --script
     import pathlib, shlex, shutil, subprocess, sys
 
     CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')

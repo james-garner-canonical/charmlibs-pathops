@@ -1,3 +1,23 @@
+[project]
+name = "charmtech-charmlibs-monorepo"
+requires-python = '>=3.8'
+version = "0.0.0-dev0"
+
+[dependency-groups]
+dev = [
+    "codespell==2.3.0",
+    "coverage==7.6.1",
+    "pyright==1.1.397",
+    "pytest==8.3.5",
+    "ruff==0.11.0",
+]
+pathops = [
+    'charmlibs-pathops @ file:///${PROJECT_ROOT}/pathops',
+]
+
+[tool.uv]
+package=false
+
 [tool.coverage.run]
 dynamic_context = "test_function"
 branch = true
