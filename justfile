@@ -51,9 +51,8 @@ _coverage test_subdir +flags='-rA':
     TEST_SUBDIR = '{{test_subdir}}'
     FLAGS = shlex.split('{{flags}}')
 
-    COVERAGE_DIR = '.report'
     TEST_ID = pathlib.PurePath(TEST_SUBDIR).name
-    DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
+    DATA_FILE = f'.report/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
 
     def coverage(cmd: str, *args: str) -> None:
         uv = ['uv', 'run', '--active']
