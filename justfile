@@ -63,11 +63,12 @@ _coverage coverage_cmd test_subdir +flags='-rA':
     import pathlib, shlex, shutil, subprocess, sys
 
     CWD = pathlib.Path('{{package}}')
-    FLAGS = shlex.split('{{flags}}')
     PYTHON_VERSION = '{{python}}'
     COVERAGE_CMD = '{{coverage_cmd}}'
-    COVERAGE_DIR = '.report'
     TEST_SUBDIR = '{{test_subdir}}'
+    FLAGS = shlex.split('{{flags}}')
+
+    COVERAGE_DIR = '.report'
     TEST_ID = pathlib.PurePath(TEST_SUBDIR).name
     DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
     XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.xml'
