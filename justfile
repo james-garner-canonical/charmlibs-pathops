@@ -28,9 +28,9 @@ format:
     uv run --python='{{python}}' ruff format --preview
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
-static *args:
+static *pyright_args:
     uv run --python='{{python}}' --group='{{package}}' \
-        pyright --pythonversion='{{python}}' {{args}} '{{package}}'
+        pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
 unit +flags='-rA': (_coverage 'unit' flags)
