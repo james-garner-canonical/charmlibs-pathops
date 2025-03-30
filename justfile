@@ -36,13 +36,12 @@ lint:
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format:
-    UV_PROJECT_ENVIRONMENT=.venv-{{python}} uv run --python={{python}} ruff check --preview --fix
-    UV_PROJECT_ENVIRONMENT=.venv-{{python}} uv run --python={{python}} ruff format --preview
+    uv run --python={{python}} ruff check --preview --fix
+    uv run --python={{python}} ruff format --preview
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
-    UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} \
-        uv run --python={{python}} --group={{package}} \
+    uv run --python={{python}} --group={{package}} \
         pyright --pythonversion={{python}} {{args}} {{package}}
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
