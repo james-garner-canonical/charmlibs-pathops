@@ -6,14 +6,14 @@ python := '3.12'
 
 # this is the first recipe in the file, so it will run if just is called without a recipe
 [doc('Describe usage and list the available recipes.')]
-help:
+_help:
     @echo 'Execute one of the following recipes with {{CYAN}}`just {{BLUE}}$recipe-name{{CYAN}}`{{NORMAL}}.'
     @echo 'All recipes require {{CYAN}}`uv`{{NORMAL}} to be available.'
     @echo 'Set the {{BOLD}}package{{NORMAL}} and {{BOLD}}python{{NORMAL}} version before the recipe name if needed.'
     @echo 'For example, {{CYAN}}`just {{BOLD}}package{{NORMAL}}{{CYAN}}={{package}} {{BOLD}}python{{NORMAL}}{{CYAN}}={{python}} unit`{{NORMAL}}.'
     @just --list --unsorted
 
-[doc('Run `ruff` and `codespell`, failing if any errors are found.')]
+[doc('Run `ruff` and `codespell`, failing afterwards if any errors are found.')]
 lint:
     #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{python}} uv run --python={{python}} --script
     import subprocess, sys
