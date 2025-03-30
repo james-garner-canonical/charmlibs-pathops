@@ -41,9 +41,6 @@ pebble +flags='-rA': (_coverage 'run' 'integration/pebble' flags)
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
 juju +flags='-rA': (_coverage 'run' 'integration/juju' flags)
 
-[doc("Combine `coverage` reports for the specified package and python version.")]
-combine-coverage +flags='-rA': (_coverage 'combine' 'all' flags)
-
 [doc("Use uv to install and run coverage for the specified package's tests.")]
 _coverage coverage_cmd test_subdir +flags='-rA':
     #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} uv run --python={{python}} --group={{package}} --script
@@ -85,6 +82,43 @@ _coverage coverage_cmd test_subdir +flags='-rA':
     else:
         sys.exit(f'Bad value for coverage command: {COVERAGE_CMD}')
 
+    # let coverage create html directory from scratch
+    if (CWD / HTML_DIR).is_dir():
+        shutil.rmtree(CWD / HTML_DIR)
+    coverage('html', '--show-contexts', f'--directory={HTML_DIR}')
+    coverage('xml', '-o', XML_FILE)
+    coverage('report')
+
+[doc("Combine `coverage` reports for the specified package and python version.")]
+combine-coverage:
+    #!/usr/bin/env -S uv run --script
+    import pathlib, shutil, subprocess, sys
+
+    CWD = pathlib.Path('{{package}}')
+    PYTHON_VERSION = '{{python}}'
+
+    COVERAGE_DIR = '.report'
+    TEST_ID = 'all'
+    DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
+    XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.xml'
+    HTML_DIR = f'{COVERAGE_DIR}/htmlcov-{TEST_ID}-{PYTHON_VERSION}'
+
+    def coverage(cmd: str, *args: str) -> None:
+        uv = ['uv', 'run', '--active']
+        coverage = ['coverage', cmd, f'--data-file={DATA_FILE}', f'--rcfile=pyproject.toml', *args]
+        command = [*uv, *coverage]
+        print(command)
+        try:
+            subprocess.run(command, check=True, cwd=CWD)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    data_files = []
+    for test_id in ('unit', 'pebble', 'juju'):
+        data_file = f'{COVERAGE_DIR}/coverage-{test_id}-{PYTHON_VERSION}.db'
+        if (CWD / data_file).exists():
+            data_files.append(data_file)
+    coverage('combine', '--keep', *data_files)
     # let coverage create html directory from scratch
     if (CWD / HTML_DIR).is_dir():
         shutil.rmtree(CWD / HTML_DIR)
