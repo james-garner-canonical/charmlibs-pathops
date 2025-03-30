@@ -31,7 +31,7 @@ lint:
         except subprocess.CalledProcessError:
             print(f'Linting command {cmd[0]!r} failed.')
             error_count += 1
-    print(f'Linting done! There were {error_count} error(s).')
+    print(f'Linting done! {error_count} process(es) found errors.')
     sys.exit(error_count)
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
