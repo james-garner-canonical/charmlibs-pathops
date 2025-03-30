@@ -86,16 +86,19 @@ static *args:
         sys.exit(e.returncode)
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
-unit +flags='-rA': (_coverage 'unit' flags)
+unit +flags='-rA': (_coverage 'run' 'unit' flags)
 
 [doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
-pebble +flags='-rA': (_coverage 'integration/pebble' flags)
+pebble +flags='-rA': (_coverage 'run' 'integration/pebble' flags)
 
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
-juju +flags='-rA': (_coverage 'integration/juju' flags)
+juju +flags='-rA': (_coverage 'run' 'integration/juju' flags)
+
+[doc("Combine `coverage` reports for the specified package and python version.")]
+combine-coverage +flags='-rA': (_coverage 'combine' 'all' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
-_coverage test_subdir +flags='-rA':
+_coverage coverage_cmd test_subdir +flags='-rA':
     #!/usr/bin/env -S uv run --python={{python}} --script
     # /// script
     # dependencies = [
@@ -109,12 +112,14 @@ _coverage test_subdir +flags='-rA':
     CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')
     RCFILE = '{{justfile_directory()}}/pyproject.toml'
     FLAGS = shlex.split('{{flags}}')
+    PYTHON_VERSION = '{{python}}'
+    COVERAGE_CMD = '{{coverage_cmd}}'
     COVERAGE_DIR = '{{_coverage_dir}}'
     TEST_SUBDIR = '{{test_subdir}}'
     TEST_ID = pathlib.PurePath(TEST_SUBDIR).name
-    DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{{python}}.db'
-    XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{{python}}.xml'
-    HTML_DIR = f'{COVERAGE_DIR}/htmlcov-{TEST_ID}-{{python}}'
+    DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
+    XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.xml'
+    HTML_DIR = f'{COVERAGE_DIR}/htmlcov-{TEST_ID}-{PYTHON_VERSION}'
 
     def coverage(command: str, *args: str) -> None:
         uv = ['uv', 'run', '--active']
@@ -126,14 +131,25 @@ _coverage test_subdir +flags='-rA':
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 
-    (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
-    pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
-    coverage('run', '--source=src', '-m', *pytest)
-    coverage('xml', '-o', XML_FILE)
+    if COVERAGE_CMD == 'run':
+        (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
+        pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
+        coverage('run', '--source=src', '-m', *pytest)
+    elif COVERAGE_CMD == 'combine':
+        data_files = []
+        for test_id in ('unit', 'pebble', 'juju'):
+            data_file = f'{COVERAGE_DIR}/coverage-{test_id}-{PYTHON_VERSION}.db'
+            if (CWD / data_file).exists():
+                data_files.append(data_file)
+        coverage('combine', '--keep', *data_files)
+    else:
+        sys.exit(f'Bad value for coverage command: {COVERAGE_CMD}')
+
     # let coverage create html directory from scratch
     if (CWD / HTML_DIR).is_dir():
         shutil.rmtree(CWD / HTML_DIR)
     coverage('html', '--show-contexts', f'--directory={HTML_DIR}')
+    coverage('xml', '-o', XML_FILE)
     coverage('report')
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
@@ -168,39 +184,3 @@ pebble-local +flags='-rA':
     subprocess.run(cleanup_cmd)
 
     sys.exit(just_result.returncode)
-
-[doc("Combine `coverage` reports for the specified package and python version.")]
-combine-coverage:
-    #!/usr/bin/env -S uv run --python={{python}} --script
-    # /// script
-    # dependencies = ['coverage[toml]=={{_coverage_version}}']
-    # ///
-    import pathlib, subprocess, sys
-
-    CWD = pathlib.Path('{{package}}')
-    DATA_FILE = '{{_coverage_dir}}/coverage-all-{{python}}.db'
-    RCFILE = '{{justfile_directory()}}/pyproject.toml'
-
-    def coverage(command: str, *args: str) -> None:
-        uv = ['uv', 'run', '--active']
-        coverage = ['coverage', command, f'--data-file={DATA_FILE}', f'--rcfile={RCFILE}', *args]
-        cmd = [*uv, *coverage]
-        print(cmd)
-        try:
-            subprocess.run(cmd, check=True, cwd=CWD)
-        except subprocess.CalledProcessError as e:
-            sys.exit(e.returncode)
-
-    data_files = []
-    for test_id in ('unit', 'pebble', 'juju'):
-        data_file = f'{{_coverage_dir}}/coverage-{test_id}-{{python}}.db'
-        if (CWD / data_file).exists():
-            data_files.append(data_file)
-    coverage('combine', '--keep', *data_files)
-    coverage('xml', '-o', '{{_coverage_dir}}/coverage-all-{{python}}.xml')
-    # let coverage create html directory from scratch
-    html_dir = '{{_coverage_dir}}/htmlcov-all-{{python}}'
-    if (CWD / html_dir).is_dir():
-        shutil.rmtree(CWD / html_dir)
-    coverage('html', '--show-contexts', f'--directory={html_dir}')
-    coverage('report')
