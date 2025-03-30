@@ -86,16 +86,16 @@ static *args:
         sys.exit(e.returncode)
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
-unit +flags='-rA': (_coverage 'unit' '.' flags)
+unit +flags='-rA': (_coverage 'unit' flags)
 
 [doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
-pebble +flags='-rA': (_coverage 'pebble' 'integration' flags)
+pebble +flags='-rA': (_coverage 'pebble' flags)
 
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
-juju +flags='-rA': (_coverage 'juju' 'integration' flags)
+juju +flags='-rA': (_coverage 'juju' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
-_coverage test_id test_subdir='.' +flags='-rA':
+_coverage test_id +flags='-rA':
     #!/usr/bin/env -S uv run --python={{python}} --script
     # /// script
     # dependencies = [
@@ -122,7 +122,7 @@ _coverage test_id test_subdir='.' +flags='-rA':
 
     (CWD / '{{_coverage_dir}}').mkdir(exist_ok=True)
     flags = shlex.split('{{flags}}')
-    pytest = ['pytest', '--tb=native', '-vv', *flags, 'tests/{{test_subdir}}/{{test_id}}']
+    pytest = ['pytest', '--tb=native', '-vv', *flags, 'tests/**/{{test_id}}']
     coverage('run', '--source=src', '-m', *pytest)
     coverage('xml', '-o', '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml')
     # let coverage create html directory from scratch
