@@ -133,21 +133,22 @@ pebble-local +flags='-rA':
     from subprocess import DEVNULL
 
     ENV = {**os.environ, 'PEBBLE': '/tmp/pebble-test'}
-
-    pebble_cmd = ['pebble', 'run', '--create-dirs']
-    print('Start pebble:', pebble_cmd)
-    pebble_process = subprocess.Popen(pebble_cmd, stdout=DEVNULL, stderr=DEVNULL, env=ENV)
-
-    just_cmd = [
-        'just',
-        '--justfile={{justfile()}}',
-        'package={{package}}',
-        'python={{python}}',
-        'pebble',
-        '{{flags}}',
-    ]
-    print('Run pebble tests:', just_cmd)
-    result = subprocess.run(just_cmd, env=ENV)
-
+    pebble_process = subprocess.Popen(
+        ['pebble', 'run', '--create-dirs'],
+        stdout=DEVNULL,
+        stderr=DEVNULL,
+        env=ENV,
+    )
+    result = subprocess.run(
+        [
+            'just',
+            '--justfile={{justfile()}}',
+            'package={{package}}',
+            'python={{python}}',
+            'pebble',
+            '{{flags}}',
+        ],
+        env=ENV,
+    )
     pebble_process.kill()
     sys.exit(result.returncode)
