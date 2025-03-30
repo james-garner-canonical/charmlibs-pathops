@@ -128,7 +128,7 @@ combine-coverage:
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
-    #!/usr/bin/env -S uv run --python={{python}} --no-project --script
+    #!/usr/bin/env -S uv run --no-project --script
     import os, pathlib, subprocess, sys
     from subprocess import DEVNULL
 
