@@ -20,64 +20,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Collect changed packages and record which test suites they have
         id: packages
-        run: |
-          set -ueo pipefail
-
-          function set_output {
-            NAME=$1
-            set +u  # allow $2 to be missing
-            RAW=$2
-            set -u  # exit on unbound variables again
-            if [[ -z "$RAW" ]]; then
-              OUT="$NAME=[]"
-            else
-              JSON=$(echo $PACKAGES | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
-              OUT="$NAME=$JSON"
-            fi
-            echo "$OUT"
-            echo "$OUT" >> "$GITHUB_OUTPUT"
-          }
-
-          CHANGES=$(git diff --name-only origin/${{ github.base_ref || 'main' }})
-          GLOBAL=$(echo $CHANGES | grep -e ^pyproject.toml -e ^justfile -e ^.github)
-
-          if [[ -z "$GLOBAL" ]]; then
-            echo 'No changes to repo level config files, running tests for changed packages only.'
-            PACKAGES=$(echo $CHANGES | grep '^[a-z].*/.*' | cut -d'/' -f1 | uniq)
-          else
-            echo 'Changes to repo level config files, running tests for all packages.'
-            PACKAGES=$(ls -1d [a-z]*/ | cut -d'/' -f1)
-          fi
-
-          if [[ -z "$PACKAGES" ]]; then
-            echo 'No packages changed, tests will be skipped.'
-            set_output changed
-            set_output unit
-            set_output pebble
-            set_output juju
-            exit 0
-          fi
-
-          UNIT=()
-          PEBBLE=()
-          JUJU=()
-          for package in $PACKAGES; do
-            if [[ -d "$package/tests/unit" ]]; then
-              UNIT+=("$package")
-            fi
-            if [[ -d "$package/tests/integration/pebble" ]]; then
-              PEBBLE+=("$package")
-            fi
-            if [[ -d "$package/tests/integration/juju" ]]; then
-              JUJU+=("$package")
-            fi
-          done
-          set_output changed "$PACKAGES"
-          set_output unit "${UNIT[@]}"
-          set_output pebble "${PEBBLE[@]}"
-          set_output juju "${JUJU[@]}"
+        run: uv run --no-project --script .github/packages.py ${{ github.base_ref || 'main' }}
 
   lint:
     runs-on: ubuntu-latest
