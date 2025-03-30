@@ -39,7 +39,7 @@ def _main(project_root: pathlib.Path, git_base_ref: str) -> None:
         changed_packages = [
             change.split('/')[0]
             for change in changes
-            if (project_root / pathlib.Path(change)).is_dir() and change.startswith(_ALPHABET)
+            if (project_root / change).is_dir() and change.startswith(_ALPHABET)
         ]
     # record the test suites provided by each package
     tests = ('unit', 'integration/pebble', 'integration/juju')
