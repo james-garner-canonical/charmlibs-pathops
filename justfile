@@ -108,8 +108,13 @@ _coverage test_subdir +flags='-rA':
 
     CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')
     RCFILE = '{{justfile_directory()}}/pyproject.toml'
-    TEST_ID = pathlib.PurePath('{{test_subdir}}').name
-    DATA_FILE = f'{{_coverage_dir}}/coverage-{TEST_ID}-{{python}}.db'
+    FLAGS = shlex.split('{{flags}}')
+    COVERAGE_DIR = '{{_coverage_dir}}'
+    TEST_SUBDIR = '{{test_subdir}}'
+    TEST_ID = pathlib.PurePath(TEST_SUBDIR).name
+    DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{{python}}.db'
+    XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{{python}}.xml'
+    HTML_DIR = f'{COVERAGE_DIR}/htmlcov-{TEST_ID}-{{python}}'
 
     def coverage(command: str, *args: str) -> None:
         uv = ['uv', 'run', '--active']
@@ -121,16 +126,14 @@ _coverage test_subdir +flags='-rA':
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 
-    (CWD / '{{_coverage_dir}}').mkdir(exist_ok=True)
-    flags = shlex.split('{{flags}}')
-    pytest = ['pytest', '--tb=native', '-vv', *flags, 'tests/{{test_subdir}}']
+    (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
+    pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/TEST_SUBDIR']
     coverage('run', '--source=src', '-m', *pytest)
-    coverage('xml', '-o', f'{{_coverage_dir}}/coverage-{TEST_ID}-{{python}}.xml')
+    coverage('xml', '-o', XML_FILE)
     # let coverage create html directory from scratch
-    html_dir = f'{{_coverage_dir}}/htmlcov-{TEST_ID}-{{python}}'
-    if (CWD / html_dir).is_dir():
-        shutil.rmtree(CWD / html_dir)
-    coverage('html', '--show-contexts', f'--directory={html_dir}')
+    if (CWD / HTML_DIR).is_dir():
+        shutil.rmtree(CWD / HTML_DIR)
+    coverage('html', '--show-contexts', f'--directory={HTML_DIR}')
     coverage('report')
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
