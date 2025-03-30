@@ -46,7 +46,7 @@ def _main(project_root: pathlib.Path, git_base_ref: str) -> None:
     tests_dict: dict[str, list[str]] = {test: [] for test in tests}
     for package in changed_packages:
         for test in tests:
-            if (project_root / package / test).is_dir():
+            if (project_root / package / 'tests' / test).is_dir():
                 tests_dict[test].append(package)
     # set output
     with pathlib.Path(os.environ['GITHUB_OUTPUT']).open('w') as f:
