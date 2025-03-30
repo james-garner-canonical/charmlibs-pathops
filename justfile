@@ -33,22 +33,21 @@ static *args:
         pyright --pythonversion={{python}} {{args}} {{package}}
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
-unit +flags='-rA': (_coverage 'run' 'unit' flags)
+unit +flags='-rA': (_coverage 'unit' flags)
 
 [doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
-pebble +flags='-rA': (_coverage 'run' 'integration/pebble' flags)
+pebble +flags='-rA': (_coverage 'integration/pebble' flags)
 
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
-juju +flags='-rA': (_coverage 'run' 'integration/juju' flags)
+juju +flags='-rA': (_coverage 'integration/juju' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
-_coverage coverage_cmd test_subdir +flags='-rA':
+_coverage test_subdir +flags='-rA':
     #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} uv run --python={{python}} --group={{package}} --script
     import pathlib, shlex, shutil, subprocess, sys
 
     CWD = pathlib.Path('{{package}}')
     PYTHON_VERSION = '{{python}}'
-    COVERAGE_CMD = '{{coverage_cmd}}'
     TEST_SUBDIR = '{{test_subdir}}'
     FLAGS = shlex.split('{{flags}}')
 
@@ -68,20 +67,9 @@ _coverage coverage_cmd test_subdir +flags='-rA':
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 
-    if COVERAGE_CMD == 'run':
-        (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
-        pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
-        coverage('run', '--source=src', '-m', *pytest)
-    elif COVERAGE_CMD == 'combine':
-        data_files = []
-        for test_id in ('unit', 'pebble', 'juju'):
-            data_file = f'{COVERAGE_DIR}/coverage-{test_id}-{PYTHON_VERSION}.db'
-            if (CWD / data_file).exists():
-                data_files.append(data_file)
-        coverage('combine', '--keep', *data_files)
-    else:
-        sys.exit(f'Bad value for coverage command: {COVERAGE_CMD}')
-
+    (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
+    pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
+    coverage('run', '--source=src', '-m', *pytest)
     # let coverage create html directory from scratch
     if (CWD / HTML_DIR).is_dir():
         shutil.rmtree(CWD / HTML_DIR)
