@@ -65,7 +65,6 @@ _coverage test_subdir +flags='-rA':
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 
-    (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
     pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
     coverage('run', '--source=src', '-m', *pytest)
     coverage('report')
