@@ -125,7 +125,7 @@ pebble-local +flags='-rA':
         '{{flags}}',
     ]
     print('Run pebble tests:', just_cmd)
-    just_result = subprocess.run(just_cmd, env=ENV)
+    result = subprocess.run(just_cmd, env=ENV)
 
     pebble_process.kill()
-    sys.exit(just_result.returncode)
+    sys.exit(result.returncode)
