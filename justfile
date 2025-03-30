@@ -24,7 +24,7 @@ help:
 lint:
     #!/usr/bin/env -S uv run --python={{python}} --script
     # /// script
-    # dependencies =[
+    # dependencies = [
     #     'ruff=={{_ruff_version}}',
     #     'codespell[toml]=={{_codespell_version}}',
     # ]
@@ -51,7 +51,7 @@ lint:
 format:
     #!/usr/bin/env -S uv run --python={{python}} --script
     # /// script
-    # dependencies =['ruff=={{_ruff_version}}']
+    # dependencies = ['ruff=={{_ruff_version}}']
     # ///
     import subprocess, sys
 
@@ -66,7 +66,7 @@ format:
 static *args:
     #!/usr/bin/env -S uv run --python={{python}} --script
     # /// script
-    # dependencies =[
+    # dependencies = [
     #     'pyright=={{_pyright_version}}',
     #     'pytest=={{_pytest_version}}',
     #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
@@ -97,7 +97,7 @@ combine-coverage +flags='-rA': (_coverage 'combine' 'all' flags)
 _coverage coverage_cmd test_subdir +flags='-rA':
     #!/usr/bin/env -S uv run --python={{python}} --script
     # /// script
-    # dependencies = [
+    #  dependencies = [
     #     'pytest=={{_pytest_version}}',
     #     'coverage[toml]=={{_coverage_version}}',
     #     'charmlibs-{{package}} @ {{justfile_directory()}}/{{package}}',
