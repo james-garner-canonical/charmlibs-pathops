@@ -68,8 +68,7 @@ _coverage coverage_cmd test_subdir +flags='-rA':
     #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} uv run --python={{python}} --group={{package}} --script
     import pathlib, shlex, shutil, subprocess, sys
 
-    CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')
-    RCFILE = '{{justfile_directory()}}/pyproject.toml'
+    CWD = pathlib.Path('{{package}}')
     FLAGS = shlex.split('{{flags}}')
     PYTHON_VERSION = '{{python}}'
     COVERAGE_CMD = '{{coverage_cmd}}'
@@ -80,13 +79,13 @@ _coverage coverage_cmd test_subdir +flags='-rA':
     XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.xml'
     HTML_DIR = f'{COVERAGE_DIR}/htmlcov-{TEST_ID}-{PYTHON_VERSION}'
 
-    def coverage(command: str, *args: str) -> None:
+    def coverage(cmd: str, *args: str) -> None:
         uv = ['uv', 'run', '--active']
-        coverage = ['coverage', command, f'--data-file={DATA_FILE}', f'--rcfile={RCFILE}', *args]
-        cmd = [*uv, *coverage]
-        print(cmd)
+        coverage = ['coverage', cmd, f'--data-file={DATA_FILE}', f'--rcfile=pyproject.toml', *args]
+        command = [*uv, *coverage]
+        print(command)
         try:
-            subprocess.run(cmd, check=True, cwd=CWD)
+            subprocess.run(command, check=True, cwd=CWD)
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 
