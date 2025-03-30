@@ -15,24 +15,12 @@ _help:
 
 [doc('Run `ruff` and `codespell`, failing afterwards if any errors are found.')]
 lint:
-    #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{python}} uv run --python={{python}} --script
-    import subprocess, sys
-
-    error_count = 0
-    for cmd in (
-        ['ruff', 'check', '--preview', '--diff'],
-        ['ruff', 'format', '--preview', '--diff'],
-        ['codespell', '--toml=pyproject.toml'],
-    ):
-        print(cmd)
-        try:
-            subprocess.run(cmd, check=True)
-            print(f'Linting command {cmd[0]!r} succeeded!')
-        except subprocess.CalledProcessError:
-            print(f'Linting command {cmd[0]!r} failed.')
-            error_count += 1
-    print(f'Linting done! {error_count} process(es) found errors.')
-    sys.exit(error_count)
+    #!/usr/bin/env bash
+    EXITCODE=0
+    uv run ruff check --preview --diff || $EXITCODE=$?
+    uv run ruff format --preview --diff || $EXITCODE=$?
+    codespell --toml=pyproject.toml || $EXITCODE=$?
+    exit $EXITCODE
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format:
