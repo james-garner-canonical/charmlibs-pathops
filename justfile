@@ -4,8 +4,7 @@ set ignore-comments  # don't print comment lines in recipes
 package := 'pathops'
 python := '3.12'
 
-# dependency versions
-# don't set these on the commandline, they may not be forwarded to other processes
+# dependency versions -- note intended to be set from the commandline
 _codespell_version := '2.3.0'
 _coverage_version := '7.6.1'
 _pyright_version := '1.1.397'
