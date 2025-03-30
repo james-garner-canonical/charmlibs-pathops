@@ -12,9 +12,6 @@ _pyright_version := '1.1.397'
 _pytest_version := '8.3.5'
 _ruff_version := '0.11.0'
 
-# constants for recipes
-_coverage_dir := '.report'
-
 # this is the first recipe in the file, so it will run if just is called without a recipe
 [doc('Describe usage and list the available recipes.')]
 help:
@@ -114,7 +111,7 @@ _coverage coverage_cmd test_subdir +flags='-rA':
     FLAGS = shlex.split('{{flags}}')
     PYTHON_VERSION = '{{python}}'
     COVERAGE_CMD = '{{coverage_cmd}}'
-    COVERAGE_DIR = '{{_coverage_dir}}'
+    COVERAGE_DIR = '.report'
     TEST_SUBDIR = '{{test_subdir}}'
     TEST_ID = pathlib.PurePath(TEST_SUBDIR).name
     DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
