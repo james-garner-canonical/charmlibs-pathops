@@ -54,8 +54,6 @@ _coverage test_subdir +flags='-rA':
     COVERAGE_DIR = '.report'
     TEST_ID = pathlib.PurePath(TEST_SUBDIR).name
     DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
-    XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.xml'
-    HTML_DIR = f'{COVERAGE_DIR}/htmlcov-{TEST_ID}-{PYTHON_VERSION}'
 
     def coverage(cmd: str, *args: str) -> None:
         uv = ['uv', 'run', '--active']
@@ -70,11 +68,6 @@ _coverage test_subdir +flags='-rA':
     (CWD / COVERAGE_DIR).mkdir(exist_ok=True)
     pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
     coverage('run', '--source=src', '-m', *pytest)
-    # let coverage create html directory from scratch
-    if (CWD / HTML_DIR).is_dir():
-        shutil.rmtree(CWD / HTML_DIR)
-    coverage('html', '--show-contexts', f'--directory={HTML_DIR}')
-    coverage('xml', '-o', XML_FILE)
     coverage('report')
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
