@@ -91,27 +91,14 @@ combine-coverage:
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
-    #!/usr/bin/env -S uv run --no-project --script
-    import os, pathlib, subprocess, sys
-    from subprocess import DEVNULL
-
-    ENV = {**os.environ, 'PEBBLE': '/tmp/pebble-test'}
-    pebble_process = subprocess.Popen(
-        ['pebble', 'run', '--create-dirs'],
-        stdout=DEVNULL,
-        stderr=DEVNULL,
-        env=ENV,
-    )
-    result = subprocess.run(
-        [
-            'just',
-            '--justfile={{justfile()}}',
-            'package={{package}}',
-            'python={{python}}',
-            'pebble',
-            '{{flags}}',
-        ],
-        env=ENV,
-    )
-    pebble_process.kill()
-    sys.exit(result.returncode)
+    #!/usr/bin/env bash
+    set -xueo pipefail
+    export PEBBLE=/tmp/pebble-test
+    pebble run --create-dirs &>/dev/null &
+    PEBBLE_PID=$!
+    set +e  # don't exit if the tests fail
+    just --justfile='{{justfile()}}' package='{{package}}' python='{{python}}' pebble {{flags}}
+    EXITCODE=$?
+    set -e  # do exit if anything goes wrong now
+    kill $PEBBLE_PID
+    exit $EXITCODE
