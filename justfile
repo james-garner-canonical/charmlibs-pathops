@@ -43,7 +43,7 @@ format:
 static *args:
     UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} \
         uv run --python={{python}} --group={{package}} \
-        pyright --pythonversion={{python}} {{args}}
+        pyright --pythonversion={{python}} {{args}} {{package}}
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
 unit +flags='-rA': (_coverage 'run' 'unit' flags)
