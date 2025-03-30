@@ -148,6 +148,7 @@ skip = [
 quiet-level = 3  # disable warnings about (1) wrong encoding + (2) binary files
 
 [tool.pyright]
+ignore = ["_docs"]
 pythonPlatform = "All"
 typeCheckingMode = "strict"
 reportPrivateUsage = false  # things that are effectively public still need to be private to users

@@ -41,15 +41,9 @@ format:
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
-    #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} uv run --python={{python}} --group={{package}} --script
-    import shlex, subprocess, sys
-
-    cmd = ['pyright', '--pythonversion={{python}}', *shlex.split('{{args}}')]
-    print(cmd)
-    try:
-        subprocess.run(cmd, check=True, cwd='{{package}}')
-    except subprocess.CalledProcessError as e:
-        sys.exit(e.returncode)
+    UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} \
+        uv run --python={{python}} --group={{package}} \
+        pyright --pythonversion={{python}} {{args}}
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
 unit +flags='-rA': (_coverage 'run' 'unit' flags)
