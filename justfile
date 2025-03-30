@@ -43,7 +43,7 @@ juju +flags='-rA': (_coverage 'integration/juju' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
 _coverage test_subdir +flags='-rA':
-    #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} uv run --python={{python}} --group={{package}} --script
+    #!/usr/bin/env -S uv run --python={{python}} --group={{package}} --script
     import pathlib, shlex, shutil, subprocess, sys
 
     CWD = pathlib.Path('{{package}}')
