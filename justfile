@@ -43,30 +43,14 @@ juju +flags='-rA': (_coverage 'integration/juju' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
 _coverage test_subdir +flags='-rA':
-    #!/usr/bin/env -S uv run --python={{python}} --group={{package}} --script
-    import pathlib, shlex, shutil, subprocess, sys
-
-    CWD = pathlib.Path('{{package}}')
-    PYTHON_VERSION = '{{python}}'
-    TEST_SUBDIR = '{{test_subdir}}'
-    FLAGS = shlex.split('{{flags}}')
-
-    TEST_ID = pathlib.PurePath(TEST_SUBDIR).name
-    DATA_FILE = f'.report/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
-
-    def coverage(cmd: str, *args: str) -> None:
-        uv = ['uv', 'run', '--active']
-        coverage = ['coverage', cmd, f'--data-file={DATA_FILE}', f'--rcfile=pyproject.toml', *args]
-        command = [*uv, *coverage]
-        print(command)
-        try:
-            subprocess.run(command, check=True, cwd=CWD)
-        except subprocess.CalledProcessError as e:
-            sys.exit(e.returncode)
-
-    pytest = ['pytest', '--tb=native', '-vv', *FLAGS, f'tests/{TEST_SUBDIR}']
-    coverage('run', '--source=src', '-m', *pytest)
-    coverage('report')
+    #!/usr/bin/env bash
+    set -xueo pipefail
+    DATA_FILE="{{package}}/.report/coverage-$(basename {{test_subdir}})-{{python}}.db"
+    uv run --python='{{python}}' --group='{{package}}' \
+        coverage run --data-file="$DATA_FILE" --rcfile=pyproject.toml \
+        -m pytest --tb=native -vv '{{flags}}' '{{package}}/tests/{{test_subdir}}'
+    uv run --python='{{python}}' --group='{{package}}' \
+        coverage report --data-file="$DATA_FILE" --rcfile=pyproject.toml
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
 combine-coverage:
