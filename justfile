@@ -15,7 +15,7 @@ help:
 
 [doc('Run `ruff` and `codespell`, failing if any errors are found.')]
 lint:
-    #!/usr/bin/env -S uv run --python={{python}} --script
+    #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{python}} uv run --python={{python}} --script
     import subprocess, sys
 
     error_count = 0
@@ -36,12 +36,12 @@ lint:
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format:
-    uv run --python={{python}} ruff check --preview --fix
-    uv run --python={{python}} ruff format --preview
+    UV_PROJECT_ENVIRONMENT=.venv-{{python}} uv run --python={{python}} ruff check --preview --fix
+    UV_PROJECT_ENVIRONMENT=.venv-{{python}} uv run --python={{python}} ruff format --preview
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
-    #!/usr/bin/env -S uv run --python={{python}} --group={{package}} --script
+    #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} uv run --python={{python}} --group={{package}} --script
     import shlex, subprocess, sys
 
     cmd = ['pyright', '--pythonversion={{python}}', *shlex.split('{{args}}')]
@@ -65,7 +65,7 @@ combine-coverage +flags='-rA': (_coverage 'combine' 'all' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
 _coverage coverage_cmd test_subdir +flags='-rA':
-    #!/usr/bin/env -S uv run --python={{python}} --group={{package}} --script
+    #!/usr/bin/env -S UV_PROJECT_ENVIRONMENT=.venv-{{package}}-{{python}} uv run --python={{python}} --group={{package}} --script
     import pathlib, shlex, shutil, subprocess, sys
 
     CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')
