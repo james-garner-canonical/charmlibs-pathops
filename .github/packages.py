@@ -26,7 +26,7 @@ def _parse_args() -> str:
 
 def _main(project_root: pathlib.Path, git_base_ref: str) -> None:
     git_diff_cmd = ['git', 'diff', '--name-only', f'origin/{git_base_ref}']
-    git_diff = subprocess.run(git_diff_cmd, text=True)
+    git_diff = subprocess.run(git_diff_cmd, capture_output=True, text=True)
     changes = git_diff.stdout.split('\n')
     # record which packages have changed, or all if global config files have changed
     if any(change.startswith(_GLOBAL_FILES) for change in changes):
