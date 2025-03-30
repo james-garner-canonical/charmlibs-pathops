@@ -49,7 +49,7 @@ def _main(project_root: pathlib.Path, git_base_ref: str) -> None:
             if (project_root / package / 'tests' / test).is_dir():
                 tests_dict[test].append(package)
     # set output
-    with pathlib.Path(os.environ['GITHUB_OUTPUT']).open('w') as f:
+    with pathlib.Path(os.environ['GITHUB_OUTPUT']).open('a') as f:
         print(f'changed={json.dumps(changed_packages)}', file=f)
         for test, packages in tests_dict.items():
             print(f'{pathlib.PurePath(test).name}={json.dumps(packages)}', file=f)
