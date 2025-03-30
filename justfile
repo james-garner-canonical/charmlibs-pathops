@@ -158,9 +158,7 @@ pebble-local +flags='-rA':
     import os, pathlib, subprocess, sys
     from subprocess import DEVNULL
 
-    pebble_dir = '/tmp/pebble-test'
-    pathlib.Path(pebble_dir).mkdir(exist_ok=True)
-    ENV = {**os.environ, 'PEBBLE': pebble_dir}
+    ENV = {**os.environ, 'PEBBLE': '/tmp/pebble-test'}
 
     pebble_cmd = ['pebble', 'run', '--create-dirs']
     print('Start pebble:', pebble_cmd)
