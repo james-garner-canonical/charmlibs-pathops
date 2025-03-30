@@ -24,13 +24,13 @@ lint:
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format:
-    uv run --python={{python}} ruff check --preview --fix
-    uv run --python={{python}} ruff format --preview
+    uv run --python='{{python}}' ruff check --preview --fix
+    uv run --python='{{python}}' ruff format --preview
 
 [doc('Run `pyright` for the specified `package` and `python` version.')]
 static *args:
-    uv run --python={{python}} --group={{package}} \
-        pyright --pythonversion={{python}} {{args}} {{package}}
+    uv run --python='{{python}}' --group='{{package}}' \
+        pyright --pythonversion='{{python}}' {{args}} '{{package}}'
 
 [doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
 unit +flags='-rA': (_coverage 'unit' flags)
