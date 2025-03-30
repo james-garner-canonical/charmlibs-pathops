@@ -43,16 +43,18 @@ def _main(project_root: pathlib.Path, git_base_ref: str) -> None:
         })
     # record the test suites provided by each package
     tests = ('unit', 'integration/pebble', 'integration/juju')
-    tests_dict: dict[str, list[str]] = {test: [] for test in tests}
-    for package in changed_packages:
-        for test in tests:
-            if (project_root / package / 'tests' / test).is_dir():
-                tests_dict[test].append(package)
+    output: dict[str, list[str]] = {test: [] for test in tests}
+    output['changed'] = changed_packages
+    for name in tests:
+        for package in changed_packages:
+            if (project_root / package / 'tests' / name).is_dir():
+                output[name].append(package)
     # set output
     with pathlib.Path(os.environ['GITHUB_OUTPUT']).open('a') as f:
-        print(f'changed={json.dumps(changed_packages)}', file=f)
-        for test, packages in tests_dict.items():
-            print(f'{pathlib.PurePath(test).name}={json.dumps(packages)}', file=f)
+        for name, packages in output.items():
+            line = f'{pathlib.PurePath(name).name}={json.dumps(packages)}'
+            print(line)
+            print(line, file=f)
 
 
 if __name__ == '__main__':
