@@ -131,21 +131,20 @@ ignore = [
 convention = "google"
 
 [tool.codespell]
+check-hidden = true
+quiet-level = 3  # disable warnings about (1) wrong encoding + (2) binary files
 skip = [
     ".git",
-    ".tox",
     ".mypy_cache",
     ".pytest_cache",
+    ".report",
     ".ruff_cache",
+    ".tox",
+    ".venv*",
     ".vscode",
-    "build",
     "_docs",
-    "htmlcov",
-    "htmlcov-*",
-    "venv",
-    "icon.svg",
+    "build",
 ]
-quiet-level = 3  # disable warnings about (1) wrong encoding + (2) binary files
 
 [tool.pyright]
 pythonPlatform = "All"
