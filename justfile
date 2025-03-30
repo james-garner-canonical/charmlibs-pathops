@@ -89,13 +89,13 @@ static *args:
 unit +flags='-rA': (_coverage 'unit' flags)
 
 [doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
-pebble +flags='-rA': (_coverage 'pebble' flags)
+pebble +flags='-rA': (_coverage 'integration/pebble' flags)
 
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
-juju +flags='-rA': (_coverage 'juju' flags)
+juju +flags='-rA': (_coverage 'integration/juju' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
-_coverage test_id +flags='-rA':
+_coverage test_subdir +flags='-rA':
     #!/usr/bin/env -S uv run --python={{python}} --script
     # /// script
     # dependencies = [
@@ -108,7 +108,8 @@ _coverage test_id +flags='-rA':
 
     CWD = pathlib.Path('{{justfile_directory()}}/{{package}}')
     RCFILE = '{{justfile_directory()}}/pyproject.toml'
-    DATA_FILE = '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.db'
+    TEST_ID = pathlib.PurePath('{{test_subdir}}').name
+    DATA_FILE = f'{{_coverage_dir}}/coverage-{TEST_ID}-{{python}}.db'
 
     def coverage(command: str, *args: str) -> None:
         uv = ['uv', 'run', '--active']
@@ -122,11 +123,11 @@ _coverage test_id +flags='-rA':
 
     (CWD / '{{_coverage_dir}}').mkdir(exist_ok=True)
     flags = shlex.split('{{flags}}')
-    pytest = ['pytest', '--tb=native', '-vv', *flags, 'tests/**/{{test_id}}']
+    pytest = ['pytest', '--tb=native', '-vv', *flags, 'tests/{{test_subdir}}']
     coverage('run', '--source=src', '-m', *pytest)
-    coverage('xml', '-o', '{{_coverage_dir}}/coverage-{{test_id}}-{{python}}.xml')
+    coverage('xml', '-o', f'{{_coverage_dir}}/coverage-{TEST_ID}-{{python}}.xml')
     # let coverage create html directory from scratch
-    html_dir = '{{_coverage_dir}}/htmlcov-{{test_id}}-{{python}}'
+    html_dir = f'{{_coverage_dir}}/htmlcov-{TEST_ID}-{{python}}'
     if (CWD / html_dir).is_dir():
         shutil.rmtree(CWD / html_dir)
     coverage('html', '--show-contexts', f'--directory={html_dir}')
