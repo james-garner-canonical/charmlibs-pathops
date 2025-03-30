@@ -114,9 +114,7 @@ pebble-local +flags='-rA':
 
     pebble_cmd = ['pebble', 'run', '--create-dirs']
     print('Start pebble:', pebble_cmd)
-    pebble_result = subprocess.Popen(pebble_cmd, stdout=DEVNULL, stderr=DEVNULL, env=ENV)
-    pid = pebble_result.pid
-    print(f'Pebble PID: {pid}')
+    pebble_process = subprocess.Popen(pebble_cmd, stdout=DEVNULL, stderr=DEVNULL, env=ENV)
 
     just_cmd = [
         'just',
@@ -129,8 +127,5 @@ pebble-local +flags='-rA':
     print('Run pebble tests:', just_cmd)
     just_result = subprocess.run(just_cmd, env=ENV)
 
-    cleanup_cmd = ['kill', str(pid)]
-    print('Cleanup pebble:', cleanup_cmd)
-    subprocess.run(cleanup_cmd)
-
+    pebble_process.kill()
     sys.exit(just_result.returncode)
