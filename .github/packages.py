@@ -19,7 +19,7 @@ _GLOBAL_FILES = ('pyproject.toml', 'justfile', '.github')
 
 def _parse_args() -> str:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--git-base-ref')
+    parser.add_argument('git-base-ref')
     args = parser.parse_args()
     return args.git_base_ref
 
