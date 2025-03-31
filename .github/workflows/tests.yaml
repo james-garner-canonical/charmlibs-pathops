@@ -58,7 +58,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run ${{ matrix.just-recipe }} tests
-        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} static
+        run: uvx --from rust-just just python=${{ matrix.python-version }} static ${{ matrix.package }}
 
   unit:
     needs: packages
@@ -80,7 +80,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run unit tests
-        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} unit
+        run: uvx --from rust-just just python=${{ matrix.python-version }} unit ${{ matrix.package }}
 
   pebble:
     needs: packages
@@ -119,7 +119,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run Pebble integration tests
-        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} pebble
+        run: uvx --from rust-just just python=${{ matrix.python-version }} pebble ${{ matrix.package }}
 
   juju:
     needs: packages
@@ -147,4 +147,4 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run Juju integration tests
-        run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} juju
+        run: uvx --from rust-just just python=${{ matrix.python-version }} juju ${{ matrix.package }}
