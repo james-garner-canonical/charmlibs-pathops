@@ -45,12 +45,16 @@ juju +flags='-rA': (_coverage 'integration/juju' flags)
 _coverage test_subdir +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
-    DATA_FILE="{{package}}/.report/coverage-$(basename {{test_subdir}})-{{python}}.db"
-    uv run --python='{{python}}' --group='{{package}}' \
-        coverage run --data-file="$DATA_FILE" --rcfile=pyproject.toml \
-        -m pytest --tb=native -vv '{{flags}}' '{{package}}/tests/{{test_subdir}}'
-    uv run --python='{{python}}' --group='{{package}}' \
-        coverage report --data-file="$DATA_FILE" --rcfile=pyproject.toml
+    uv sync --python='{{python}}' --group='{{package}}'
+    source .venv/bin/activate
+    cd '{{package}}'
+    export COVERAGE_RCFILE=../pyproject.toml
+    DATA_FILE=".report/coverage-$(basename {{test_subdir}})-{{python}}.db"
+    uv run --active \
+        coverage run --data-file="$DATA_FILE" --source='src' \
+        -m pytest --tb=native -vv '{{flags}}' 'tests/{{test_subdir}}'
+    uv run --active \
+        coverage report --data-file="$DATA_FILE"
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
 combine-coverage:
