@@ -52,11 +52,9 @@ _coverage test_subdir +flags='-rA':
     cd '{{package}}'
     export COVERAGE_RCFILE=../pyproject.toml
     DATA_FILE=".report/coverage-$(basename {{test_subdir}})-{{python}}.db"
-    uv run --active \
-        coverage run --data-file="$DATA_FILE" --source='src' \
+    uv run --active coverage run --data-file="$DATA_FILE" --source='src' \
         -m pytest --tb=native -vv '{{flags}}' 'tests/{{test_subdir}}'
-    uv run --active \
-        coverage report --data-file="$DATA_FILE"
+    uv run --active coverage report --data-file="$DATA_FILE"
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
 combine-coverage:
@@ -74,18 +72,11 @@ combine-coverage:
     export COVERAGE_RCFILE=pyproject.toml
     DATA_FILE='{{package}}/.report/coverage-all-{{python}}.db'
     HTML_DIR='{{package}}/.report/htmlcov-all-{{python}}'
-    uv run coverage combine --keep \
-        --data-file="$DATA_FILE" \
-        "${data_files[@]}"
-    uv run coverage xml \
-        --data-file="$DATA_FILE" \
-        -o '{{package}}/.report/coverage-all-{{python}}.xml'
+    uv run coverage combine --keep --data-file="$DATA_FILE" "${data_files[@]}"
+    uv run coverage xml --data-file="$DATA_FILE" -o '{{package}}/.report/coverage-all-{{python}}.xml'
     rm -rf "$HTML_DIR"  # let coverage create html directory from scratch
-    uv run coverage html \
-        --data-file="$DATA_FILE" \
-        --show-contexts --directory="$HTML_DIR"
-    uv run coverage report \
-        --data-file="$DATA_FILE"
+    uv run coverage html --data-file="$DATA_FILE" --show-contexts --directory="$HTML_DIR"
+    uv run coverage report --data-file="$DATA_FILE"
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
