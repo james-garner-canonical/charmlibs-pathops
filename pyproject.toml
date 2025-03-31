@@ -12,11 +12,14 @@ dev = [
     "ruff==0.11.0",
 ]
 pathops = [
-    'charmlibs-pathops @ file:///${PROJECT_ROOT}/pathops',
+    "charmlibs-pathops",
 ]
 
 [tool.uv]
 package=false
+
+[tool.uv.sources]
+charmlibs-pathops = { path = "pathops" }
 
 [tool.coverage.run]
 dynamic_context = "test_function"
