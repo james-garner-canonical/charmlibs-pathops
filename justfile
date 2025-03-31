@@ -22,12 +22,12 @@ lint:
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format:
-    uv run --python='{{python}}' ruff check --preview --fix
-    uv run --python='{{python}}' ruff format --preview
+    uv run ruff check --preview --fix
+    uv run ruff format --preview
 
 [doc('Run `pyright`, e.g. `just python=3.8 static pathops`.')]
 static package *pyright_args:
-    uv run --python='{{python}}' --group='{{package}}' \
+    uv run --group='{{package}}' \
         pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
 
 [doc("Run unit tests with `coverage`, e.g. `just python=3.8 unit pathops`.")]
