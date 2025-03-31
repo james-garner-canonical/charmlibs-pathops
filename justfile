@@ -58,40 +58,32 @@ _coverage test_subdir +flags='-rA':
 
 [doc("Combine `coverage` reports for the specified package and python version.")]
 combine-coverage:
-    #!/usr/bin/env -S uv run --script
-    import pathlib, shutil, subprocess, sys
-
-    CWD = pathlib.Path('{{package}}')
-    PYTHON_VERSION = '{{python}}'
-
-    COVERAGE_DIR = '.report'
-    TEST_ID = 'all'
-    DATA_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.db'
-    XML_FILE = f'{COVERAGE_DIR}/coverage-{TEST_ID}-{PYTHON_VERSION}.xml'
-    HTML_DIR = f'{COVERAGE_DIR}/htmlcov-{TEST_ID}-{PYTHON_VERSION}'
-
-    def coverage(cmd: str, *args: str) -> None:
-        uv = ['uv', 'run', '--active']
-        coverage = ['coverage', cmd, f'--data-file={DATA_FILE}', f'--rcfile=pyproject.toml', *args]
-        command = [*uv, *coverage]
-        print(command)
-        try:
-            subprocess.run(command, check=True, cwd=CWD)
-        except subprocess.CalledProcessError as e:
-            sys.exit(e.returncode)
-
-    data_files = []
-    for test_id in ('unit', 'pebble', 'juju'):
-        data_file = f'{COVERAGE_DIR}/coverage-{test_id}-{PYTHON_VERSION}.db'
-        if (CWD / data_file).exists():
-            data_files.append(data_file)
-    coverage('combine', '--keep', *data_files)
-    # let coverage create html directory from scratch
-    if (CWD / HTML_DIR).is_dir():
-        shutil.rmtree(CWD / HTML_DIR)
-    coverage('html', '--show-contexts', f'--directory={HTML_DIR}')
-    coverage('xml', '-o', XML_FILE)
-    coverage('report')
+    #!/usr/bin/env bash
+    set -xueo pipefail
+    : 'Collect the coverage data files that exist for this package.'
+    data_files=()
+    for test_id in unit pebble juju; do
+        data_file="{{package}}/.report/coverage-$test_id-{{python}}.db"
+        if [ -e "$data_file" ]; then
+            data_files+=("$data_file")
+        fi
+    done
+    : 'Combine coverage.'
+    export COVERAGE_RCFILE=pyproject.toml
+    DATA_FILE='{{package}}/.report/coverage-all-{{python}}.db'
+    HTML_DIR='{{package}}/.report/htmlcov-all-{{python}}'
+    uv run coverage combine --keep \
+        --data-file="$DATA_FILE" \
+        "${data_files[@]}"
+    uv run coverage xml \
+        --data-file="$DATA_FILE" \
+        -o '{{package}}/.report/coverage-all-{{python}}.xml'
+    rm -rf "$HTML_DIR"  # let coverage create html directory from scratch
+    uv run coverage html \
+        --data-file="$DATA_FILE" \
+        --show-contexts --directory="$HTML_DIR"
+    uv run coverage report \
+        --data-file="$DATA_FILE"
 
 [doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
 pebble-local +flags='-rA':
