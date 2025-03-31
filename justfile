@@ -25,15 +25,15 @@ format:
     uv run --python='{{python}}' ruff check --preview --fix
     uv run --python='{{python}}' ruff format --preview
 
-[doc('Run `pyright` for the specified `package` and `python` version.')]
+[doc('Run `pyright`, e.g. `just python=3.8 static pathops`.')]
 static package *pyright_args:
     uv run --python='{{python}}' --group='{{package}}' \
         pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
 
-[doc("Run the specified package's unit tests with the specified python version with `coverage`.")]
+[doc("Run unit tests with `coverage`, e.g. `just python=3.8 unit pathops`.")]
 unit package +flags='-rA': (_coverage package 'unit' flags)
 
-[doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
+[doc("Run pebble integration tests with `coverage`. Requires `pebble`.")]
 pebble package +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
@@ -49,7 +49,7 @@ pebble package +flags='-rA':
     exit $EXITCODE
 
 
-[doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
+[doc("Run juju integration tests. Requires `juju`.")]
 juju package +flags='-rA': (_coverage package 'integration/juju' flags)
 
 [doc("Use uv to install and run coverage for the specified package's tests.")]
@@ -65,7 +65,7 @@ _coverage package test_subdir +flags='-rA':
         -m pytest --tb=native -vv '{{flags}}' 'tests/{{test_subdir}}'
     uv run --active coverage report --data-file="$DATA_FILE"
 
-[doc("Combine `coverage` reports for the specified package and python version.")]
+[doc("Combine `coverage` reports, e.g. `just python=3.8 combine-coverage pathops`.")]
 combine-coverage package:
     #!/usr/bin/env bash
     set -xueo pipefail
