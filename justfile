@@ -42,6 +42,7 @@ pebble +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
     export PEBBLE=/tmp/pebble-test
+    umask 0
     pebble run --create-dirs &>/dev/null &
     PEBBLE_PID=$!
     set +e  # don't exit if the tests fail
