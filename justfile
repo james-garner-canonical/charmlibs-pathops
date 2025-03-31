@@ -38,7 +38,19 @@ static *pyright_args:
 unit +flags='-rA': (_coverage 'unit' flags)
 
 [doc("Run the specified package's pebble integration tests with the specified python version with `coverage`.")]
-pebble +flags='-rA': (_coverage 'integration/pebble' flags)
+pebble +flags='-rA':
+    #!/usr/bin/env bash
+    set -xueo pipefail
+    export PEBBLE=/tmp/pebble-test
+    pebble run --create-dirs &>/dev/null &
+    PEBBLE_PID=$!
+    set +e  # don't exit if the tests fail
+    just --justfile='{{justfile()}}' package='{{package}}' python='{{python}}' _coverage 'integration/pebble' {{flags}}
+    EXITCODE=$?
+    set -e  # do exit if anything goes wrong now
+    kill $PEBBLE_PID
+    exit $EXITCODE
+
 
 [doc("Run the specified package's juju integration tests with the specified python version with `coverage`.")]
 juju +flags='-rA': (_coverage 'integration/juju' flags)
@@ -77,17 +89,3 @@ combine-coverage:
     rm -rf "$HTML_DIR"  # let coverage create html directory from scratch
     uv run coverage html --data-file="$DATA_FILE" --show-contexts --directory="$HTML_DIR"
     uv run coverage report --data-file="$DATA_FILE"
-
-[doc("Start `pebble`, run pebble integration tests, and shutdown `pebble` cleanly afterwards.")]
-pebble-local +flags='-rA':
-    #!/usr/bin/env bash
-    set -xueo pipefail
-    export PEBBLE=/tmp/pebble-test
-    pebble run --create-dirs &>/dev/null &
-    PEBBLE_PID=$!
-    set +e  # don't exit if the tests fail
-    just --justfile='{{justfile()}}' package='{{package}}' python='{{python}}' pebble {{flags}}
-    EXITCODE=$?
-    set -e  # do exit if anything goes wrong now
-    kill $PEBBLE_PID
-    exit $EXITCODE

@@ -115,20 +115,11 @@ jobs:
       - name: Install Pebble
         run: go install github.com/canonical/pebble/cmd/pebble@${{ matrix.pebble-version }}
 
-      - name: Start Pebble
-        run: |
-          umask 0
-          $HOME/go/bin/pebble run --create-dirs &
-        env:
-          PEBBLE: /tmp/pebble-test
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
       - name: Run Pebble integration tests
         run: uvx --from rust-just just package=${{ matrix.package }} python=${{ matrix.python-version }} pebble
-        env:
-          PEBBLE: /tmp/pebble-test
 
   juju:
     needs: packages
