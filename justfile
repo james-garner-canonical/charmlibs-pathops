@@ -16,11 +16,13 @@ _help:
 [doc('Run `ruff` and `codespell`, failing afterwards if any errors are found.')]
 lint:
     #!/usr/bin/env bash
-    EXITCODE=0
-    uv run ruff check --preview --diff || $EXITCODE=$?
-    uv run ruff format --preview --diff || $EXITCODE=$?
-    codespell --toml=pyproject.toml || $EXITCODE=$?
-    exit $EXITCODE
+    set -xueo pipefail
+    FAILURES=0
+    uv run ruff check --preview --diff || ((FAILURES+=1))
+    uv run ruff format --preview --diff || ((FAILURES+=1))
+    uv run codespell --toml=pyproject.toml || ((FAILURES+=1))
+    : "$FAILURES command(s) failed."
+    exit $FAILURES
 
 [doc('Run `ruff check --fix` and `ruff --format`, modifying files in place.')]
 format:
