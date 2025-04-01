@@ -57,7 +57,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Run ${{ matrix.just-recipe }} tests
+      - name: Run static analysis
         run: uvx --from rust-just just python=${{ matrix.python-version }} static ${{ matrix.package }}
 
   unit:
