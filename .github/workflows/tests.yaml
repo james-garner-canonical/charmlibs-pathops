@@ -58,7 +58,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run static analysis
-        run: make PYTHON=${{ matrix.python-version }} PACKAGE=${{ matrix.package }} static
+        run: make PY=${{ matrix.python-version }} PKG=${{ matrix.package }} static
 
   unit:
     needs: packages
@@ -80,7 +80,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run unit tests
-        run: make PYTHON=${{ matrix.python-version }} PACKAGE=${{ matrix.package }} unit
+        run: make PY=${{ matrix.python-version }} PKG=${{ matrix.package }} unit
 
   pebble:
     needs: packages
@@ -119,7 +119,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run Pebble integration tests
-        run: make PYTHON=${{ matrix.python-version }} PACKAGE=${{ matrix.package }} pebble
+        run: make PY=${{ matrix.python-version }} PKG=${{ matrix.package }} pebble
 
   juju:
     needs: packages
@@ -147,4 +147,4 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run Juju integration tests
-        run: make PYTHON=${{ matrix.python-version }} PACKAGE=${{ matrix.package }} juju
+        run: make PY=${{ matrix.python-version }} PKG=${{ matrix.package }} juju
