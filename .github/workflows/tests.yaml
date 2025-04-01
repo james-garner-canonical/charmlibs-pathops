@@ -80,7 +80,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Run unit tests
-        run: uvx --from rust-just just python=${{ matrix.python-version }} unit ${{ matrix.package }}
+        run: make PYTHON=${{ matrix.python-version }} PACKAGE=${{ matrix.package }} unit
 
   pebble:
     needs: packages
