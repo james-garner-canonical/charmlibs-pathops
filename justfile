@@ -28,8 +28,7 @@ format:
 
 [doc('Run `pyright`, e.g. `just python=3.8 static pathops`.')]
 static package *pyright_args:
-    uv run --group='{{package}}' \
-        pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
+    uv run --group='{{package}}' pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
 
 [doc("Run unit tests with `coverage`, e.g. `just python=3.8 unit pathops`.")]
 unit package +flags='-rA': (_coverage package 'unit' flags)
