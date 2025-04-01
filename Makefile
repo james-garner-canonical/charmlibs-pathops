@@ -75,7 +75,7 @@ else
 	export COVERAGE_RCFILE=../pyproject.toml
 	DATA_FILE=".report/coverage-$$(basename $(TESTS))-$(PY).db"
 	uv run --active coverage run --data-file="$$DATA_FILE" --source='src' \
-		-m pytest --tb=native -vv $(ARGS) tests/$(TESTS)
+	    -m pytest --tb=native -vv $(ARGS) tests/$(TESTS)
 	uv run --active coverage report --data-file="$$DATA_FILE"
 endif
 
