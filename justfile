@@ -14,6 +14,7 @@ lint:
     #!/usr/bin/env bash
     set -xueo pipefail
     FAILURES=0
+    uv run ruff check --preview || ((FAILURES+=1))
     uv run ruff check --preview --diff || ((FAILURES+=1))
     uv run ruff format --preview --diff || ((FAILURES+=1))
     uv run codespell --toml=pyproject.toml || ((FAILURES+=1))
