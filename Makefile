@@ -4,9 +4,6 @@ PYTHON ?= 3.12
 
 .ONESHELL:
 
-.PHONY: print
-print:
-	echo $(PYTHON)
 .PHONY: help
 help:
 	@echo 'Usage: make PACKAGE=<package> [PYTHON=<python version>] target [ARGS=<additional args>]'
