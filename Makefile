@@ -8,7 +8,7 @@ PYTHON ?= 3.12
 help:  # Print this message.
 	@echo 'Usage: make PACKAGE=<package> [PYTHON=<python version>] target [ARGS=<additional args>]'
 	@echo 'Targets:'
-	@awk -F'  # ' '/^[a-z-]+:.*/ {print "   ", $$1, $$2}' Makefile | column -t -s ':'
+	@awk -F':' '/^[a-z-]+:.*/ {print "   ", $$1, $$2}' Makefile | column -t -s '#'
 
 .PHONY: lint
 lint:  # Run `ruff` and `codespell`, failing afterwards if any errors are found.
