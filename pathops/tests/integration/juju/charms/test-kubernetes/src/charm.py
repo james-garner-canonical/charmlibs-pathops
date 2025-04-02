@@ -25,16 +25,17 @@ import charmlibs.pathops as pathops
 
 logger = logging.getLogger(__name__)
 
+CONTAINER = 'workload'
 
 class TestCharm(common.Charm):
     """Charm the application."""
 
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
-        framework.observe(self.on['some_container'].pebble_ready, self._on_pebble_ready)
+        framework.observe(self.on[CONTAINER].pebble_ready, self._on_pebble_ready)
         self.root = pathops.ContainerPath(
             pathlib.Path('/', 'tmp'),
-            container=self.unit.get_container('some_container'),
+            container=self.unit.get_container(CONTAINER),
         )
 
     def _on_pebble_ready(self, event: ops.PebbleReadyEvent):
