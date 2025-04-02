@@ -58,10 +58,6 @@ pebble package +flags='-rA':
     kill $PEBBLE_PID
     exit $EXITCODE
 
-
-[doc("Run juju integration tests. Requires `juju`.")]
-juju package +flags='-rA': (_coverage package 'integration/juju' flags)
-
 [doc("Use uv to install and run coverage for the specified package's tests.")]
 _coverage package test_subdir +flags='-rA':
     #!/usr/bin/env bash
@@ -96,3 +92,19 @@ combine-coverage package:
     rm -rf "$HTML_DIR"  # let coverage create html directory from scratch
     uv run coverage html --data-file="$DATA_FILE" --show-contexts --directory="$HTML_DIR"
     uv run coverage report --data-file="$DATA_FILE"
+
+[doc("Execute pack script to pack charms for juju integration tests.")]
+pack package *charmcraft_args:
+    #!/usr/bin/env bash
+    set -xueo pipefail
+    cd '{{package}}/tests/integration/juju/charms'
+    ./pack.sh {{charmcraft_args}}
+
+[doc("Run juju integration tests. Requires `juju`.")]
+juju package +flags='-rA':
+    #!/usr/bin/env bash
+    set -xueo pipefail
+    uv sync --python='{{python}}' --group='{{package}}' --group=juju
+    source .venv/bin/activate
+    cd '{{package}}'
+    pytest --tb=native -vv '{{flags}}' tests/integration/juju
