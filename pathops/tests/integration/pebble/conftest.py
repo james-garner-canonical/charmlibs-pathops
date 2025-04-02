@@ -26,8 +26,6 @@ if typing.TYPE_CHECKING:
     import pathlib
     from typing import Iterator
 
-os.umask(0o000)  # Pebble seems to operate with umask=0; this makes it easy to compare permissions
-
 
 @pytest.fixture(scope='session')
 def session_dir() -> Iterator[pathlib.Path]:
