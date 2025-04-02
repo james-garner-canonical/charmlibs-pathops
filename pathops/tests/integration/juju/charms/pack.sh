@@ -10,15 +10,16 @@ for charmdir in test-kubernetes test-machine; do
     cp --recursive "$charmdir" "$TMPDIR"
     unlink "$TMPDIR/src/common.py"  # remove symlink
     cp common/src/common.py "$TMPDIR/src/"
-    cp common/requirements.txt "$TMPDIR/"
+    cp common/pyproject.toml "$TMPDIR/"
     cat common/actions.yaml >> "$TMPDIR/charmcraft.yaml"
     mkdir "$TMPDIR/pathops"
     cp -r ../../../../pyproject.toml "$TMPDIR/pathops/"
     cp -r ../../../../src "$TMPDIR/pathops/"
     cd "$TMPDIR"
+    uv lock
     charmcraft pack "$@"
-    mv *.charm ../.packed/
     cd -
+    mv "$TMPDIR"/*.charm .packed/
     rm -rf "$TMPDIR"
 done
 
