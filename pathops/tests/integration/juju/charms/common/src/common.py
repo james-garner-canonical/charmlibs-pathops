@@ -29,7 +29,7 @@ class Charm(ops.CharmBase):
     def _on_test(self, event: ops.ActionEvent) -> None:
         file = self.root / 'file.txt'
         contents = 'Hello World!'
-        # TODO: make ensure_contents not need this type: ignore
+        # TODO: make ensure_contents not need this type-ignore
         pathops.ensure_contents(path=file, source=contents)  # type: ignore
         assert file.read_text() == contents
         # TODO: pathops should provide a method to remove files
@@ -38,4 +38,4 @@ class Charm(ops.CharmBase):
         except AttributeError:
             assert isinstance(file, pathops.ContainerPath)
             file._container.remove_path(str(file))
-        event.set_results({str(file): contents})
+        event.set_results({'file': repr(file), 'contents': contents})
