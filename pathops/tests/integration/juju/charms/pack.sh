@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 set -xueo pipefail
 
-mkdir --parents .packed
+rm -rf .packed
+mkdir .packed
 
-CHARMS=()
-for charm in test-kubernetes test-machine; do
-    cp --recursive "$charm" ".$charm"
-    unlink ".$charm/src/common.py"  # remove symlink
-    cp common/src/common.py ".$charm/src/"
-    cp common/requirements.txt ".$charm/"
-    cat common/actions.yaml >> ".$charm/charmcraft.yaml"
-    cd ".$charm"
+for charmdir in test-kubernetes test-machine; do
+    TMPDIR=".$charmdir"
+    rm -rf "$TMPDIR"
+    cp --recursive "$charmdir" "$TMPDIR"
+    unlink "$TMPDIR/src/common.py"  # remove symlink
+    cp common/src/common.py "$TMPDIR/src/"
+    cp common/requirements.txt "$TMPDIR/"
+    cat common/actions.yaml >> "$TMPDIR/charmcraft.yaml"
+    mkdir "$TMPDIR/pathops"
+    cp -r ../../../../pyproject.toml "$TMPDIR/pathops/"
+    cp -r ../../../../src "$TMPDIR/pathops/"
+    cd "$TMPDIR"
     charmcraft pack
+    mv *.charm ../.packed/
     cd -
-    PACKED=$(basename ".$charm/*.charm")
-    mv ".$charm/*.charm" ".packed/"
-    CHARMS+=".packed/$PACKED"
-    rm -rf ".$charm"
+    rm -rf "$TMPDIR"
 done
-echo ${CHARMS[@]}
+
+echo .packed/*.charm
