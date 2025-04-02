@@ -1,0 +1,2 @@
+ops ~= 2.17
+charmlibs-pathops @ git++https://github.com/canonical/charmlibs-pathops@main#subdirectory=pathops
