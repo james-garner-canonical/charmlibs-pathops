@@ -16,7 +16,7 @@ for charmdir in test-kubernetes test-machine; do
     cp -r ../../../../pyproject.toml "$TMPDIR/pathops/"
     cp -r ../../../../src "$TMPDIR/pathops/"
     cd "$TMPDIR"
-    charmcraft pack
+    charmcraft pack "$@"
     mv *.charm ../.packed/
     cd -
     rm -rf "$TMPDIR"
