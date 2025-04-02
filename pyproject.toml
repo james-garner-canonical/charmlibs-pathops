@@ -11,6 +11,9 @@ dev = [
     "pytest==8.3.5",
     "ruff==0.11.0",
 ]
+juju = [
+    "jubilant;python_version>='3.12'",
+]
 pathops = [
     "charmlibs-pathops",
 ]
@@ -20,6 +23,7 @@ package=false
 
 [tool.uv.sources]
 charmlibs-pathops = { path = "pathops" }
+jubilant = { git = "https://github.com/canonical/jubilant" }
 
 [tool.coverage.run]
 dynamic_context = "test_function"
