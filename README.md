@@ -9,6 +9,7 @@ Currently the only library hosted here is charmlibs-pathops. <!--- TODO: PyPI li
 This project uses [just](https://github.com/casey/just) as a task runner, backed by [uv](https://github.com/astral-sh/uv).
 
 Consider installing them both like this:
+
 ```
 sudo apt install pipx
 pipx install uv
