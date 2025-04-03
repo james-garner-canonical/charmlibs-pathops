@@ -20,7 +20,10 @@ import jubilant
 import pytest
 
 if typing.TYPE_CHECKING:
-    from collections.abc import Generator
+    from typing import Iterator
+
+
+SUBSTRATES = ('machine', 'kubernetes')
 
 
 def pytest_addoption(parser: pytest.OptionGroup):
@@ -30,10 +33,26 @@ def pytest_addoption(parser: pytest.OptionGroup):
         default=False,
         help='keep temporarily-created models',
     )
+    parser.addoption(
+        '--substrate',
+        action='store',
+        default='kubernetes',
+        choices=SUBSTRATES,
+        help='whether to deploy the machine or kubernetes charm',
+    )
+
+
+def pytest_generate_tests(metafunc: pytest.Metafunc):
+    """Parametrize tests with the cli substrate argument if they request it as a fixture."""
+    argument = 'substrate'
+    value = getattr(metafunc.config.option, argument)
+    assert value in SUBSTRATES
+    if argument in metafunc.fixturenames:
+        metafunc.parametrize(argument, [value])
 
 
 @pytest.fixture
-def juju(request: pytest.FixtureRequest) -> Generator[jubilant.Juju, None, None]:
+def juju(request: pytest.FixtureRequest) -> Iterator[jubilant.Juju]:
     """Pytest fixture that wraps :meth:`jubilant.with_model`.
 
     This adds command line parameter ``--keep-models`` (see help for details).

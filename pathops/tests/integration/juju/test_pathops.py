@@ -20,12 +20,9 @@ import jubilant
 
 import utils
 
-CHARM_NAME = 'test-kubernetes'
 
-
-def test(juju: jubilant.Juju):
-    juju.deploy(utils.get_packed_charm_path(CHARM_NAME), resources={'workload': 'ubuntu:latest'})
-    status = juju.wait(jubilant.all_active)
-    assert status
-    result = juju.run(f'{CHARM_NAME}/0', 'test')
+def test(juju: jubilant.Juju, substrate: str):
+    charm_name = utils.deploy(juju, substrate)
+    juju.wait(jubilant.all_active)
+    result = juju.run(f'{charm_name}/0', 'test')
     assert result.success

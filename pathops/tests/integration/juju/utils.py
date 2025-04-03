@@ -16,6 +16,8 @@
 
 import pathlib
 
+import jubilant
+
 
 def get_packed_charm_path(charm_name: str) -> pathlib.Path:
     packed_dir = pathlib.Path(__file__).parent / 'charms' / '.packed'
@@ -23,3 +25,17 @@ def get_packed_charm_path(charm_name: str) -> pathlib.Path:
     ret = charm_path.absolute()
     assert ret.is_file()
     return ret
+
+
+def deploy(juju: jubilant.Juju, substrate: str) -> str:
+    charm_name = f'test-{substrate}'
+    if substrate == 'kubernetes':
+        juju.deploy(
+            get_packed_charm_path(charm_name),
+            resources={'workload': 'ubuntu:latest'},
+        )
+    elif substrate == 'machine':
+        juju.deploy(get_packed_charm_path(charm_name))
+    else:
+        raise ValueError(f'Unknown substrate: {substrate!r}')
+    return charm_name

@@ -121,4 +121,4 @@ _juju package substrate +flags='-rA':
     source .venv/bin/activate
     uv pip install jubilant@git+https://github.com/canonical/jubilant
     cd '{{package}}'
-    pytest --tb=native -vv '{{flags}}' tests/integration/juju/test_{{substrate}}.py
+    pytest --tb=native -vv '{{flags}}' tests/integration/juju --substrate='{{substrate}}'
