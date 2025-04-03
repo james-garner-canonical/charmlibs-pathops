@@ -27,16 +27,15 @@ class Charm(ops.CharmBase):
         framework.observe(self.on['ensure-contents'].action, self._on_ensure_contents)
         framework.observe(self.on['iterdir'].action, self._on_iterdir)
 
+    def remove_path(self, path: pathops.PathProtocol) -> None:
+        raise NotImplementedError()
+
     def _on_ensure_contents(self, event: ops.ActionEvent) -> None:
         file = self.root / 'file.txt'
         contents = 'Hello World!'
         pathops.ensure_contents(path=file, source=contents)
         assert file.read_text() == contents
-        try:
-            file.unlink()  # type: ignore
-        except AttributeError:
-            assert isinstance(file, pathops.ContainerPath)
-            file._container.remove_path(str(file))
+        self.remove_path(file)
         results = {'file': repr(file), 'contents': contents}
         event.set_results(results)
 

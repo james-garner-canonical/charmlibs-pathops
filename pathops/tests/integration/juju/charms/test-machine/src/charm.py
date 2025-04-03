@@ -37,6 +37,10 @@ class TestCharm(common.Charm):
         """Handle start event."""
         self.unit.status = ops.ActiveStatus()
 
+    def remove_path(self, path: pathops.PathProtocol) -> None:
+        assert isinstance(path, pathops.LocalPath)
+        path.unlink()
+
 
 if __name__ == '__main__':  # pragma: nocover
     ops.main(TestCharm)

@@ -34,14 +34,16 @@ class TestCharm(common.Charm):
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
         framework.observe(self.on[CONTAINER].pebble_ready, self._on_pebble_ready)
-        self.root = pathops.ContainerPath(
-            pathlib.Path('/', 'tmp'),
-            container=self.unit.get_container(CONTAINER),
-        )
+        self.container = self.unit.get_container(CONTAINER)
+        self.root = pathops.ContainerPath(pathlib.Path('/', 'tmp'), container=self.container)
 
     def _on_pebble_ready(self, event: ops.PebbleReadyEvent):
         """Handle pebble-ready event."""
         self.unit.status = ops.ActiveStatus()
+
+    def remove_path(self, path: pathops.PathProtocol) -> None:
+        assert isinstance(path, pathops.ContainerPath)
+        self.container.remove_path(str(path))
 
 
 if __name__ == '__main__':  # pragma: nocover
