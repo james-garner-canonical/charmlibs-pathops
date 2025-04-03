@@ -12,3 +12,7 @@ parts:
     source: .
     plugin: uv
     build-snaps: [astral-uv]
+
+actions:
+  ensure-contents:
+  iterdir:

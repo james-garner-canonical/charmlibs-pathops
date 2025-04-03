@@ -22,3 +22,7 @@ resources:
     type: oci-image
     description: OCI image for the 'workload' container.
     upstream-source: some-repo/some-image:some-tag
+
+actions:
+  ensure-contents:
+  iterdir:

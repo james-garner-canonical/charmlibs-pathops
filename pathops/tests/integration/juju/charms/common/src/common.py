@@ -24,31 +24,22 @@ class Charm(ops.CharmBase):
 
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
-        framework.observe(self.on['test'].action, self._on_test)
+        framework.observe(self.on['ensure-contents'].action, self._on_ensure_contents)
+        framework.observe(self.on['iterdir'].action, self._on_iterdir)
 
-    def _on_test(self, event: ops.ActionEvent) -> None:
-        test_case = event.params['case']
-        try:
-            method = getattr(self, f'test_{test_case}')
-        except AttributeError:
-            event.fail(f'Unknown test case: {test_case!r}')
-        else:
-            results: dict[str, str] = method()
-            event.set_results(results)
-
-    def test_ensure_contents(self) -> dict[str, str]:
+    def _on_ensure_contents(self, event: ops.ActionEvent) -> None:
         file = self.root / 'file.txt'
         contents = 'Hello World!'
         pathops.ensure_contents(path=file, source=contents)
         assert file.read_text() == contents
-        # TODO: pathops should provide a method to remove files
         try:
             file.unlink()  # type: ignore
         except AttributeError:
             assert isinstance(file, pathops.ContainerPath)
             file._container.remove_path(str(file))
-        return {'file': repr(file), 'contents': contents}
+        results = {'file': repr(file), 'contents': contents}
+        event.set_results(results)
 
-    def test_iterdir(self) -> dict[str, str]:
+    def _on_iterdir(self, event: ops.ActionEvent) -> None:
         files = list(self.root.iterdir())
-        return {'files': str(files)}
+        event.set_results({event.id: str(files)})

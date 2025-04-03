@@ -34,15 +34,14 @@ def test_deploy(juju: jubilant.Juju, substrate: str):
 
 
 def test_ensure_contents(juju: jubilant.Juju, substrate: str):
-    _run(juju, substrate, 'ensure_contents')
+    _run(juju, substrate, 'ensure-contents')
 
 
 def test_iterdir(juju: jubilant.Juju, substrate: str):
     _run(juju, substrate, 'iterdir')
 
 
-def _run(juju: jubilant.Juju, substrate: str, test_case: str):
+def _run(juju: jubilant.Juju, substrate: str, action: str):
     name = utils.charm_name(substrate)
-    result = juju.run(f'{name}/0', 'test', params={'case': test_case})
-    assert result.success
+    result = juju.run(f'{name}/0', action)
     return result

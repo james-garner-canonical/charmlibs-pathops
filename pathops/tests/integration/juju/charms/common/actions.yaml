@@ -1,7 +1,0 @@
-actions:
-  test:
-    description: "test"
-    params:
-      case:
-        type: string
-        description: "Test case to run."
