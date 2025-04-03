@@ -33,7 +33,8 @@ class Charm(ops.CharmBase):
         except AttributeError:
             event.fail(f'Unknown test case: {test_case!r}')
         else:
-            method()
+            results: dict[str, str] = method()
+            event.set_results(results)
 
     def test_ensure_contents(self) -> dict[str, str]:
         file = self.root / 'file.txt'
