@@ -20,6 +20,7 @@ import grp
 import pwd
 import re
 import shutil
+import sys
 import typing
 
 import pytest
@@ -97,3 +98,35 @@ def test_file_creation_methods_call_chown(
     else:
         (call,) = mock_chown.calls
         assert call == (path, user, group)
+
+
+@pytest.mark.parametrize(
+    ('data', 'newline', 'result'),
+    [
+        ('\n', None, '\n'),
+        ('\n', '\n', '\n'),
+        ('\n', '', '\n'),
+        ('\n', '\r\n', '\r\n'),
+        ('\n', '\r', '\r'),
+        ('\r\n', None, '\r\n'),
+        ('\r\n', '\n', '\r\n'),
+        ('\r\n', '', '\r\n'),
+        ('\r\n', '\r\n', '\r\r\n'),
+        ('\r\n', '\r', '\r\r'),
+    ],
+)
+def test_write_text_newline(tmp_path: pathlib.Path, data: str, newline: str | None, result: str):
+    path = tmp_path / 'path'
+    if sys.version_info >= (3, 10):
+        path.write_text(data, newline=newline)
+        assert path.read_bytes() == result.encode()
+    LocalPath(path).write_text(data, newline=newline)
+    assert path.read_bytes() == result.encode()
+
+def test_write_text_newline_value_error(tmp_path: pathlib.Path):
+    path = tmp_path / 'path'
+    if sys.version_info >= (3, 10):
+        with pytest.raises(ValueError):
+            path.write_text('', newline='bad')
+    with pytest.raises(ValueError):
+        LocalPath(path).write_text('', newline='bad')
