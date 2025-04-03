@@ -40,14 +40,6 @@ class PathProtocol(typing.Protocol):
     useful autocompletions, as most editors will autocomplete methods and attributes that *any*
     of the union members have, rather than only those that *all* of the union members have.
 
-    Consider using the following pattern if you don't want callers to have to wrap their
-    arguments with :class:`LocalPath`, but want to use :class:`PathProtocol` internally::
-
-        def fn(arg: str | os.PathLike[str] | ContainerPath):
-            path: PathProtocol = (
-                arg if isinstance(arg, ContainerPath) else LocalPath(arg)
-            )
-
     :class:`str` follows the :mod:`pathlib` convention and returns the string representation of
     the path. :class:`ContainerPath` return the string representation of the path in the remote
     filesystem. The string representation is suitable for use with system calls (on the correct
