@@ -87,6 +87,7 @@ class LocalPath(pathlib.PosixPath):
         data: str,
         encoding: str | None = None,
         errors: str | None = None,
+        newline: str | None = None,
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
@@ -126,6 +127,10 @@ class LocalPath(pathlib.PosixPath):
             PermissionError: if the local user does not have permissions for the operation.
         """
         _validate_user_and_group(user=user, group=group)
+        if newline in ('\r', '\r\n'):
+            data = data.replace('\n', newline)
+        elif newline not in ('', '\n', None):
+            raise ValueError(f'illegal newline value: {newline}')
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
         _chown_if_needed(self, user=user, group=group)
         self.chmod(mode)
