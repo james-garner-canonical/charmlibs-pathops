@@ -123,6 +123,7 @@ def test_write_text_newline(tmp_path: pathlib.Path, data: str, newline: str | No
     LocalPath(path).write_text(data, newline=newline)
     assert path.read_bytes() == result.encode()
 
+
 def test_write_text_newline_value_error(tmp_path: pathlib.Path):
     path = tmp_path / 'path'
     if sys.version_info >= (3, 10):
