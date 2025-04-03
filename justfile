@@ -31,10 +31,16 @@ static package *pyright_args:
     #!/usr/bin/env bash
     set -xueo pipefail
     uv pip install packaging
-    if uv run python -c 'from packaging.version import Version; from sys import exit; exit(0 if (Version("{{python}}") < Version("3.10")) else 1)'
+    if uv run python -c '\
+    from packaging.version import Version;\
+    exit(0 if (Version("{{python}}") < Version("3.10")) else 1);\
+    '
     then
         : 'Python version < 3.10'
-        uv run --group='{{package}}' pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}/src' '{{package}}/tests/unit' '{{package}}/tests/integration/pebble'
+        uv run --group='{{package}}' pyright --pythonversion='{{python}}' {{pyright_args}} \
+            '{{package}}/src' \
+            '{{package}}/tests/unit' \
+            '{{package}}/tests/integration/pebble'
     else
         : 'Python version >= 3.10'
         uv pip install jubilant@git+https://github.com/canonical/jubilant
