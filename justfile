@@ -31,13 +31,14 @@ static package *pyright_args:
     #!/usr/bin/env bash
     set -xueo pipefail
     uv pip install packaging
-    if uv run python -c 'from packaging.version import Version; from sys import exit; exit(0 if (Version("{{python}}") < Version("3.12")) else 1)'
+    if uv run python -c 'from packaging.version import Version; from sys import exit; exit(0 if (Version("{{python}}") < Version("3.10")) else 1)'
     then
-        : 'Python version < 3.12'
+        : 'Python version < 3.10'
         uv run --group='{{package}}' pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}/src' '{{package}}/tests/unit' '{{package}}/tests/integration/pebble'
     else
-        : 'Python version >= 3.12'
-        uv run --group='{{package}}' --group=juju pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
+        : 'Python version >= 3.10'
+        uv pip install jubilant@git+https://github.com/canonical/jubilant
+        uv run --group='{{package}}' pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
     fi
 
 [doc("Run unit tests with `coverage`, e.g. `just python=3.8 unit pathops`.")]
