@@ -30,6 +30,8 @@ format:
 static package *pyright_args:
     #!/usr/bin/env bash
     set -xueo pipefail
+    touch '{{package}}'/pyproject.toml  # force uv to use latest changes
+    uv sync  # ensure venv exists before uv pip install
     uv pip install packaging
     if uv run python -c '\
     from packaging.version import Version;\
@@ -69,6 +71,7 @@ pebble package +flags='-rA':
 _coverage package test_subdir +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
+    touch '{{package}}'/pyproject.toml  # force uv to use latest changes
     uv sync --python='{{python}}' --group='{{package}}'
     source .venv/bin/activate
     cd '{{package}}'
