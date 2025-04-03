@@ -93,7 +93,7 @@ class LocalPath(pathlib.PosixPath):
         user: str | None = None,
         group: str | None = None,
     ) -> int:
-        """Write the provided string to the corresponding local filesystem path.
+        r"""Write the provided string to the corresponding local filesystem path.
 
         Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
         and ``group`` args. These are used to set the permissions and ownership of the file.
@@ -110,6 +110,9 @@ class LocalPath(pathlib.PosixPath):
             encoding: The encoding to use when writing the data, defaults to 'UTF-8'.
             errors: 'strict' to raise any encoding errors, 'ignore' to ignore them.
                 Defaults to 'strict'.
+            newline: If ``None``, ``''``, or ``'\n'``, then '\n' will be written as is.
+                This is the default behaviour. If ``newline`` is ``'\r'`` or ``'\r\n'``,
+                then ``'\n'`` will be replaced with ``newline`` in memory before writing.
             mode: The permissions to set on the file using :meth:`pathlib.PosixPath.chmod`.
                 Defaults to 0o644 (-rw-rw-r--).
             user: The name of the user to set for the file using :func:`shutil.chown`.
@@ -125,6 +128,7 @@ class LocalPath(pathlib.PosixPath):
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the local user does not have permissions for the operation.
+            ValueError: if ``newline`` is any value other than those documented above.
         """
         _validate_user_and_group(user=user, group=group)
         if newline in ('\r', '\r\n'):
