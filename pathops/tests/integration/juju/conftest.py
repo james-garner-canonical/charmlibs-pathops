@@ -51,7 +51,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc):
         metafunc.parametrize(argument, [value])
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def juju(request: pytest.FixtureRequest) -> Iterator[jubilant.Juju]:
     """Pytest fixture that wraps :meth:`jubilant.with_model`.
 

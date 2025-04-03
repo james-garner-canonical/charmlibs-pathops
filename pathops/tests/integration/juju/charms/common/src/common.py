@@ -27,6 +27,15 @@ class Charm(ops.CharmBase):
         framework.observe(self.on['test'].action, self._on_test)
 
     def _on_test(self, event: ops.ActionEvent) -> None:
+        test_case = event.params['case']
+        try:
+            method = getattr(self, f'test_{test_case}')
+        except AttributeError:
+            event.fail(f'Unknown test case: {test_case!r}')
+        else:
+            method()
+
+    def test_ensure_contents(self) -> dict[str, str]:
         file = self.root / 'file.txt'
         contents = 'Hello World!'
         pathops.ensure_contents(path=file, source=contents)
@@ -37,4 +46,8 @@ class Charm(ops.CharmBase):
         except AttributeError:
             assert isinstance(file, pathops.ContainerPath)
             file._container.remove_path(str(file))
-        event.set_results({'file': repr(file), 'contents': contents})
+        return {'file': repr(file), 'contents': contents}
+
+    def test_iterdir(self) -> dict[str, str]:
+        files = list(self.root.iterdir())
+        return {'files': str(files)}
