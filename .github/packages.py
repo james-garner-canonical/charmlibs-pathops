@@ -50,11 +50,10 @@ def _main(project_root: pathlib.Path, git_base_ref: str) -> None:
             if path.is_dir() and path.name.startswith(_ALPHABET)
         )
     else:
-        changed_packages = sorted({
-            change.split('/')[0]
-            for change in changes
-            if (project_root / change).is_dir() and change.startswith(_ALPHABET)
-        })
+        names = {change.split('/')[0] for change in changes}
+        changed_packages = sorted(
+            n for n in names if (project_root / n).is_dir() and n.startswith(_ALPHABET)
+        )
     # record the test suites provided by each package
     tests = ('unit', 'integration/pebble', 'integration/juju')
     output: dict[str, list[str]] = {test: [] for test in tests}
