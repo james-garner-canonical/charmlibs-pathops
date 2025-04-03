@@ -29,8 +29,7 @@ class Charm(ops.CharmBase):
     def _on_test(self, event: ops.ActionEvent) -> None:
         file = self.root / 'file.txt'
         contents = 'Hello World!'
-        # TODO: make ensure_contents not need this type-ignore
-        pathops.ensure_contents(path=file, source=contents)  # type: ignore
+        pathops.ensure_contents(path=file, source=contents)
         assert file.read_text() == contents
         # TODO: pathops should provide a method to remove files
         try:
