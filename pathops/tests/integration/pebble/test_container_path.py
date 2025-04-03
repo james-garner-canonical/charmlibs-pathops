@@ -26,6 +26,8 @@ import utils
 from charmlibs.pathops import ContainerPath
 
 if typing.TYPE_CHECKING:
+    from typing import Any
+
     import ops
 
 
@@ -68,7 +70,8 @@ class TestReadText:
         path = session_dir / filename
         container_path = ContainerPath(path, container=container)
         try:  # python 3.13+ only
-            pathlib_result = path.read_text(newline=newline)  # pyright: ignore[reportCallIssue,reportUnknownVariableType]
+            kwargs: dict[str, Any] = {'newline': newline}
+            pathlib_result = path.read_text(**kwargs)
         except TypeError:
             pathlib_result = path.read_text()
             container_result = container_path.read_text()

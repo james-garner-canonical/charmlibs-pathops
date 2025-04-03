@@ -87,19 +87,20 @@ class LocalPath(pathlib.PosixPath):
         data: str,
         encoding: str | None = None,
         errors: str | None = None,
+        newline: str | None = None,
         *,
         mode: int = _constants.DEFAULT_WRITE_MODE,
         user: str | None = None,
         group: str | None = None,
     ) -> int:
-        """Write the provided string to the corresponding local filesystem path.
+        r"""Write the provided string to the corresponding local filesystem path.
 
         Compared to :meth:`pathlib.Path.write_bytes`, this method adds ``mode``, ``user``
         and ``group`` args. These are used to set the permissions and ownership of the file.
 
         .. warning::
-            :class:`ContainerPath` and :class:`PathProtocol` do not support the
-            ``encoding`` and ``errors`` arguments of :meth:`pathlib.Path.write_text`.
+            :class:`ContainerPath` and :class:`PathProtocol` do not support the ``encoding``,
+            ``errors``, and ``newline`` arguments of :meth:`pathlib.Path.write_text`.
             For :class:`ContainerPath` compatible code, do not use these arguments.
             They are provided to allow :class:`LocalPath` to be used as a drop-in
             replacement for :class:`pathlib.Path` if needed.
@@ -109,6 +110,9 @@ class LocalPath(pathlib.PosixPath):
             encoding: The encoding to use when writing the data, defaults to 'UTF-8'.
             errors: 'strict' to raise any encoding errors, 'ignore' to ignore them.
                 Defaults to 'strict'.
+            newline: If ``None``, ``''``, or ``'\n'``, then '\n' will be written as is.
+                This is the default behaviour. If ``newline`` is ``'\r'`` or ``'\r\n'``,
+                then ``'\n'`` will be replaced with ``newline`` in memory before writing.
             mode: The permissions to set on the file using :meth:`pathlib.PosixPath.chmod`.
                 Defaults to 0o644 (-rw-rw-r--).
             user: The name of the user to set for the file using :func:`shutil.chown`.
@@ -124,8 +128,13 @@ class LocalPath(pathlib.PosixPath):
             LookupError: if the user or group is unknown.
             NotADirectoryError: if the parent exists as a non-directory file.
             PermissionError: if the local user does not have permissions for the operation.
+            ValueError: if ``newline`` is any value other than those documented above.
         """
         _validate_user_and_group(user=user, group=group)
+        if newline in ('\r', '\r\n'):
+            data = data.replace('\n', newline)
+        elif newline not in ('', '\n', None):
+            raise ValueError(f'illegal newline value: {newline!r}')
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
         _chown_if_needed(self, user=user, group=group)
         self.chmod(mode)
