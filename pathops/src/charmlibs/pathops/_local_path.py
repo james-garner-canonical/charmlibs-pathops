@@ -99,8 +99,8 @@ class LocalPath(pathlib.PosixPath):
         and ``group`` args. These are used to set the permissions and ownership of the file.
 
         .. warning::
-            :class:`ContainerPath` and :class:`PathProtocol` do not support the
-            ``encoding`` and ``errors`` arguments of :meth:`pathlib.Path.write_text`.
+            :class:`ContainerPath` and :class:`PathProtocol` do not support the ``encoding``,
+            ``errors``, and ``newline`` arguments of :meth:`pathlib.Path.write_text`.
             For :class:`ContainerPath` compatible code, do not use these arguments.
             They are provided to allow :class:`LocalPath` to be used as a drop-in
             replacement for :class:`pathlib.Path` if needed.
