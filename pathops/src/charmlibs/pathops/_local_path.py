@@ -134,7 +134,7 @@ class LocalPath(pathlib.PosixPath):
         if newline in ('\r', '\r\n'):
             data = data.replace('\n', newline)
         elif newline not in ('', '\n', None):
-            raise ValueError(f'illegal newline value: {newline}')
+            raise ValueError(f'illegal newline value: {newline!r}')
         bytes_written = super().write_text(data, encoding=encoding, errors=errors)
         _chown_if_needed(self, user=user, group=group)
         self.chmod(mode)
