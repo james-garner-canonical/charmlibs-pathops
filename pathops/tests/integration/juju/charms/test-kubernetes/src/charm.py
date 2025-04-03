@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 CONTAINER = 'workload'
 
+
 class TestCharm(common.Charm):
     """Charm the application."""
 
