@@ -28,10 +28,13 @@ if typing.TYPE_CHECKING:
     from typing import BinaryIO, TextIO
 
     from ops import pebble
+    from typing_extensions import TypeIs
+
+    from ._types import PathProtocol
 
 
 def ensure_contents(
-    path: str | os.PathLike[str] | ContainerPath,
+    path: str | os.PathLike[str] | PathProtocol,
     source: bytes | str | BinaryIO | TextIO,
     *,
     mode: int = _constants.DEFAULT_WRITE_MODE,
@@ -44,10 +47,9 @@ def ensure_contents(
     and has the correct file ownership (``user`` and ``group``).
 
     Args:
-        path: A :class:`str` or :class:`os.PathLike` local filesystem path, or a
-            :class:`ContainerPath` remote filesystem path.
+        path: A local or remote filesystem path.
         source: The desired contents in ``str`` or ``bytes`` form, or an object with a ``.read()``
-            method returning a ``str`` or ``bytes`` object.
+            method which returns a ``str`` or ``bytes`` object.
         mode: The desired file permissions.
         user: The desired file owner, or ``None`` to not change the owner.
         group: The desired group, or ``None`` to not change the group.
@@ -61,7 +63,7 @@ def ensure_contents(
         PermissionError: if the user does not have permissions for the operation.
         :class:`PebbleConnectionError`: if the remote Pebble client cannot be reached.
     """
-    if not isinstance(path, ContainerPath):  # most likely str or pathlib.Path
+    if _is_str_pathlike(path):
         path = LocalPath(path)
     source = _as_bytes(source)
     try:
@@ -81,9 +83,14 @@ def ensure_contents(
     return True
 
 
-def _get_fileinfo(path: str | os.PathLike[str] | ContainerPath) -> pebble.FileInfo:
+def _is_str_pathlike(obj: object) -> TypeIs[str | os.PathLike[str]]:
+    return isinstance(obj, str) or hasattr(obj, '__fspath__')
+
+
+def _get_fileinfo(path: str | os.PathLike[str] | PathProtocol) -> pebble.FileInfo:
     if isinstance(path, ContainerPath):
         return _fileinfo.from_container_path(path)
+    assert _is_str_pathlike(path)
     return _fileinfo.from_pathlib_path(pathlib.Path(path))
 
 
