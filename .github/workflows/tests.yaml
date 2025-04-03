@@ -148,7 +148,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Pack charms
-        run: uvx --from rust-just just pack-${{substrate}} ${{ matrix.package }} --destructive-mode
+        run: uvx --from rust-just just pack-${{ matrix.substrate }} ${{ matrix.package }} --destructive-mode
 
       - name: Run Juju integration tests
-        run: uvx --from rust-just just juju-${{substrate}} ${{ matrix.package }}
+        run: uvx --from rust-just just juju-${{ matrix.substrate }} ${{ matrix.package }}
