@@ -116,7 +116,8 @@ juju-vm package +flags='-rA': (_juju package 'machine' flags)
 _juju package substrate +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
-    uv sync --python='{{python}}' --group='{{package}}' --group=juju
+    uv sync --python='{{python}}' --group='{{package}}'
     source .venv/bin/activate
+    uv pip install jubilant@git+https://github.com/canonical/jubilant
     cd '{{package}}'
     pytest --tb=native -vv '{{flags}}' tests/integration/juju/test_{{substrate}}.py
