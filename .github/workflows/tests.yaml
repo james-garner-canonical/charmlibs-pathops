@@ -140,7 +140,7 @@ jobs:
         if: ${{ matrix.substrate == 'k8s' }}
         run: sudo concierge prepare --verbose --juju-channel=3/stable --charmcraft-channel=3.x/stable -p microk8s
 
-      - name: Prepare Juju for microk8s
+      - name: Prepare Juju for machine
         if: ${{ matrix.substrate == 'machine' }}
         run: sudo concierge prepare --verbose --juju-channel=3/stable --charmcraft-channel=3.x/stable -p machine
 
