@@ -16,6 +16,7 @@
 """Charm the application."""
 
 import logging
+import pathlib
 
 import common
 import ops
@@ -24,23 +25,26 @@ import charmlibs.pathops as pathops
 
 logger = logging.getLogger(__name__)
 
+CONTAINER = 'workload'
 
-class TestCharm(common.Charm):
+
+class Charm(common.Charm):
     """Charm the application."""
 
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
-        framework.observe(self.on.start, self._on_start)
-        self.root = pathops.LocalPath('/', 'tmp')
+        framework.observe(self.on[CONTAINER].pebble_ready, self._on_pebble_ready)
+        self.container = self.unit.get_container(CONTAINER)
+        self.root = pathops.ContainerPath(pathlib.Path('/', 'tmp'), container=self.container)
 
-    def _on_start(self, event: ops.StartEvent):
-        """Handle start event."""
+    def _on_pebble_ready(self, event: ops.PebbleReadyEvent):
+        """Handle pebble-ready event."""
         self.unit.status = ops.ActiveStatus()
 
     def remove_path(self, path: pathops.PathProtocol) -> None:
-        assert isinstance(path, pathops.LocalPath)
-        path.unlink()
+        assert isinstance(path, pathops.ContainerPath)
+        self.container.remove_path(str(path))
 
 
 if __name__ == '__main__':  # pragma: nocover
-    ops.main(TestCharm)
+    ops.main(Charm)

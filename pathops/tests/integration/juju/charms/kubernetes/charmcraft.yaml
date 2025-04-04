@@ -1,4 +1,4 @@
-name: test-kubernetes
+name: kubernetes
 type: charm
 summary: A small Kubernetes charm for use in integration tests.
 description: A small Kubernetes charm for use in integration tests.

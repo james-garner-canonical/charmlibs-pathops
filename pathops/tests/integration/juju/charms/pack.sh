@@ -3,11 +3,9 @@
 # e.g. pack.sh kubernetes --destructive-mode
 set -xueo pipefail
 
-rm -rf .packed
-mkdir .packed
-
-CHARMDIR="test-$1"  # test-machine or test-kubernetes
+CHARMDIR="$1"  # machine or kubernetes
 shift 1  # we'll pass the remaining args to charmcraft pack
+
 
 TMPDIR=".$CHARMDIR"
 rm -rf "$TMPDIR"
@@ -20,9 +18,10 @@ cp -r ../../../../pyproject.toml "$TMPDIR/pathops/"
 cp -r ../../../../src "$TMPDIR/pathops/"
 
 cd "$TMPDIR"
-uv lock
+uv lock  # required by uv charm plugin
 charmcraft pack "$@"
 cd -
 
-mv "$TMPDIR"/*.charm .packed/
+mkdir -p .packed
+mv "$TMPDIR"/*.charm ".packed/$CHARMDIR.charm"
 rm -rf "$TMPDIR"

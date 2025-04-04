@@ -18,17 +18,13 @@ from __future__ import annotations
 
 import typing
 
-import utils
-
 if typing.TYPE_CHECKING:
     import jubilant
 
 
-def test_ensure_contents(juju: jubilant.Juju, substrate: str):
-    name = utils.charm_name(substrate)
-    juju.run(f'{name}/0', 'ensure-contents')
+def test_ensure_contents(juju: jubilant.Juju, charm: str):
+    juju.run(f'{charm}/0', 'ensure-contents')
 
 
-def test_iterdir(juju: jubilant.Juju, substrate: str):
-    name = utils.charm_name(substrate)
-    juju.run(f'{name}/0', 'iterdir')
+def test_iterdir(juju: jubilant.Juju, charm: str):
+    juju.run(f'{charm}/0', 'iterdir')

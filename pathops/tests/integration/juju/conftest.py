@@ -20,13 +20,8 @@ import typing
 import jubilant
 import pytest
 
-import utils
-
 if typing.TYPE_CHECKING:
     from typing import Iterator
-
-
-SUBSTRATES = ('machine', 'kubernetes')
 
 
 def pytest_addoption(parser: pytest.OptionGroup):
@@ -40,18 +35,15 @@ def pytest_addoption(parser: pytest.OptionGroup):
         '--substrate',
         action='store',
         default='kubernetes',
-        choices=SUBSTRATES,
+        choices=('machine', 'kubernetes'),
         help='whether to deploy the machine or kubernetes charm',
     )
 
 
-def pytest_generate_tests(metafunc: pytest.Metafunc):
-    """Parametrize tests with the cli substrate argument if they request it as a fixture."""
-    argument = 'substrate'
-    value = getattr(metafunc.config.option, argument)
-    assert value in SUBSTRATES
-    if argument in metafunc.fixturenames:
-        metafunc.parametrize(argument, [value])
+@pytest.fixture(scope='session')
+def charm(request: pytest.FixtureRequest) -> str:
+    substrate = typing.cast('str', request.config.getoption('--substrate'))
+    return substrate
 
 
 @pytest.fixture(scope='module')
@@ -84,7 +76,7 @@ def _deploy(juju: jubilant.Juju, substrate: str) -> None:
 
 def _get_packed_charm_path(substrate: str) -> pathlib.Path:
     packed_dir = pathlib.Path(__file__).parent / 'charms' / '.packed'
-    (charm_path,) = packed_dir.glob(f'{utils.charm_name(substrate)}*.charm')
-    ret = charm_path.absolute()
-    assert ret.is_file()
-    return ret
+    assert packed_dir.is_dir()
+    charm_path = packed_dir / f'{substrate}.charm'
+    assert charm_path.is_file()
+    return charm_path.absolute()
