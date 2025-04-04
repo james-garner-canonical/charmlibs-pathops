@@ -15,4 +15,9 @@ parts:
 
 actions:
   ensure-contents:
+    params:
+      path:
+        type: string
+      contents:
+        type: string
   iterdir:

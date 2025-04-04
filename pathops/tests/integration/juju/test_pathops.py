@@ -22,9 +22,20 @@ if typing.TYPE_CHECKING:
     import jubilant
 
 
+def test_deploy(juju: jubilant.Juju, charm: str):
+    """The deployment takes place in the module scoped `juju` fixture."""
+    assert charm in juju.status().apps
+
+
 def test_ensure_contents(juju: jubilant.Juju, charm: str):
-    juju.run(f'{charm}/0', 'ensure-contents')
+    contents = 'Hello world!'
+    result = juju.run(
+        f'{charm}/0', 'ensure-contents', params={'path': 'file.txt', 'contents': contents}
+    )
+    print(result)
+    assert result.results['contents'] == contents
 
 
 def test_iterdir(juju: jubilant.Juju, charm: str):
-    juju.run(f'{charm}/0', 'iterdir')
+    result = juju.run(f'{charm}/0', 'iterdir', params={'path': '/'})
+    print(result)

@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Common code for the kubernetes and machine test charms.
+
+The contents of kubernetes/src/common.py and machine/src/common.py should be identical.
+"""
+
 from __future__ import annotations
 
 import ops
@@ -31,14 +36,13 @@ class Charm(ops.CharmBase):
         raise NotImplementedError()
 
     def _on_ensure_contents(self, event: ops.ActionEvent) -> None:
-        file = self.root / 'file.txt'
-        contents = 'Hello World!'
-        pathops.ensure_contents(path=file, source=contents)
-        assert file.read_text() == contents
-        self.remove_path(file)
-        results = {'file': repr(file), 'contents': contents}
-        event.set_results(results)
+        path = self.root / event.params['path']
+        pathops.ensure_contents(path=path, source=event.params['contents'])
+        contents = path.read_text()
+        self.remove_path(path)
+        event.set_results({'contents': contents})
 
     def _on_iterdir(self, event: ops.ActionEvent) -> None:
-        files = list(self.root.iterdir())
-        event.set_results({event.id: str(files)})
+        path = self.root / event.params['path']
+        result = [str(p) for p in path.iterdir()]
+        event.set_results({'iterdir': str(result)})
