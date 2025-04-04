@@ -66,7 +66,7 @@ def _deploy(juju: jubilant.Juju, substrate: str) -> None:
     if substrate == 'kubernetes':
         juju.deploy(
             _get_packed_charm_path(substrate),
-            resources={'workload': 'ubuntu:latest'},
+            resources={'workload': 'hello-world'},
         )
     elif substrate == 'machine':
         juju.deploy(_get_packed_charm_path(substrate))
