@@ -9,10 +9,8 @@ shift 1  # we'll pass the remaining args to charmcraft pack
 
 TMPDIR=".$CHARMDIR"
 rm -rf "$TMPDIR"
-
 cp --recursive "$CHARMDIR" "$TMPDIR"
-unlink "$TMPDIR/src/common.py"  # remove symlink
-cp common/src/common.py "$TMPDIR/src/"
+
 mkdir "$TMPDIR/pathops"
 cp -r ../../../../pyproject.toml "$TMPDIR/pathops/"
 cp -r ../../../../src "$TMPDIR/pathops/"
