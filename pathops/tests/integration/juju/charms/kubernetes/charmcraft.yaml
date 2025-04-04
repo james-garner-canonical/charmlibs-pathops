@@ -31,3 +31,7 @@ actions:
       contents:
         type: string
   iterdir:
+    params:
+      n-temp-files:
+        type: integer
+        description: The number of files to create in a tempdir before calling iterdir on it.

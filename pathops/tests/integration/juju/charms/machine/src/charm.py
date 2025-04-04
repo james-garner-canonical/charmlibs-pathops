@@ -16,6 +16,7 @@
 """Charm the application."""
 
 import logging
+import shutil
 
 import common
 import ops
@@ -40,9 +41,15 @@ class Charm(common.Charm):
         """Handle start event."""
         self.unit.status = ops.ActiveStatus()
 
-    def remove_path(self, path: pathops.PathProtocol) -> None:
+    def remove_path(self, path: pathops.PathProtocol, recursive: bool = False) -> None:
         assert isinstance(path, pathops.LocalPath)
-        path.unlink()
+        if path.is_dir():
+            if recursive:
+                shutil.rmtree(path)
+            else:
+                path.rmdir()
+        else:
+            path.unlink()
 
 
 if __name__ == '__main__':  # pragma: nocover

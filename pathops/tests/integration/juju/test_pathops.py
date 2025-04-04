@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import ast
 import typing
 
 if typing.TYPE_CHECKING:
@@ -32,10 +33,11 @@ def test_ensure_contents(juju: jubilant.Juju, charm: str):
     result = juju.run(
         f'{charm}/0', 'ensure-contents', params={'path': 'file.txt', 'contents': contents}
     )
-    print(result)
     assert result.results['contents'] == contents
 
 
 def test_iterdir(juju: jubilant.Juju, charm: str):
-    result = juju.run(f'{charm}/0', 'iterdir', params={'path': '/'})
-    print(result)
+    n = 2
+    result = juju.run(f'{charm}/0', 'iterdir', params={'n-temp-files': n})
+    files = ast.literal_eval(result.results['files'])
+    assert len(files) == n

@@ -44,9 +44,9 @@ class Charm(common.Charm):
         """Handle pebble-ready event."""
         self.unit.status = ops.ActiveStatus()
 
-    def remove_path(self, path: pathops.PathProtocol) -> None:
+    def remove_path(self, path: pathops.PathProtocol, recursive: bool = False) -> None:
         assert isinstance(path, pathops.ContainerPath)
-        self.container.remove_path(str(path))
+        self.container.remove_path(str(path), recursive=recursive)
 
 
 if __name__ == '__main__':  # pragma: nocover

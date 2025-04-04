@@ -35,7 +35,7 @@ class Charm(ops.CharmBase):
         framework.observe(self.on['ensure-contents'].action, self._on_ensure_contents)
         framework.observe(self.on['iterdir'].action, self._on_iterdir)
 
-    def remove_path(self, path: pathops.PathProtocol) -> None:
+    def remove_path(self, path: pathops.PathProtocol, recursive: bool = False) -> None:
         raise NotImplementedError()
 
     def _on_ensure_contents(self, event: ops.ActionEvent) -> None:
@@ -46,6 +46,14 @@ class Charm(ops.CharmBase):
         event.set_results({'contents': contents})
 
     def _on_iterdir(self, event: ops.ActionEvent) -> None:
-        path = self.root / event.params['path']
+        n: int = event.params['n-temp-files']
+        path = self.root / 'unique-temp-dir-name'
+        if path.exists():
+            event.fail("Couldn't create a unique temporary directory.")
+            return
+        path.mkdir()
+        for i in range(n):
+            (path / str(i)).write_bytes(b'')
         result = [str(p) for p in path.iterdir()]
-        event.set_results({'iterdir': str(result)})
+        self.remove_path(path, recursive=True)
+        event.set_results({'files': str(result)})
