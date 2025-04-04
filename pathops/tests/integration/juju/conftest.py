@@ -47,36 +47,31 @@ def charm(request: pytest.FixtureRequest) -> str:
 
 
 @pytest.fixture(scope='module')
-def juju(request: pytest.FixtureRequest) -> Iterator[jubilant.Juju]:
+def juju(request: pytest.FixtureRequest, charm: str) -> Iterator[jubilant.Juju]:
     """Pytest fixture that wraps :meth:`jubilant.with_model`.
 
     This adds command line parameter ``--keep-models`` (see help for details).
     """
     keep_models = typing.cast('bool', request.config.getoption('--keep-models'))
-    substrate = typing.cast('str', request.config.getoption('--substrate'))
     with jubilant.temp_model(keep=keep_models) as juju:
-        _deploy(juju, substrate)
+        _deploy(juju, charm)
         yield juju
         if request.session.testsfailed:
             log = juju.debug_log(limit=1000)
             print(log, end='')
 
 
-def _deploy(juju: jubilant.Juju, substrate: str) -> None:
-    if substrate == 'kubernetes':
+def _deploy(juju: jubilant.Juju, charm: str) -> None:
+    if charm == 'kubernetes':
         juju.deploy(
-            _get_packed_charm_path(substrate),
+            _get_packed_charm_path(charm),
             resources={'workload': 'ubuntu:latest'},
         )
-    elif substrate == 'machine':
-        juju.deploy(_get_packed_charm_path(substrate))
+    elif charm == 'machine':
+        juju.deploy(_get_packed_charm_path(charm))
     else:
-        raise ValueError(f'Unknown substrate: {substrate!r}')
+        raise ValueError(f'Unknown charm: {charm!r}')
 
 
-def _get_packed_charm_path(substrate: str) -> pathlib.Path:
-    packed_dir = pathlib.Path(__file__).parent / 'charms' / '.packed'
-    assert packed_dir.is_dir()
-    charm_path = packed_dir / f'{substrate}.charm'
-    assert charm_path.is_file()
-    return charm_path.absolute()
+def _get_packed_charm_path(charm: str) -> pathlib.Path:
+    return pathlib.Path(__file__).parent / 'charms'  / '.packed' / f'{charm}.charm'
