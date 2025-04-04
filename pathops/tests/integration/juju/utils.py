@@ -14,30 +14,6 @@
 
 """Integration tests using a real Juju and charm to test ContainerPath."""
 
-import pathlib
-
-import jubilant
-
-
-def _get_packed_charm_path(substrate: str) -> pathlib.Path:
-    packed_dir = pathlib.Path(__file__).parent / 'charms' / '.packed'
-    (charm_path,) = packed_dir.glob(f'{charm_name(substrate)}*.charm')
-    ret = charm_path.absolute()
-    assert ret.is_file()
-    return ret
-
-
-def deploy(juju: jubilant.Juju, substrate: str) -> None:
-    if substrate == 'kubernetes':
-        juju.deploy(
-            _get_packed_charm_path(substrate),
-            resources={'workload': 'ubuntu:latest'},
-        )
-    elif substrate == 'machine':
-        juju.deploy(_get_packed_charm_path(substrate))
-    else:
-        raise ValueError(f'Unknown substrate: {substrate!r}')
-
 
 def charm_name(substrate: str) -> str:
     return f'test-{substrate}'

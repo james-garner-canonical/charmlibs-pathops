@@ -16,32 +16,19 @@
 
 from __future__ import annotations
 
-import traceback
-
-import jubilant
-import pytest
+import typing
 
 import utils
 
-
-def test_deploy(juju: jubilant.Juju, substrate: str):
-    try:
-        utils.deploy(juju, substrate)
-        juju.wait(jubilant.all_active)
-    except BaseException as e:
-        tb = traceback.format_exc()
-        pytest.exit(f'Deployment failed due to {e!r}\nTraceback:\n{tb}', returncode=1)
+if typing.TYPE_CHECKING:
+    import jubilant
 
 
 def test_ensure_contents(juju: jubilant.Juju, substrate: str):
-    _run(juju, substrate, 'ensure-contents')
+    name = utils.charm_name(substrate)
+    juju.run(f'{name}/0', 'ensure-contents')
 
 
 def test_iterdir(juju: jubilant.Juju, substrate: str):
-    _run(juju, substrate, 'iterdir')
-
-
-def _run(juju: jubilant.Juju, substrate: str, action: str):
     name = utils.charm_name(substrate)
-    result = juju.run(f'{name}/0', action)
-    return result
+    juju.run(f'{name}/0', 'iterdir')

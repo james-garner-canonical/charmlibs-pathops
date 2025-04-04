@@ -14,10 +14,13 @@
 
 from __future__ import annotations
 
+import pathlib
 import typing
 
 import jubilant
 import pytest
+
+import utils
 
 if typing.TYPE_CHECKING:
     from typing import Iterator
@@ -58,8 +61,30 @@ def juju(request: pytest.FixtureRequest) -> Iterator[jubilant.Juju]:
     This adds command line parameter ``--keep-models`` (see help for details).
     """
     keep_models = typing.cast('bool', request.config.getoption('--keep-models'))
+    substrate = typing.cast('str', request.config.getoption('--substrate'))
     with jubilant.temp_model(keep=keep_models) as juju:
+        _deploy(juju, substrate)
         yield juju
         if request.session.testsfailed:
             log = juju.debug_log(limit=1000)
             print(log, end='')
+
+
+def _deploy(juju: jubilant.Juju, substrate: str) -> None:
+    if substrate == 'kubernetes':
+        juju.deploy(
+            _get_packed_charm_path(substrate),
+            resources={'workload': 'ubuntu:latest'},
+        )
+    elif substrate == 'machine':
+        juju.deploy(_get_packed_charm_path(substrate))
+    else:
+        raise ValueError(f'Unknown substrate: {substrate!r}')
+
+
+def _get_packed_charm_path(substrate: str) -> pathlib.Path:
+    packed_dir = pathlib.Path(__file__).parent / 'charms' / '.packed'
+    (charm_path,) = packed_dir.glob(f'{utils.charm_name(substrate)}*.charm')
+    ret = charm_path.absolute()
+    assert ret.is_file()
+    return ret
