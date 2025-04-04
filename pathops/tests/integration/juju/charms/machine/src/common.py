@@ -21,6 +21,9 @@ from __future__ import annotations
 
 import ops
 
+# TODO: switch to recommended form `from charmlibs import pathops`
+#       after next pyright release fixes:
+#       https://github.com/microsoft/pyright/issues/10203
 import charmlibs.pathops as pathops
 
 
