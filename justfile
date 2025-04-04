@@ -28,26 +28,9 @@ format:
 
 [doc('Run `pyright`, e.g. `just python=3.8 static pathops`.')]
 static package *pyright_args:
-    #!/usr/bin/env bash
-    set -xueo pipefail
-    touch '{{package}}'/pyproject.toml  # force uv to use latest changes
     uv sync  # ensure venv exists before uv pip install
-    uv pip install packaging
-    if uv run python -c '\
-    from packaging.version import Version;\
-    exit(0 if (Version("{{python}}") < Version("3.10")) else 1);\
-    '
-    then
-        : 'Python version < 3.10'
-        uv run --group='{{package}}' pyright --pythonversion='{{python}}' {{pyright_args}} \
-            '{{package}}/src' \
-            '{{package}}/tests/unit' \
-            '{{package}}/tests/integration/pebble'
-    else
-        : 'Python version >= 3.10'
-        uv pip install jubilant@git+https://github.com/canonical/jubilant
-        uv run --group='{{package}}' pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
-    fi
+    uv pip install --editable './{{package}}'
+    uv run pyright --pythonversion='{{python}}' {{pyright_args}} '{{package}}'
 
 [doc("Run unit tests with `coverage`, e.g. `just python=3.8 unit pathops`.")]
 unit package +flags='-rA': (_coverage package 'unit' flags)
@@ -71,8 +54,8 @@ pebble package +flags='-rA':
 _coverage package test_subdir +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
-    touch '{{package}}'/pyproject.toml  # force uv to use latest changes
-    uv sync --python='{{python}}' --group='{{package}}'
+    uv sync --python='{{python}}'
+    uv pip install --editable './{{package}}'
     source .venv/bin/activate
     cd '{{package}}'
     export COVERAGE_RCFILE=../pyproject.toml
@@ -126,8 +109,8 @@ juju-vm package +flags='-rA': (_juju package 'machine' flags)
 _juju package substrate +flags='-rA':
     #!/usr/bin/env bash
     set -xueo pipefail
-    uv sync --python='{{python}}' --group='{{package}}'
+    uv sync --python='{{python}}'
+    uv pip install --editable './{{package}}'
     source .venv/bin/activate
-    uv pip install jubilant@git+https://github.com/canonical/jubilant
     cd '{{package}}'
-    pytest --tb=native -vv '{{flags}}' tests/integration/juju --substrate='{{substrate}}'
+    uv run --active pytest --tb=native -vv '{{flags}}' tests/integration/juju --substrate='{{substrate}}'
