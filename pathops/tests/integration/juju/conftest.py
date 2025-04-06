@@ -66,7 +66,7 @@ def _deploy(juju: jubilant.Juju, charm: str) -> None:
     if charm == 'kubernetes':
         juju.deploy(
             _get_packed_charm_path(charm),
-            resources={'workload': 'ubuntu-latest'},
+            resources={'workload': 'ubuntu:latest'},
         )
     elif charm == 'machine':
         juju.deploy(_get_packed_charm_path(charm))
