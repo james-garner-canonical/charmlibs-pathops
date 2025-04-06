@@ -43,13 +43,11 @@ class Charm(common.Charm):
 
     def remove_path(self, path: pathops.PathProtocol, recursive: bool = False) -> None:
         assert isinstance(path, pathops.LocalPath)
-        if path.is_dir():
-            if recursive:
-                shutil.rmtree(path)
-            else:
-                path.rmdir()
-        else:
-            path.unlink()
+        if not path.is_dir():
+            return path.unlink()
+        if not recursive:
+            return path.rmdir()
+        shutil.rmtree(path)
 
 
 if __name__ == '__main__':  # pragma: nocover
