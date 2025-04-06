@@ -1,8 +1,7 @@
 # charmtech-charmlibs
 
-This monorepo hosts the source code for Charm Tech's Python package charm libraries, and the charm libraries documentation site. <!--- TODO: docs site link --->
-
-Currently the only library hosted here is charmlibs-pathops. <!--- TODO: PyPI link --->
+This monorepo hosts the source code for Charm Tech's Python package charm libraries.
+Currently the only library hosted here is [pathops](pathops/README.md).
 
 # Contributing
 
@@ -10,7 +9,7 @@ This project uses [just](https://github.com/casey/just) as a task runner, backed
 
 Consider installing them both like this:
 
-```
+```bash
 sudo apt install pipx
 pipx install uv
 uv tool install rust-just
