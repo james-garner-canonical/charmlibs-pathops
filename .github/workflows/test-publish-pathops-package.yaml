@@ -1,4 +1,4 @@
-name: Publish 'charmlibs' package
+name: Test publish 'charmlibs-pathops' package
 on:
   workflow_dispatch:
 
