@@ -1,4 +1,4 @@
-name: Publish 'charmlibs' package
+name: Publish 'charmlibs-pathops' package
 on:
   push:
     tags:
