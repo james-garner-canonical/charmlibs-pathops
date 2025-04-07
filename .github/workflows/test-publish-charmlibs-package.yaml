@@ -1,4 +1,4 @@
-name: Test Publish 'charmlibs' package
+name: Test publish 'charmlibs' package
 on:
   workflow_dispatch:
 
