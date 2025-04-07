@@ -1,0 +1,32 @@
+name: Publish 'charmlibs' package
+on:
+  push:
+    tags:
+      - 'pathops-v*.*.*'
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yaml
+  build-n-publish:
+    name: Build and Publish 'charmlibs-pathops' to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    needs: [tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Build
+        run: uv build
+        working-directory: ./pathops
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2.2.3
+        with:
+          subject-path: 'pathops/dist/*'
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ./pathops/dist/
