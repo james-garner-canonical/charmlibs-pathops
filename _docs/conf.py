@@ -37,7 +37,7 @@ add_function_parentheses = False
 #
 # TODO: [@dwilding DONE] Update with the official name of your project or product
 
-project = "Pathops"
+project = "Charmlibs"
 author = "Canonical Ltd."
 
 
@@ -83,7 +83,7 @@ copyright = "%s, %s" % (datetime.date.today().year, author)
 # NOTE: The Open Graph Protocol (OGP) enhances page display in a social graph
 #       and is used by social media platforms; see https://ogp.me/
 
-ogp_site_url = "https://canonical-pathops.readthedocs-hosted.com/"
+ogp_site_url = "https://canonical-charmlibs.readthedocs-hosted.com/"
 
 
 # Preview name of the documentation website
