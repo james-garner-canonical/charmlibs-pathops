@@ -51,4 +51,4 @@ __all__ = (
     'ensure_contents',
 )
 
-__version__ = (_Path(__file__).parent / '_version.txt').read_text()
+__version__ = (_Path(__file__).parent / '_version.txt').read_text().strip()
