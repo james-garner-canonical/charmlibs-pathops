@@ -4,15 +4,22 @@
 :maxdepth: 3
 :hidden: false
 
+how-to/index
 reference/index
 ```
 
 This is the documentation website for Charm Tech's charm library Python packages.
 
-For more information, see also the [git repository](https://github.com/canonical/charmtech-charmlibs).
+For guidance on distributing charm libraries as Python packages, check out the {ref}`how to <how-to-python-packages>`.
 
 ## Pathops
 
-Pathops is a Python library providing a [pathlib](https://docs.python.org/3/library/pathlib.html)-like interface for [Juju](https://juju.is/) [Kubernetes Charms](https://documentation.ubuntu.com/juju/latest/reference/charm/#kubernetes) to interact with files in their workload container.
-Interaction with remote files is performed via ContainerPath objects.
-A PathProtocol class is provided for use with type annotations, and a LocalPath class is provided which implements this protocol for local files.
+Pathops is a Python library providing
+a {doc}`pathlib <python:library/pathlib>`-like interface
+for [Juju](https://juju.is/) {ref}`Kubernetes Charms <juju:kubernetes-charm>`
+to interact with files in their workload container.
+Interaction with remote files is performed via [ContainerPath](pathops.ContainerPath) objects.
+A [PathProtocol](pathops.PathProtocol) class is provided for use with type annotations,
+and a [LocalPath](pathops.LocalPath) class is provided which implements this protocol for local files.
+
+Available on [PyPI](https://pypi.org/project/charmlibs-pathops). Check out the reference documentation [here](pathops).
