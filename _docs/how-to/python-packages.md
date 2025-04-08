@@ -25,6 +25,10 @@ and there is existing infrastructure and documentation supporting this pattern.
 However, if the relation library relies on any additional dependencies,
 it would still be better to make it a Python package.
 
+## Naming and namespacing your Python package
+
+
+
 ## How to distribute your Python package
 
 Distributing your package on PyPI has the most benefits.
