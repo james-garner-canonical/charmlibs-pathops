@@ -145,7 +145,7 @@ If you're using `pyproject.toml` (recommended!):
 ```toml
 [project]
 dependencies = [
-  “ops-testing @ git+https://github.com/canonical/operator@main#subdirectory=testing”,
+  "ops-testing @ git+https://github.com/canonical/operator@main#subdirectory=testing",
 ]
 ```
 
