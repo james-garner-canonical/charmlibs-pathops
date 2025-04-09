@@ -39,7 +39,7 @@ imported as `from charmlibs import $libname`
 The package should be a [namespace package](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/)
 using the `charmlibs` namespace.
 All this means is that your actual package is nested under an empty directory named `charmlibs`.
-Your file structure would look like ‘src/charmlibs/$libname/__init__.py’.
+Your file structure would look like `src/charmlibs/$libname/__init__.py`.
 There is no need to install the actual package named `charmlibs`.
 This exists on PyPI solely to reserve the package name as a namespace for charm libraries,
 and to aid charm library discoverability.
