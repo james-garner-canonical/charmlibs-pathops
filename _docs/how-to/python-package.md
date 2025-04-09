@@ -1,10 +1,11 @@
-(how-to-python-packages)=
+(how-to-python-package)=
 # How to distribute charm libraries
 
 While there are multiple ways to share code between charms,
 including {doc}`charmcraft fetch-libs <charmcraft:reference/commands/fetch-libs>`,
 this how-to focuses specifically on Python packages.
 
+(when-to-python-package)=
 ## When to use a Python package
 
 If your library relies on any dependencies outside the Python standard library and the `ops` package, you should definitely use a Python package.
@@ -25,6 +26,7 @@ and there is existing infrastructure and documentation supporting this pattern.
 However, if the relation library relies on any additional dependencies,
 it would still be better to make it a Python package.
 
+(python-package-name)=
 ## Naming and namespacing your Python package
 
 For charm libraries distributed as Python packages,
@@ -56,6 +58,7 @@ for example if you write a library to be used by the machine and Kubernetes vers
 releasing a package on PyPI using this naming scheme may not be the right approach,
 as you don't necessarily want to advertise the library for public consumption.
 
+(python-package-distribution)=
 ## How to distribute your Python package
 
 Distributing your package on PyPI has the most benefits.
@@ -65,6 +68,7 @@ or skipping distribution in favour of packing the local package
 may be appropriate if your library is purely for your own charms,
 and is not intended for external users.
 
+(python-package-distribution-pypi)=
 ### PyPI
 
 Use [trusted publishing](https://docs.pypi.org/trusted-publishers/) to publish directly from your github repository.
@@ -86,6 +90,7 @@ Therefore, if you’re going to publish on PyPI, we highly recommend that you us
 A non-dev/alpha/beta/etc qualified 1.x release to PyPI signifies that your library is ready for public consumption.
 You should also communicate this through the ["Development Status" Trove classifier](https://pypi.org/classifiers/) in your `pyproject.toml`.
 
+(python-package-distribution-git)=
 ### Git
 
 You can get started by distributing your library as a Python package with very little friction using GitHub.
@@ -146,6 +151,7 @@ dependencies = [
 
 For `poetry` see [here](https://python-poetry.org/docs/dependency-specification/#git-dependencies).
 
+(python-package-distribution-local)=
 ### Local Files
 
 If you're developing a Python package in the same repository as your charm(s),
@@ -183,6 +189,7 @@ charmcraft pack
 
 The approach should be the same if you have multiple charms, (for example) `$charm-kubernetes` and `$charm-machine`, or even multiple packages.
 
+(python-package-deps)=
 ## Dependencies
 
 Declare `~=` the lowest `2.X` `ops` version that you support.

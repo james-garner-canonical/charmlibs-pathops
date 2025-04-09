@@ -3,5 +3,5 @@
 ```{toctree}
 :maxdepth: 1
 
-Distribute charm libraries <python-packages>
+Distribute charm libraries <python-package>
 ```

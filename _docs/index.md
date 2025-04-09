@@ -10,7 +10,7 @@ reference/index
 
 This is the documentation website for Charm Tech's charm library Python packages.
 
-For guidance on distributing charm libraries as Python packages, check out the {ref}`how to <how-to-python-packages>`.
+For guidance on distributing charm libraries as Python packages, check out the {ref}`how to <how-to-python-package>`.
 
 ## Pathops
 
