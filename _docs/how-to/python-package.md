@@ -24,12 +24,12 @@ In this case, the library is associated with a specific charm,
 it is likely to be simple enough for a single file (as a lot of logic likely lives in the related charms),
 and there is existing infrastructure and documentation supporting this pattern.
 However, if the relation library relies on any additional dependencies,
-it would still be better to make it a Python package.
+it would probably still be better to make it a Python package.
 
 (python-package-name)=
 ## Naming and namespacing your Python package
 
-For charm libraries distributed as Python packages,
+For charm libraries intended for public use and distributed as Python packages,
 we recommend using the `charmlibs` namespace,
 particularly if your library is intended for other charmers to use.
 The package name should be `charmlibs-$libname`,
@@ -41,13 +41,14 @@ using the `charmlibs` namespace.
 All this means is that your actual package is nested under an empty directory named `charmlibs`.
 Your file structure would look like `src/charmlibs/$libname/__init__.py`.
 There is no need to install the actual package named `charmlibs`.
-This exists on PyPI solely to reserve the package name as a namespace for charm libraries,
+It exists on PyPI solely to reserve the package name as a namespace for charm libraries,
 and to aid charm library discoverability.
 
 If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname` as well.
 For repositories containing several libraries, consider `$teamname-charmlibs`,
-with the individual packages should still follow the naming and namespace recommendations.
-These recommendations do not apply to other repository organisation schemes.
+with the individual packages following the naming and namespace recommendations.
+These naming  recommendations do not apply to other repository organisation schemes,
+but we still recomend the `charmlibs` namespace if your library is intended for public use.
 
 We don’t recommend using the `ops` or `charm` namespace for your charm libraries distributed as Python packages.
 It will be easier for charmers to follow your code if the `ops` namespace is reserved for the `ops` package.
