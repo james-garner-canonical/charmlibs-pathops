@@ -32,6 +32,19 @@ using the `charmlibs` namespace.
 The distribution package name should be `charmlibs-$libname`,
 imported as `from charmlibs import $libname`.
 
+If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname`.
+For repositories containing several libraries, consider `$teamname-charmlibs`.
+
+Do use `charmlibs` namespace if your library is intended for public use.
+Don't use the `ops` or `charm` namespaces for your libraries.
+It will be easier for charmers to follow your code if the `ops` namespace is reserved for the `ops` package.
+Likewise, the `charms` namespace is best left for charmcraft managed libs.
+
+If your library should only be used by your own charms, you don't need to publish it to PyPI.
+In this case, you don't need to use the `charmlibs` namespace either,
+but feel free to do so if it's helpful.
+The next section suggests alternative distribution methods for this case.
+
 ````{tip}
 To make a namespace package,
 nest your package in an empty directory with the namespace name,
@@ -54,19 +67,6 @@ Likewise, there is no need to install an actual package named `charmlibs`
 but solely to reserve the package name as a namespace for charm libraries,
 and to make charm library documentation easier to find.
 ````
-
-If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname`.
-For repositories containing several libraries, consider `$teamname-charmlibs`.
-
-Do use `charmlibs` namespace if your library is intended for public use.
-Don't use the `ops` or `charm` namespaces for your libraries.
-It will be easier for charmers to follow your code if the `ops` namespace is reserved for the `ops` package.
-Likewise, the `charms` namespace is best left for charmcraft managed libs.
-
-If your library should only be used by your own charms, you don't need to publish it to PyPI.
-In this case, you don't need to use the `charmlibs` namespace either,
-but feel free to do so if it's helpful.
-The next section suggests alternative distribution methods for this case.
 
 (python-package-distribution)=
 ## How to distribute your Python package
