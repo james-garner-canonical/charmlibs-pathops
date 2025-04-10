@@ -91,7 +91,7 @@ and create a Github workflow triggered by a version tag.
 For example:
 
 ```yaml
-# publish.yaml
+# .github/workflows/publish.yaml
 on:
   push:
     tags:
