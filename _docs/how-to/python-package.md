@@ -1,9 +1,8 @@
 (how-to-python-package)=
 # How to distribute charm libraries
 
-While there are multiple ways to share code between charms,
-including {doc}`charmcraft fetch-libs <charmcraft:reference/commands/fetch-libs>`,
-this how-to focuses specifically on Python packages.
+This guide details when and how you should create your charm libraries as Python packages
+(as opposed to {doc}`charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`).
 
 (when-to-python-package)=
 ## When to use a Python package
