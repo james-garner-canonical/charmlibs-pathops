@@ -4,6 +4,7 @@
 This guide details when and how you should create your charm libraries as Python packages
 (as opposed to {doc}`charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`).
 
+
 (when-to-python-package)=
 ## When to use a Python package
 
@@ -22,6 +23,7 @@ it may still be worthwhile to use a charmcraft lib,
 since the library may be associated with a single charm,
 and there is existing infrastructure and documentation supporting this pattern.
 However, the reasons listed above should take priority even in this case.
+
 
 (python-package-name)=
 ## Naming and namespacing your Python package
@@ -68,6 +70,7 @@ but solely to reserve the package name as a namespace for charm libraries,
 and to make charm library documentation easier to find.
 ````
 
+
 (python-package-distribution)=
 ## How to distribute your Python package
 
@@ -81,6 +84,7 @@ Using a git dependency
 or skipping distribution in favour of packing the local files with your charm
 may be appropriate if your library is purely for your own charms,
 and is not intended for external users.
+
 
 (python-package-distribution-pypi)=
 ### PyPI
@@ -121,6 +125,7 @@ Therefore, if you’re going to publish on PyPI, we highly recommend that you us
 
 A non-dev/alpha/beta/etc qualified 1.x release to PyPI signifies that your library is ready for public consumption.
 You should also communicate this through the ["Development Status" Trove classifier](https://pypi.org/classifiers/) in your `pyproject.toml`.
+
 
 (python-package-distribution-git)=
 ### Git
@@ -183,6 +188,7 @@ dependencies = [
 
 For `poetry` see [here](https://python-poetry.org/docs/dependency-specification/#git-dependencies).
 
+
 (python-package-distribution-local)=
 ### Local Files
 
@@ -203,15 +209,10 @@ $repo/
 ```
 
 Then you could leave `$package` out of your `$charm/pyproject.toml` during development.
-
-To provision a development virtual environment in `$repo` you could `uv venv` and then `uv pip install -e ./$charm -e ./$package`.
-Using editable installs ensures that the virtual environment reflects all changes made to either `$charm` or `$package`.
-To provision a development virtual environment in `$charm` you could `uv sync` and then `uv pip install -e ../$package`.
-Since `$package` doesn't depend on `$charm`, its development virtual environment doesn't require any special commands, just a `uv sync`.
-
-When it comes time to pack `$charm` for a release or testing, you could do something like this:
+When it comes time to pack `$charm` for release or integration testing, you could do something like this:
 
 ```bash
+cd $repo
 cp -r ./$charm ./pack-$charm
 cp -r ./$package ./pack-$charm/
 cd ./pack-$charm
@@ -219,7 +220,29 @@ uv add ./$package
 charmcraft pack
 ```
 
-The approach should be the same if you have multiple charms, (for example) `$charm-kubernetes` and `$charm-machine`, or even multiple packages.
+To provision virtual environments for development (including linting and unit testing) we can use editable installs.
+For a `$repo` wide virtual environment for conveniently working on both `$package` and `$charm`, you could do this:
+```bash
+cd $repo
+uv venv
+uv pip install -e ./$charm -e ./$package
+```
+Using editable installs ensures that the virtual environment reflects all changes made to either `$charm` or `$package`.
+You can then point your editor to the python interpreter in `.venv`, or [activate it manually](https://docs.python.org/3/library/venv.html#how-venvs-work).
+To create a virtual environment with a specific python version, use the `--python` flag or define it in a `$repo` level `pyproject.toml`.
+If you take this approach, a `$repo` level `pyproject.toml` is a good place to put your common dev dependencies like `ruff` and `codespell`.
+You can remove the created `.venv` directory to start afresh.
+
+If you wanted a virtual environment for `$charm` specifically, you could do:
+```bash
+cd $charm
+uv sync  # install deps from $charm/pyproject.toml
+uv pip install -e ../$package
+```
+Since `$package` doesn't depend on `$charm`, its development virtual environment doesn't require any special commands, just a `uv sync`.
+
+The approach should be the same if you have multiple charms, (for example `$charm-kubernetes` and `$charm-machine`), or multiple packages.
+
 
 (python-package-deps)=
 ## Dependencies
