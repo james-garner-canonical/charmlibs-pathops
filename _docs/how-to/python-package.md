@@ -133,18 +133,7 @@ You should also communicate this through the ["Development Status" Trove classif
 You can get started by distributing your library as a Python package with very little friction using GitHub.
 This is good for prototyping, or when first transitioning from a charmcraft-style library to a Python package,
 and may be a good fit for libraries that are intended for team-internal use.
-Once you’re done prototyping and the library is ready for external users, you’ll want to start using PyPI instead.
-
-Git dependencies are limited in that they don’t allow for sophisticated dependency resolution.
-You can only specify an exact reference (tag, commit, or branch).
-You can’t specify a version range.
-This is problematic if your library has dependencies,
-as having to request a specific version of your library makes it more likely that any dependency clashes will require manual intervention.
-It becomes even more problematic if your library may be depended on by other charm libraries.
-Requesting an exact hash or a branch tip may be sufficient for team-internal projects and prototyping,
-but proper versioning support is critical when sharing your library more widely,
-which will require promoting your package to PyPI.
-Tools that scan for security vulnerabilities may also struggle with such dependencies.
+If your library is intended for external users, consider whether PyPI would be a better choice.
 
 You’ll need to include `git` in your charm’s build dependencies to use a GitHub-hosted library in your charm:
 
@@ -162,6 +151,10 @@ ops @ git+https://github.com/canonical/operator@main
 
 You can specify any branch, tag, or commit after the `@`.
 If you leave it off, it will default to `@main`.
+You can’t specify a version range.
+This can make dependency resolution problematic for users,
+especially if your library is depended on by other charm libraries.
+Tools that scan versions for security vulnerabilities may also struggle with such dependencies.
 
 If your package is in a subdirectory of your repository
 (for example if you use a monorepo,
