@@ -49,7 +49,7 @@ The next section suggests alternative distribution methods for this case.
 To make a namespace package,
 nest your package in an empty directory with the namespace name,
 in this case `charmlibs`.
-For example, the file structure for your library might look like:
+For example, the file structure for your library might look like this:
 ```
 src/
   charmlibs/
