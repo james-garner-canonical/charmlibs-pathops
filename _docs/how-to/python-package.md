@@ -7,23 +7,21 @@ This guide details when and how you should create your charm libraries as Python
 (when-to-python-package)=
 ## When to use a Python package
 
-If your library relies on any dependencies outside the Python standard library and the `ops` package, you should definitely use a Python package.
+You should use a Python package for your charm library if:
 
-If a charm library seems like it will be difficult to manage as a single file, this is another strong sign that it should be a Python package.
+- The library relies on any dependencies other than `ops` and the Python standard library.
 
-For any new libraries that are not logically associated with a single charm,
-including those that are used by both the charmed machine and Kubernetes versions of a piece of software,
-consider if using a Python package will make your life easier.
-This is especially likely to be the case if you are sharing multiple modules between machine and Kubernetes versions of a charm,
-where the individual modules would not obviously be separate Python packages
--- in this case a single Python package will be easier to manage than multiple (perhaps interdependent) charmcraft libs.
+- The library will be difficult to manage as a single file.
 
-The main case where charmcraft libs are likely to be a good alternative to a Python package is for relations.
-In this case, the library is associated with a specific charm,
-it is likely to be simple enough for a single file (as a lot of logic likely lives in the related charms),
+- The library isn't logically associated with a single charm.
+
+- You need to share modules between the machine and Kubernetes versions of a charm.
+
+For a relation library,
+it may still be worthwhile to use a charmcraft lib,
+since the library may be associated with a single charm,
 and there is existing infrastructure and documentation supporting this pattern.
-However, if the relation library relies on any additional dependencies,
-it would probably still be better to make it a Python package.
+However, the reasons listed above should take priority even in this case.
 
 (python-package-name)=
 ## Naming and namespacing your Python package
