@@ -42,7 +42,7 @@ All this means is that your actual package is nested under an empty directory na
 Your file structure would look like `src/charmlibs/$libname/__init__.py`.
 There is no need to install the actual package named `charmlibs`.
 It exists on PyPI solely to reserve the package name as a namespace for charm libraries,
-and to aid charm library discoverability.
+and to make the charm library easier to find.
 
 If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname` as well.
 For repositories containing several libraries, consider `$teamname-charmlibs`,
@@ -95,7 +95,7 @@ You should also communicate this through the ["Development Status" Trove classif
 ### Git
 
 You can get started by distributing your library as a Python package with very little friction using GitHub.
-This is good for prototyping, or when first transitioning from a charm-lib to a Python package,
+This is good for prototyping, or when first transitioning from a charmcraft-style library to a Python package,
 and may be a good fit for libraries that are intended for team-internal use.
 Once you’re done prototyping and the library is ready for external users, you’ll want to start using PyPI instead.
 
