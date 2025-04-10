@@ -224,15 +224,14 @@ The approach should be the same if you have multiple charms, (for example) `$cha
 (python-package-deps)=
 ## Dependencies
 
-Declare `~=` the lowest `2.X` `ops` version that you support.
-This is broadly equivalent to `>=2.X,==2.*`.
-This futureproofs you against potential future breaking changes in `ops` 3.
-There should be no need to declare a maximum `ops` version within the current `2.X` releases,
-as `ops` respects semantic versioning and has a strong promise of backwards compatibility.
+Your library is not required to depend on `ops`.
+If you do require `ops` as a dependency, specify `ops>=2.X,<3`,
+where 2.X is the lowest `ops` version that you support,
+and 3 is the next major version of `ops`,
+protecting your library from breaking changes.
 When creating a new library, it’s fine to declare the latest `ops` release as the minimum supported version,
-as charms are encouraged to always use the latest release of `ops`.
+as charms are encouraged to always use the latest version of `ops`.
 
-For other dependencies, ideally follow a similar approach.
+For other dependencies, ideally follow a similar approach:
 `>=` the lowest version that you need, `<` the next potential (or actual) breaking version.
-Keeping these dependencies permissive increases the number of charms that can use your library
-without worrying too much about their other dependencies.
+Keeping these dependencies permissive increases the number of charms that will be able to use your library.
