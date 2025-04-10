@@ -27,11 +27,9 @@ However, the reasons listed above should take priority even in this case.
 ## Naming and namespacing your Python package
 
 For charm libraries intended for public use and distributed as Python packages,
-we recommend using the `charmlibs` namespace,
-particularly if your library is intended for other charmers to use.
+we recommend using the `charmlibs` namespace.
 The package name should be `charmlibs-$libname`,
-imported as `from charmlibs import $libname`
-(or `import charmlibs.$libname as $libname` if you're stuck on an older `pyright` version that complains about the other form).
+imported as `from charmlibs import $libname`.
 
 The package should be a [namespace package](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/)
 using the `charmlibs` namespace.
