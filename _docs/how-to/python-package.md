@@ -160,13 +160,8 @@ Then you can specify the dependency in your requirements like this:
 ops @ git+https://github.com/canonical/operator@main
 ```
 
-If you don’t specify a branch or tag, it will default to `main`.
-This is probably sufficient for early prototyping and internal use.
-If you push git tags for releases or do releases on GitHub, you could point to the exact release tag, e.g. `@v2.18.1`.
-Another approach which could be useful for prototyping would be to pin on a branch,
-e.g. `stable/candidate/beta/edge`, `dev/main`, `v0/v1/v2`, etc.
-These approaches may be useful as your library stabilises internally, but if you find yourself thinking about a scheme like this,
-it’s probably a sign to switch to PyPI and use semantic versioning.
+You can specify any branch, tag, or commit after the `@`.
+If you leave it off, it will default to `@main`.
 
 If your package is in a subdirectory of your repository
 (for example if you use a monorepo,
