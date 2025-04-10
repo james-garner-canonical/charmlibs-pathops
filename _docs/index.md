@@ -18,8 +18,8 @@ Pathops is a Python library providing
 a {doc}`pathlib <python:library/pathlib>`-like interface
 for [Juju](https://juju.is/) {ref}`Kubernetes charms <juju:kubernetes-charm>`
 to interact with files in their workload container.
-Interaction with remote files is performed via [ContainerPath](pathops.ContainerPath) objects.
-A [PathProtocol](pathops.PathProtocol) class is provided for use with type annotations,
-and a [LocalPath](pathops.LocalPath) class is provided which implements this protocol for local files.
+Charms can use [ContainerPath](pathops.ContainerPath) to interact with files in the workload container,
+or [LocalPath](pathops.LocalPath) to interact with local files using the same API.
+Code designed to work for both cases can use [PathProtocol](pathops.PathProtocol) in type annotations.
 
 Pathops is [available on PyPI](https://pypi.org/project/charmlibs-pathops). Read the [Pathops reference documentation](pathops).
