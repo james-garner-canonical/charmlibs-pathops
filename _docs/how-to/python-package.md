@@ -85,13 +85,30 @@ and is not intended for external users.
 (python-package-distribution-pypi)=
 ### PyPI
 
-Use [trusted publishing](https://docs.pypi.org/trusted-publishers/) to publish directly from your github repository.
-You can use the [actions/attest-build-provenance](https://github.com/actions/attest-build-provenance)
-and [pypa/gh-action-pypi-publish](https://github.com/pypa/gh-action-pypi-publish) actions in your workflows.
-Trigger the workflow based on a version tag being pushed.
-Feel free to check out this project's workflows for an example.
-Make sure that your repository only allows trusted contributors write access.
+To publish your library on PyPI,
+set up [trusted publishing](https://docs.pypi.org/trusted-publishers/) on PyPI,
+and create a Github workflow triggered by a version tag.
+For example:
 
+```yaml
+# publish.yaml
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+jobs:
+  build-n-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv build
+      - uses: pypa/gh-action-pypi-publish@release/v1
+```
+
+Make sure that your repository only allows trusted contributors write access.
 The team manager and another truster team member should be the package owners on PyPI,
 using their Canonical email addresses.
 Make sure to also claim your package on [Test PyPI](https://test.pypi.org/),
