@@ -71,10 +71,14 @@ and to make charm library documentation easier to find.
 (python-package-distribution)=
 ## How to distribute your Python package
 
-Distributing your package on PyPI has the most benefits.
-However, you may find it useful to begin by distributing your package via a git url during development and internal use.
+Distributing your package on PyPI allows your users to use dependency ranges,
+improves discoverability,
+and makes it easier for users to install your library.
+However, it requires some additional work to publish,
+and is most appropriate if your library is intended for public use.
+You may find it useful to begin by distributing your package via a git url during development and team internal use.
 Using a git dependency
-or skipping distribution in favour of packing the local package
+or skipping distribution in favour of packing the local files with your charm
 may be appropriate if your library is purely for your own charms,
 and is not intended for external users.
 
