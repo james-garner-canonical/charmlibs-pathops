@@ -146,7 +146,7 @@ parts:
 Then you can specify the dependency in your requirements like this:
 
 ```
-ops @ git+https://github.com/canonical/operator@main
+charmlibs-pathops @ git+https://github.com/canonical/charmtech-charmlibs@main#subdirectory=pathops
 ```
 
 You can specify any branch, tag, or commit after the `@`.
@@ -156,14 +156,12 @@ This can make dependency resolution problematic for users,
 especially if your library is depended on by other charm libraries.
 Tools that scan versions for security vulnerabilities may also struggle with such dependencies.
 
-If your package is in a subdirectory of your repository
-(for example if you use a monorepo,
-or collect your libraries into a single repository
--- or if you’re just developing in an existing repository while prototyping):
-
-```
-ops-testing @ git+https://github.com/canonical/operator@main#subdirectory=testing
-```
+If your package is in a subdirectory of your repository,
+for example in a monorepo (like `charmlibs-pathops`),
+or when developing libraries alongside charms,
+you'll need to specify the subdirectory.
+If your library has a dedicated repository,
+leave off the subdirectory and it will default to the repository root.
 
 In `pyproject.toml`, quote the entire string above in your dependencies list,
 or use `uv add git+...` to have `uv` add `charmlibs-pathops` to your dependencies list,
