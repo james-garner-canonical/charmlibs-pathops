@@ -146,7 +146,7 @@ but proper versioning support is critical when sharing your library more widely,
 which will require promoting your package to PyPI.
 Tools that scan for security vulnerabilities may also struggle with such dependencies.
 
-You’ll need to include git in your charm’s build dependencies to use a GitHub-hosted library in your charm:
+You’ll need to include `git` in your charm’s build dependencies to use a GitHub-hosted library in your charm:
 
 ```yaml
 parts:
@@ -172,15 +172,9 @@ or collect your libraries into a single repository
 ops-testing @ git+https://github.com/canonical/operator@main#subdirectory=testing
 ```
 
-If you're using `pyproject.toml` (recommended!):
-
-```toml
-[project]
-dependencies = [
-  "ops-testing @ git+https://github.com/canonical/operator@main#subdirectory=testing",
-]
-```
-
+In `pyproject.toml`, quote the entire string above in your dependencies list,
+or use `uv add git+...` to have `uv` add `charmlibs-pathops` to your dependencies list,
+and the git referece to `tool.uv.sources`.
 For `poetry` see [here](https://python-poetry.org/docs/dependency-specification/#git-dependencies).
 
 
