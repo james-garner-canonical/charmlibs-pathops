@@ -27,32 +27,46 @@ However, the reasons listed above should take priority even in this case.
 ## Naming and namespacing your Python package
 
 For charm libraries intended for public use and distributed as Python packages,
-we recommend using the `charmlibs` namespace.
-The package name should be `charmlibs-$libname`,
+the library should be a [namespace package](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/)
+using the `charmlibs` namespace.
+The distribution package name should be `charmlibs-$libname`,
 imported as `from charmlibs import $libname`.
 
-The package should be a [namespace package](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/)
-using the `charmlibs` namespace.
-All this means is that your actual package is nested under an empty directory named `charmlibs`.
-Your file structure would look like `src/charmlibs/$libname/__init__.py`.
-There is no need to install the actual package named `charmlibs`.
-It exists on PyPI solely to reserve the package name as a namespace for charm libraries,
-and to make the charm library easier to find.
+````{tip}
+To make a namespace package,
+nest your package in an empty directory with the namespace name,
+in this case `charmlibs`.
+For example, the file structure for your library might look like:
+```
+src/
+  charmlibs/
+    $libname/
+      __init__.py
+      ...
+tests/
+  unit/
+  integration/
+pyproject.toml
+```
+The `charmlibs` folder should not contain an `__init__.py` file.
+Likewise, there is no need to install an actual package named `charmlibs`
+-- this package does exist on PyPI,
+but solely to reserve the package name as a namespace for charm libraries,
+and to make charm library documentation easier to find.
+````
 
-If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname` as well.
-For repositories containing several libraries, consider `$teamname-charmlibs`,
-with the individual packages following the naming and namespace recommendations.
-These naming  recommendations do not apply to other repository organisation schemes,
-but we still recomend the `charmlibs` namespace if your library is intended for public use.
+If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname`.
+For repositories containing several libraries, consider `$teamname-charmlibs`.
 
-We don’t recommend using the `ops` or `charm` namespace for your charm libraries distributed as Python packages.
+Do use `charmlibs` namespace if your library is intended for public use.
+Don't use the `ops` or `charm` namespaces for your libraries.
 It will be easier for charmers to follow your code if the `ops` namespace is reserved for the `ops` package.
 Likewise, the `charms` namespace is best left for charmcraft managed libs.
 
-If your library is only intended to be used by your own charms,
-for example if you write a library to be used by the machine and Kubernetes versions of your charm,
-releasing a package on PyPI using this naming scheme may not be the right approach,
-as you don't necessarily want to advertise the library for public consumption.
+If your library should only be used by your own charms, you don't need to publish it to PyPI.
+In this case, you don't need to use the `charmlibs` namespace either,
+but feel free to do so if it's helpful.
+The next section suggests alternative distribution methods for this case.
 
 (python-package-distribution)=
 ## How to distribute your Python package
