@@ -90,6 +90,7 @@ set up [trusted publishing](https://docs.pypi.org/trusted-publishers/) on PyPI,
 and create a Github workflow triggered by a version tag.
 For example:
 
+<!-- TODO: use exact commits hashes in this workflow example -->
 ```yaml
 # .github/workflows/publish.yaml
 on:
