@@ -38,6 +38,7 @@ class Charm(ops.CharmBase):
         super().__init__(framework)
         framework.observe(self.on['ensure-contents'].action, self._on_ensure_contents)
         framework.observe(self.on['iterdir'].action, self._on_iterdir)
+        framework.observe(self.on['chown'].action, self._on_chown)
 
     def remove_path(self, path: pathops.PathProtocol, recursive: bool = False) -> None:
         raise NotImplementedError()
