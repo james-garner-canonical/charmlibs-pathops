@@ -30,6 +30,7 @@ import charmlibs.pathops as pathops
 
 logger = logging.getLogger(__name__)
 
+
 class Charm(ops.CharmBase):
     root: pathops.PathProtocol
 
