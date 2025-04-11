@@ -45,11 +45,13 @@ class RelativePathError(ValueError):
 class ContainerPath:
     r"""Implementation of :class:`PathProtocol` for Pebble-based workload containers.
 
-    Example::
+    The following examples are all equivalent::
 
         container = self.unit.get_container('c')
-        ContainerPath(pathlib.Path('/foo'), container=container)
+        ContainerPath('/foo', container=container)
         ContainerPath('/', 'foo', container=container)
+        ContainerPath(pathlib.PurePath('/foo'), container=container)
+        ContainerPath(pathlib.PurePath('/'), 'foo', container=container)
 
     :class:`str` follows the :mod:`pathlib` convention and returns the string representation of
     the path. :class:`ContainerPath` return the string representation of the path in the remote
