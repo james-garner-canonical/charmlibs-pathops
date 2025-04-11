@@ -112,7 +112,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
 ```
 
-Make sure that your repository only allows trusted contributors write access.
+Make sure that your repository only allows write access from trusted contributors.
 The team manager and another truster team member should be the package owners on PyPI,
 using their Canonical email addresses.
 Make sure to also claim your package on [Test PyPI](https://test.pypi.org/),
@@ -122,7 +122,7 @@ All team members can be owners on Test PyPI.
 A major benefit of publishing on PyPI is that users of your library can specify version ranges in their dependencies.
 Therefore, if you’re going to publish on PyPI, we highly recommend that you use semantic versioning for your library.
 
-A non-dev/alpha/beta/etc qualified 1.x release to PyPI signifies that your library is ready for public consumption.
+A 1.x release to PyPI that isn't qualified with dev/alpha/beta/etc signifies that your library is ready for public consumption.
 You should also communicate this through the ["Development Status" Trove classifier](https://pypi.org/classifiers/) in your `pyproject.toml`.
 
 
@@ -134,7 +134,7 @@ This is good for prototyping, or when first transitioning from a charmcraft-styl
 and may be a good fit for libraries that are intended for team-internal use.
 If your library is intended for external users, consider whether PyPI would be a better choice.
 
-You’ll need to include `git` in your charm’s build dependencies to use a GitHub-hosted library in your charm:
+You’ll need to include `git` in your charm’s build dependencies:
 
 ```yaml
 parts:
@@ -142,7 +142,7 @@ parts:
     build-packages: [git]
 ```
 
-Then you can specify the dependency in your requirements like this:
+Then you can specify the dependency in your requirements:
 
 ```
 charmlibs-pathops @ git+https://github.com/canonical/charmtech-charmlibs@main#subdirectory=pathops
@@ -162,14 +162,13 @@ you'll need to specify the subdirectory.
 If your library has a dedicated repository,
 leave off the subdirectory and it will default to the repository root.
 
-In `pyproject.toml`, quote the entire string above in your dependencies list,
-or use `uv add git+...` to have `uv` add `charmlibs-pathops` to your dependencies list,
-and the git referece to `tool.uv.sources`.
-For `poetry` see [here](https://python-poetry.org/docs/dependency-specification/#git-dependencies).
+In `pyproject.toml`, quote the entire string starting `charmlibs-pathops @ git+...` in your dependencies list.
+Alternatively, use `uv add git+...` to have `uv` add `charmlibs-pathops` to your dependencies list and the git reference to `tool.uv.sources`.
+For `poetry` see [the `poetry` docs](https://python-poetry.org/docs/dependency-specification/#git-dependencies).
 
 
 (python-package-distribution-local)=
-### Local Files
+### Local files
 
 If you're developing a Python package in the same repository as your charm(s),
 it may be simplest to skip distribution and use the local files when packing the charm.
@@ -208,6 +207,7 @@ uv pip install -e ./$charm -e ./$package
 ```
 Using editable installs ensures that the virtual environment reflects all changes made to either `$charm` or `$package`.
 You can then point your editor to the python interpreter in `.venv`, or [activate it manually](https://docs.python.org/3/library/venv.html#how-venvs-work).
+
 To create a virtual environment with a specific python version, use the `--python` flag or define it in a `$repo` level `pyproject.toml`.
 If you take this approach, a `$repo` level `pyproject.toml` is a good place to put your common dev dependencies like `ruff` and `codespell`.
 You can remove the created `.venv` directory to start afresh.
@@ -229,8 +229,8 @@ The approach should be the same if you have multiple charms, (for example `$char
 Your library is not required to depend on `ops`.
 If you do require `ops` as a dependency, specify `ops>=2.X,<3`,
 where 2.X is the lowest `ops` version that you support,
-and 3 is the next major version of `ops`,
-protecting your library from breaking changes.
+and 3 is the next major version of `ops`.
+This protects your library from breaking changes.
 When creating a new library, it’s fine to declare the latest `ops` release as the minimum supported version,
 as charms are encouraged to always use the latest version of `ops`.
 

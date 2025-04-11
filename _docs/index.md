@@ -8,7 +8,9 @@ how-to/index
 reference/index
 ```
 
-This is the documentation website for Charm Tech's charm libraries (those that are distributed as Python packages).
+This is the Charm Tech team at Canonical's documentation website for charm libraries.
+It hosts the documentation for the team's charm libraries that are distributed as Python packages,
+as well as general documentation about charm libraries.
 
 You can also read our {ref}`guidance on distributing charm libraries as Python packages <how-to-python-package>`.
 
