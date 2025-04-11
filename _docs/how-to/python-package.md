@@ -219,7 +219,12 @@ cd $charm
 uv sync  # install deps from $charm/pyproject.toml
 uv pip install -e ../$package
 ```
-Since `$package` doesn't depend on `$charm`, its development virtual environment doesn't require any special commands, just a `uv sync`.
+Since `$package` doesn't depend on `$charm`, its development virtual environment doesn't require an editable install:
+
+```bash
+cd $package
+uv sync  # install deps from $package/pyproject.toml
+```
 
 The approach should be the same if you have multiple charms, (for example `$charm-kubernetes` and `$charm-machine`), or multiple packages.
 
