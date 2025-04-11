@@ -56,12 +56,17 @@ def test_iterdir(juju: jubilant.Juju, charm: str):
 )
 @pytest.mark.parametrize('method', ['mkdir', 'write_bytes', 'write_text'])
 def test_chown(juju: jubilant.Juju, charm: str, method: str, user: str | None, group: str | None):
+    print('juju run')
     result = juju.run(
         f'{charm}/0',
         'chown',
         params={'method': method, 'user': user or '', 'group': group or ''},
     )
+    print(result)
+    print(result.results)
     if user is not None:
+        print('asserting on user')
         assert result.results['user'] == user
     if group is not None:
+        print('asserting on group')
         assert result.results['group'] == group
