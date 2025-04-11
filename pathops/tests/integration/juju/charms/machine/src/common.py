@@ -61,7 +61,7 @@ class Charm(ops.CharmBase):
     def _on_chown(self, event: ops.ActionEvent) -> None:
         path = self.root / 'unique-temp-name'
         if path.exists():
-            event.fail("File already exists.")
+            event.fail('File already exists.')
             return
         user: str | None = event.params['user'] or None
         group: str | None = event.params['group'] or None
