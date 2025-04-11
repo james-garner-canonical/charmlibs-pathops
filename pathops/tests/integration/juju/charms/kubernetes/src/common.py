@@ -84,7 +84,7 @@ class Charm(ops.CharmBase):
         except Exception as e:
             event.fail(f'Exception: {e!r}')
             return
-        results = {'user': path.owner, 'group': path.group}
+        results = {'user': path.owner(), 'group': path.group()}
         logger.error(results)
         self.remove_path(path)
         event.set_results(results)
