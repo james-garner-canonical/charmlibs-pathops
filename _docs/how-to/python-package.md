@@ -1,7 +1,8 @@
 (how-to-python-package)=
 # How to distribute charm libraries
 
-This guide details when and how you should create your charm libraries as Python packages, instead of {doc}`Charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`.
+This guide details when and how you should create your charm libraries as Python packages,
+instead of {doc}`Charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`.
 
 
 (when-to-python-package)=
