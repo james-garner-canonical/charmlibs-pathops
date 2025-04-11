@@ -1,8 +1,7 @@
 (how-to-python-package)=
 # How to distribute charm libraries
 
-This guide details when and how you should create your charm libraries as Python packages,
-instead of {doc}`Charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`.
+This guide details when and how you should create your charm libraries as Python packages, instead of {doc}`Charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`.
 
 
 (when-to-python-package)=
@@ -18,43 +17,27 @@ You should use a Python package for your charm library if:
 
 - You need to share modules between the machine and Kubernetes versions of a charm.
 
-For a relation library,
-it may still be worthwhile to use a Charmcraft lib,
-since the library may be associated with a single charm.
-There's also infrastructure and documentation that supports this pattern.
-However, even in this case, the reasons listed above should take priority.
+For a relation library, it may still be worthwhile to use a Charmcraft lib, since the library may be associated with a single charm. There's also infrastructure and documentation that supports this pattern. However, even in this case, the reasons listed above should take priority.
 
 
 (python-package-name)=
 ## Naming and namespacing your Python package
 
-For charm libraries intended for public use and distributed as Python packages,
-the library should be a [namespace package](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/)
-using the `charmlibs` namespace.
-The distribution package name should be `charmlibs-$libname`,
-imported as `from charmlibs import $libname`.
+For charm libraries intended for public use and distributed as Python packages, the library should be a [namespace package](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/) using the `charmlibs` namespace. The distribution package name should be `charmlibs-$libname`, imported as `from charmlibs import $libname`.
 
-If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname`.
-For a repository containing several libraries, consider naming the repository `$teamname-charmlibs`.
+If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname`. For a repository containing several libraries, consider naming the repository `$teamname-charmlibs`.
 
 ```{important}
-Don't use the `ops` or `charm` namespaces for your libraries.
-It will be easier for charmers to follow your code if the `ops` namespace is reserved for the `ops` package.
-Likewise, the `charms` namespace is best left for charmcraft managed libs.
+Don't use the `ops` or `charm` namespaces for your libraries. It will be easier for charmers to follow your code if the `ops` namespace is reserved for the `ops` package. Likewise, the `charms` namespace is best left for charmcraft managed libs.
 ```
 
-If your library should only be used by your own charms, you don't need to publish it to PyPI.
-In this case, you don't need to use the `charmlibs` namespace either,
-but feel free to do so if it's helpful.
-The next section suggests alternative distribution methods for this case.
+If your library should only be used by your own charms, you don't need to publish it to PyPI. In this case, you don't need to use the `charmlibs` namespace either, but feel free to do so if it's helpful. The next section suggests alternative distribution methods for this case.
 
 
 (namespace-package)=
 ### Making a namespace package
-To make a namespace package,
-nest your package in an empty directory with the namespace name,
-in this case `charmlibs`.
-For example, the file structure for your library might look like this:
+To make a namespace package, nest your package in an empty directory with the namespace name, in this case `charmlibs`. For example, the file structure for your library might look like this:
+
 ```
 src/
   charmlibs/
@@ -66,33 +49,22 @@ tests/
   integration/
 pyproject.toml
 ```
-The `charmlibs` folder must not contain an `__init__.py` file.
-Likewise, there is no need to install an actual package named `charmlibs`
--- this package does exist on PyPI,
-but solely to reserve the package name as a namespace for charm libraries,
-and to make charm library documentation easier to find.
+
+The `charmlibs` folder must not contain an `__init__.py` file. Likewise, there is no need to install an actual package named `charmlibs` -- this package does exist on PyPI, but solely to reserve the package name as a namespace for charm libraries, and to make charm library documentation easier to find.
 
 
 (python-package-distribution)=
 ## How to distribute your Python package
 
-Distributing your package on PyPI allows your users to use dependency ranges,
-improves discoverability,
-and makes it easier for users to install your library.
-However, it requires some additional work to publish,
-and is most appropriate if your library is intended for public use.
+Distributing your package on PyPI allows your users to use dependency ranges, improves discoverability, and makes it easier for users to install your library. However, it requires some additional work to publish, and is most appropriate if your library is intended for public use.
 
-During development and team internal use, you may find it useful to begin by distributing your package by sharing a git URL.
-If your library is purely for your own charms and not intended for external users, it may be appropriate to use a git dependency or pack the local files with your charm.
+During development and team internal use, you may find it useful to begin by distributing your package by sharing a git URL. If your library is purely for your own charms and not intended for external users, it may be appropriate to use a git dependency or pack the local files with your charm.
 
 
 (python-package-distribution-pypi)=
 ### PyPI
 
-To publish your library on PyPI,
-set up [trusted publishing](https://docs.pypi.org/trusted-publishers/) on PyPI,
-and create a Github workflow triggered by a version tag.
-For example:
+To publish your library on PyPI, set up [trusted publishing](https://docs.pypi.org/trusted-publishers/) on PyPI, and create a Github workflow triggered by a version tag. For example:
 
 <!-- TODO: use exact commits hashes in this workflow example -->
 ```yaml
@@ -114,27 +86,17 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
 ```
 
-Make sure that your repository only allows write access from trusted contributors.
-The team manager and another trusted team member should be the package owners on PyPI,
-using their Canonical email addresses.
-Make sure to also claim your package on [Test PyPI](https://test.pypi.org/),
-and setup a workflow for publishing there.
-All team members can be owners on Test PyPI.
+Make sure that your repository only allows write access from trusted contributors. The team manager and another trusted team member should be the package owners on PyPI, using their Canonical email addresses. Make sure to also claim your package on [Test PyPI](https://test.pypi.org/), and setup a workflow for publishing there. All team members can be owners on Test PyPI.
 
-A major benefit of publishing on PyPI is that users of your library can specify version ranges in their dependencies.
-Therefore, if you’re going to publish on PyPI, we highly recommend that you use semantic versioning for your library.
+A major benefit of publishing on PyPI is that users of your library can specify version ranges in their dependencies. Therefore, if you’re going to publish on PyPI, we highly recommend that you use semantic versioning for your library.
 
-A 1.x release to PyPI that isn't qualified with dev/alpha/beta/etc signifies that your library is ready for public consumption.
-You should also communicate this through the ["Development Status" Trove classifier](https://pypi.org/classifiers/) in your `pyproject.toml`.
+A 1.x release to PyPI that isn't qualified with dev/alpha/beta/etc signifies that your library is ready for public consumption. You should also communicate this through the ["Development Status" Trove classifier](https://pypi.org/classifiers/) in your `pyproject.toml`.
 
 
 (python-package-distribution-git)=
 ### Git
 
-You can get started by distributing your library as a Python package with very little friction using GitHub.
-This is good for prototyping, or when first transitioning from a charmcraft-style library to a Python package,
-and may be a good fit for libraries that are intended for team-internal use.
-If your library is intended for external users, consider whether PyPI would be a better choice.
+You can get started by distributing your library as a Python package with very little friction using GitHub. This is good for prototyping, or when first transitioning from a charmcraft-style library to a Python package, and may be a good fit for libraries that are intended for team-internal use. If your library is intended for external users, consider whether PyPI would be a better choice.
 
 You’ll need to include `git` in your charm’s build dependencies:
 
@@ -150,33 +112,17 @@ Then you can specify the dependency in your requirements:
 charmlibs-pathops @ git+https://github.com/canonical/charmtech-charmlibs@main#subdirectory=pathops
 ```
 
-You can specify any branch, tag, or commit after the `@`.
-If you leave it off, it will default to `@main`.
-You can’t specify a version range.
-This can make dependency resolution problematic for users,
-especially if your library is depended on by other charm libraries.
-Tools that scan versions for security vulnerabilities may also struggle with such dependencies.
+You can specify any branch, tag, or commit after the `@`. If you leave it off, it will default to `@main`. You can’t specify a version range. This can make dependency resolution problematic for users, especially if your library is depended on by other charm libraries. Tools that scan versions for security vulnerabilities may also struggle with such dependencies.
 
-If your package is in a subdirectory of your repository,
-for example in a monorepo (like the example above),
-or when developing libraries alongside charms,
-you'll need to specify the subdirectory.
-If your library has a dedicated repository,
-leave off the subdirectory and it will default to the repository root.
+If your package is in a subdirectory of your repository, for example in a monorepo (like the example above), or when developing libraries alongside charms, you'll need to specify the subdirectory. If your library has a dedicated repository, leave off the subdirectory and it will default to the repository root.
 
-In `pyproject.toml`, quote the entire string starting `charmlibs-pathops @ git+...` in your dependencies list.
-Alternatively, use `uv add git+...` to have `uv` add `charmlibs-pathops` to your dependencies list and the git reference to `tool.uv.sources`.
-For `poetry` see [the `poetry` docs](https://python-poetry.org/docs/dependency-specification/#git-dependencies).
+In `pyproject.toml`, quote the entire string starting `charmlibs-pathops @ git+...` in your dependencies list. Alternatively, use `uv add git+...` to have `uv` add `charmlibs-pathops` to your dependencies list and the git reference to `tool.uv.sources`. For `poetry` see [the `poetry` docs](https://python-poetry.org/docs/dependency-specification/#git-dependencies).
 
 
 (python-package-distribution-local)=
 ### Local files
 
-If you're developing a Python package in the same repository as your charm(s),
-it may be simplest to skip distribution and use the local files when packing the charm.
-This way, assuming a freshly checked out copy of the repository,
-the git commit fully specifies the contents of both your charm code and the package.
-For example, if you had the following structure:
+If you're developing a Python package in the same repository as your charm(s), it may be simplest to skip distribution and use the local files when packing the charm. This way, assuming a freshly checked out copy of the repository, the git commit fully specifies the contents of both your charm code and the package. For example, if you had the following structure:
 
 ```
 $repo/
@@ -188,8 +134,7 @@ $repo/
         pyproject.toml
 ```
 
-Then you could leave `$package` out of your `$charm/pyproject.toml` during development.
-When it comes time to pack `$charm` for release or integration testing, you could do something like this:
+Then you could leave `$package` out of your `$charm/pyproject.toml` during development. When it comes time to pack `$charm` for release or integration testing, you could do something like this:
 
 ```bash
 cd $repo
@@ -200,26 +145,26 @@ uv add ./$package
 charmcraft pack
 ```
 
-To provision virtual environments for development (including linting and unit testing) we can use editable installs.
-For a `$repo` wide virtual environment for conveniently working on both `$package` and `$charm`, you could do this:
+To provision virtual environments for development (including linting and unit testing) we can use editable installs. For a `$repo` wide virtual environment for conveniently working on both `$package` and `$charm`, you could do this:
+
 ```bash
 cd $repo
 uv venv
 uv pip install -e ./$charm -e ./$package
 ```
-Using editable installs ensures that the virtual environment reflects all changes made to either `$charm` or `$package`.
-You can then point your editor to the python interpreter in `.venv`, or [activate it manually](https://docs.python.org/3/library/venv.html#how-venvs-work).
 
-To create a virtual environment with a specific python version, use the `--python` flag or define it in a `$repo` level `pyproject.toml`.
-If you take this approach, a `$repo` level `pyproject.toml` is a good place to put your common dev dependencies like `ruff` and `codespell`.
-You can remove the created `.venv` directory to start afresh.
+Using editable installs ensures that the virtual environment reflects all changes made to either `$charm` or `$package`. You can then point your editor to the python interpreter in `.venv`, or [activate it manually](https://docs.python.org/3/library/venv.html#how-venvs-work).
+
+To create a virtual environment with a specific python version, use the `--python` flag or define it in a `$repo` level `pyproject.toml`. If you take this approach, a `$repo` level `pyproject.toml` is a good place to put your common dev dependencies like `ruff` and `codespell`. You can remove the created `.venv` directory to start afresh.
 
 If you wanted a virtual environment for `$charm` specifically, you could do:
+
 ```bash
 cd $charm
 uv sync  # install deps from $charm/pyproject.toml
 uv pip install -e ../$package
 ```
+
 Since `$package` doesn't depend on `$charm`, its development virtual environment doesn't require an editable install:
 
 ```bash
@@ -233,14 +178,6 @@ The approach should be the same if you have multiple charms, (for example `$char
 (python-package-deps)=
 ## Dependencies
 
-Your library is not required to depend on `ops`.
-If you do require `ops` as a dependency, specify `ops>=2.X,<3`,
-where 2.X is the lowest `ops` version that you support,
-and 3 is the next major version of `ops`.
-This protects your library from breaking changes.
-When creating a new library, it’s fine to declare the latest `ops` release as the minimum supported version,
-as charms are encouraged to always use the latest version of `ops`.
+Your library is not required to depend on `ops`. If you do require `ops` as a dependency, specify `ops>=2.X,<3`, where 2.X is the lowest `ops` version that you support, and 3 is the next major version of `ops`. This protects your library from breaking changes. When creating a new library, it’s fine to declare the latest `ops` release as the minimum supported version, as charms are encouraged to always use the latest version of `ops`.
 
-For other dependencies, ideally follow a similar approach:
-`>=` the lowest version that you need, `<` the next potential (or actual) breaking version.
-Keeping these dependencies permissive increases the number of charms that will be able to use your library.
+For other dependencies, ideally follow a similar approach: `>=` the lowest version that you need, `<` the next potential (or actual) breaking version. Keeping these dependencies permissive increases the number of charms that will be able to use your library.
