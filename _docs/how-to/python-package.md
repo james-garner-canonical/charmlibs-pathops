@@ -65,7 +65,7 @@ tests/
   integration/
 pyproject.toml
 ```
-The `charmlibs` folder should not contain an `__init__.py` file.
+The `charmlibs` folder must not contain an `__init__.py` file.
 Likewise, there is no need to install an actual package named `charmlibs`
 -- this package does exist on PyPI,
 but solely to reserve the package name as a namespace for charm libraries,
@@ -102,6 +102,7 @@ on:
       - 'v*.*.*'
 jobs:
   build-n-publish:
+     environment: pypi
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -113,7 +114,7 @@ jobs:
 ```
 
 Make sure that your repository only allows write access from trusted contributors.
-The team manager and another truster team member should be the package owners on PyPI,
+The team manager and another trusted team member should be the package owners on PyPI,
 using their Canonical email addresses.
 Make sure to also claim your package on [Test PyPI](https://test.pypi.org/),
 and setup a workflow for publishing there.
@@ -156,7 +157,7 @@ especially if your library is depended on by other charm libraries.
 Tools that scan versions for security vulnerabilities may also struggle with such dependencies.
 
 If your package is in a subdirectory of your repository,
-for example in a monorepo (like `charmlibs-pathops`),
+for example in a monorepo (like the example above),
 or when developing libraries alongside charms,
 you'll need to specify the subdirectory.
 If your library has a dedicated repository,
