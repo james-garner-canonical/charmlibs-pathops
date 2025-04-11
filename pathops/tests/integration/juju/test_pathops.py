@@ -52,7 +52,7 @@ def test_iterdir(juju: jubilant.Juju, charm: str):
         ('root', None),
         (None, 'root'),
         ('root', 'root'),
-    )
+    ),
 )
 @pytest.mark.parametrize('method', ['mkdir', 'write_bytes', 'write_text'])
 def test_chown(juju: jubilant.Juju, charm: str, method: str, user: str | None, group: str | None):
