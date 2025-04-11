@@ -12,11 +12,13 @@ This is the documentation website for Charm Tech's charm libraries (those that a
 
 You can also read our {ref}`guidance on distributing charm libraries as Python packages <how-to-python-package>`.
 
+If you're new charms, see {ref}`Juju | Charm <juju:charm>`.
+
 ## Pathops
 
 Pathops is a Python library providing
 a {doc}`pathlib <python:library/pathlib>`-like interface
-for [Juju](https://juju.is/) {ref}`Kubernetes charms <juju:kubernetes-charm>`
+for Kubernetes charms
 to interact with files in their workload container.
 Charms can use [ContainerPath](pathops.ContainerPath) to interact with files in the workload container,
 or [LocalPath](pathops.LocalPath) to interact with local files using the same API.

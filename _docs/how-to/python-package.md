@@ -1,8 +1,7 @@
 (how-to-python-package)=
 # How to distribute charm libraries
 
-This guide details when and how you should create your charm libraries as Python packages
-(as opposed to {doc}`charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`).
+This guide details when and how you should create your charm libraries as Python packages, instead of {doc}`Charmcraft-style charm libs <charmcraft:reference/commands/fetch-libs>`.
 
 
 (when-to-python-package)=
@@ -19,10 +18,10 @@ You should use a Python package for your charm library if:
 - You need to share modules between the machine and Kubernetes versions of a charm.
 
 For a relation library,
-it may still be worthwhile to use a charmcraft lib,
-since the library may be associated with a single charm,
-and there is existing infrastructure and documentation supporting this pattern.
-However, the reasons listed above should take priority even in this case.
+it may still be worthwhile to use a Charmcraft lib,
+since the library may be associated with a single charm.
+There's also infrastructure and documentation that supports this pattern.
+However, even in this case, the reasons listed above should take priority.
 
 
 (python-package-name)=
@@ -35,7 +34,7 @@ The distribution package name should be `charmlibs-$libname`,
 imported as `from charmlibs import $libname`.
 
 If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname`.
-For repositories containing several libraries, consider `$teamname-charmlibs`.
+For a repository containing several libraries, consider naming the repository `$teamname-charmlibs`.
 
 Do use `charmlibs` namespace if your library is intended for public use.
 Don't use the `ops` or `charm` namespaces for your libraries.
@@ -79,11 +78,9 @@ improves discoverability,
 and makes it easier for users to install your library.
 However, it requires some additional work to publish,
 and is most appropriate if your library is intended for public use.
-You may find it useful to begin by distributing your package via a git url during development and team internal use.
-Using a git dependency
-or skipping distribution in favour of packing the local files with your charm
-may be appropriate if your library is purely for your own charms,
-and is not intended for external users.
+
+During development and team internal use, you may find it useful to begin by distributing your package by sharing a git URL.
+If your library is purely for your own charms and not intended for external users, it may be appropriate to use a git dependency or pack the local files with your charm.
 
 
 (python-package-distribution-pypi)=
