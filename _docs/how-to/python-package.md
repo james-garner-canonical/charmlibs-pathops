@@ -36,17 +36,20 @@ imported as `from charmlibs import $libname`.
 If you have a dedicated repository for the charmlib, we recommend naming it `charmlibs-$libname`.
 For a repository containing several libraries, consider naming the repository `$teamname-charmlibs`.
 
-Do use `charmlibs` namespace if your library is intended for public use.
+```{important}
 Don't use the `ops` or `charm` namespaces for your libraries.
 It will be easier for charmers to follow your code if the `ops` namespace is reserved for the `ops` package.
 Likewise, the `charms` namespace is best left for charmcraft managed libs.
+```
 
 If your library should only be used by your own charms, you don't need to publish it to PyPI.
 In this case, you don't need to use the `charmlibs` namespace either,
 but feel free to do so if it's helpful.
 The next section suggests alternative distribution methods for this case.
 
-````{tip}
+
+(namespace-package)=
+### Making a namespace package
 To make a namespace package,
 nest your package in an empty directory with the namespace name,
 in this case `charmlibs`.
@@ -67,7 +70,6 @@ Likewise, there is no need to install an actual package named `charmlibs`
 -- this package does exist on PyPI,
 but solely to reserve the package name as a namespace for charm libraries,
 and to make charm library documentation easier to find.
-````
 
 
 (python-package-distribution)=
