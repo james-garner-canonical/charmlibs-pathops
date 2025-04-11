@@ -57,3 +57,28 @@ class Charm(ops.CharmBase):
         result = [str(p) for p in path.iterdir()]
         self.remove_path(path, recursive=True)
         event.set_results({'files': str(result)})
+
+    def _on_chown(self, event: ops.ActionEvent) -> None:
+        path = self.root / 'unique-temp-name'
+        if path.exists():
+            event.fail("File already exists.")
+            return
+        user: str | None = event.params['user'] or None
+        group: str | None = event.params['group'] or None
+        method: str = event.params['method']
+        try:
+            if method == 'mkdir':
+                path.mkdir(user=user, group=group)
+            elif method == 'write_bytes':
+                path.write_bytes(b'', user=user, group=group)
+            elif method == 'write_text':
+                path.write_text('', user=user, group=group)
+            else:
+                event.fail(f'Unknown method: {method!r}')
+                return
+        except Exception as e:
+            event.fail(f'Exception: {e!r}')
+            return
+        results = {'owner': path.owner, 'group': path.group}
+        self.remove_path(path)
+        event.set_results(results)
