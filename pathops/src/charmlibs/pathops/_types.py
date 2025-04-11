@@ -368,7 +368,7 @@ class PathProtocol(typing.Protocol):
         Args:
             data: The bytes to write, typically a :class:`bytes` object, but may also be a
                 :class:`bytearray` or :class:`memoryview`.
-            mode: The permissions to set on the file. Defaults to 0o644 (-rw-rw-r--).
+            mode: The permissions to set on the file. Defaults to 0o644 (-rw-r--r--).
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 
@@ -401,7 +401,7 @@ class PathProtocol(typing.Protocol):
 
         Args:
             data: The string to write. Newlines are not modified on writing.
-            mode: The permissions to set on the file. Defaults to 0o644 (-rw-rw-r--).
+            mode: The permissions to set on the file. Defaults to 0o644 (-rw-r--r--).
             user: The name of the user to set for the file.
             group: The name of the group to set for the file.
 
